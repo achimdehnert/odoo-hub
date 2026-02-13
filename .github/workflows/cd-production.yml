@@ -1,0 +1,31 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy"
+        required: false
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 46.225.127.211
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/odoo
+            export IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
+            docker compose pull
+            docker compose up -d --force-recreate
+            sleep 10
+            curl -sf http://127.0.0.1:8069/web/login || exit 1
+            echo "Deploy successful: $IMAGE_TAG"

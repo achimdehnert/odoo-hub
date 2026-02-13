@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  web:
+    image: ghcr.io/achimdehnert/odoo-hub:${IMAGE_TAG:-latest}
+    container_name: odoo_web
+    restart: unless-stopped
+    env_file: .env.prod
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - odoo_addons:/mnt/extra-addons
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["odoo", "--config=/etc/odoo/odoo.conf"]
+
+  db:
+    image: postgres:16-alpine
+    container_name: odoo_db
+    restart: unless-stopped
+    env_file: .env.prod
+    volumes:
+      - odoo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  odoo_data:
+  odoo_addons:
+  odoo_pgdata:
