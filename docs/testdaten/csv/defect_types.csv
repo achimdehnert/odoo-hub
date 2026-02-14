@@ -1,0 +1,31 @@
+code,name,category,severity,description,remedy
+POR-01,Gasporosität,porosity,major,Eingeschlossene Gase bilden Hohlräume im Gussteil.,Entgasung verbessern; Gießgeschwindigkeit reduzieren.
+POR-02,Mikroporosität,porosity,minor,Feinverteilte Poren im Gefüge.,Erstarrungsgeschwindigkeit erhöhen; Speiser optimieren.
+POR-03,Lunker (Makro),porosity,critical,Schwindungshohlraum durch unzureichende Nachspeisung.,Speiser optimieren; Erstarrungslenkung verbessern.
+POR-04,Mikrolunker,porosity,minor,Kleine Schwindungshohlräume im interdendritischen Bereich.,Legierungsmodifikation; Kornfeinung.
+POR-05,Einfallstelle,shrinkage,major,Sichtbare Einsinkung an der Oberfläche durch Volumenschwindung.,Wanddicke gleichmäßiger gestalten; Speiser näher positionieren.
+POR-06,Schrumpfungsporosität,porosity,major,Verteilte Porosität durch ungerichtete Erstarrung.,Erstarrungslenkung verbessern; Gießtemperatur anpassen.
+SRF-01,Kaltlauf,cold_shut,major,Zwei Schmelzefronten treffen aufeinander ohne zu verschweißen.,Gießtemperatur erhöhen; Anschnitt optimieren.
+SRF-02,Fließlinien,surface,minor,Sichtbare Fließmuster auf der Oberfläche.,Gießgeschwindigkeit anpassen; Formtemperatur erhöhen.
+SRF-03,Orangenhaut,surface,minor,Raue Oberfläche mit orangenhautartiger Struktur.,Formstoff optimieren; Schlichte verwenden.
+SRF-04,Rauheit außer Toleranz,surface,minor,Oberflächenrauheit überschreitet Spezifikation.,Formstoff optimieren; Schlichte verwenden.
+SRF-05,Brandstelle,surface,major,Verfärbung durch thermische Überlastung der Form.,Formkühlung verbessern; Zykluszeit anpassen.
+SRF-06,Metallspritzer,surface,minor,Spritzer auf der Gussoberfläche.,Gießgeschwindigkeit reduzieren; Anschnitt überarbeiten.
+SRF-07,Formstoff-Einbrand,surface,major,Formstoff mit Metalloberfläche verschmolzen.,Schlichte auftragen; Formstoffqualität prüfen.
+DIM-01,Maßabweichung Bohrung,dimensional,major,Bohrungsdurchmesser außerhalb Toleranz.,Kernpositionierung prüfen; Schwindmaß korrigieren.
+DIM-02,Maßabweichung Außenkontur,dimensional,major,Ist-Maß außerhalb der zulässigen Toleranz.,Schwindmaß korrigieren; Form nacharbeiten.
+DIM-03,Verzug,distortion,major,Thermisch bedingter Verzug nach Abkühlung.,Abkühlbedingungen anpassen; Richtprozess einführen.
+DIM-04,Gratbildung übermäßig,dimensional,minor,Grat an der Trennebene überschreitet Spezifikation.,Form-Trennebene nacharbeiten; Schließkraft prüfen.
+DIM-05,Versatz Trennebene,dimensional,major,Formhälften sind gegeneinander verschoben.,Führungselemente prüfen; Zentrierung nachstellen.
+CRK-01,Warmriss,crack,critical,Rissbildung während der Erstarrung durch Schrumpfspannungen.,Legierungszusammensetzung prüfen; Formsteifigkeit reduzieren.
+CRK-02,Kaltriss,crack,critical,Rissbildung nach Erstarrung durch mechanische Beanspruchung.,Entformungszeitpunkt optimieren; Wärmebehandlung anpassen.
+CRK-03,Spannungsriss,crack,critical,Riss durch innere Eigenspannungen.,Spannungsarmglühen; Konstruktion anpassen.
+CRK-04,Ermüdungsriss,crack,critical,Riss durch zyklische Belastung im Betrieb.,Gefüge optimieren; Oberfläche kugelstrahlen.
+INC-01,Sandeinschluss,inclusion,minor,Formsandpartikel eingeschlossen im Gussteil.,Formfestigkeit erhöhen; Anschnitt überarbeiten.
+INC-02,Schlackeneinschluss,inclusion,major,Schlacke oder Oxide im Inneren des Gussteils.,Schmelzefilterung verbessern; Gießsystem optimieren.
+INC-03,Oxideinschluss,inclusion,major,Oxidhäute im Gefüge eingeschlossen.,Schutzgas verwenden; turbulenzarmes Gießen.
+INC-04,Oxidhaut,inclusion,minor,Dünne Oxidschicht auf der Oberfläche.,Schmelzebehandlung optimieren; Schutzatmosphäre.
+MIS-01,Formfüllung unvollständig,misrun,critical,Schmelze hat die Form nicht vollständig gefüllt.,Gießtemperatur erhöhen; Anschnittsystem vergrößern.
+MIS-02,Kaltschweißstelle,cold_shut,major,Unvollständige Verschweißung zweier Schmelzefronten.,Fließwege verkürzen; Formtemperatur erhöhen.
+MIS-03,Schülpe,surface,minor,Dünne Metallhaut löst sich von der Oberfläche.,Formstoffbindung verbessern; Schlichte optimieren.
+MIS-04,Blattrippe,surface,minor,Dünne Metallrippen an der Gussoberfläche durch Formrisse.,Formstoffqualität prüfen; Verdichtung optimieren.

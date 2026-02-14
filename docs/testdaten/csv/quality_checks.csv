@@ -1,0 +1,33 @@
+order_number,check_type,result,check_date,sample_size,defect_count,measured_value,nominal_value,tolerance_plus,tolerance_minus,defect_codes,notes
+GA-2026-00001,visual,pass,2025-09-20 08:15,50,0,,,,,Sichtprüfung Motorblock-Charge bestanden
+GA-2026-00001,dimensional,pass,2025-09-20 10:30,10,0,82.015,82.000,0.025,0.025,,Bohrungsdurchmesser i.O.
+GA-2026-00001,xray,pass,2025-09-21 14:00,5,0,,,,,Keine Lunker erkennbar
+GA-2026-00002,visual,pass,2025-09-28 07:45,100,0,,,,,Zylinderkopf optisch einwandfrei
+GA-2026-00002,hardness,pass,2025-09-28 09:00,10,0,78.0,75.0,10.0,5.0,,Härte HB innerhalb Spezifikation
+GA-2026-00003,visual,conditional,2025-10-08 08:00,60,3,,,,"SRF-02,SRF-04",Leichte Fließlinien an 3 Teilen
+GA-2026-00003,dimensional,pass,2025-10-08 11:00,15,0,145.980,146.000,0.050,0.050,,Getriebegehäuse Hauptmaße i.O.
+GA-2026-00004,visual,pass,2025-10-18 07:30,80,0,,,,,Pumpengehäuse Serie komplett geprüft
+GA-2026-00004,leak,pass,2025-10-18 13:00,20,0,,,,,Dichtheitsprüfung 3 bar bestanden
+GA-2026-00005,tensile,pass,2025-10-25 09:00,3,0,625.0,600.0,50.0,0.0,,Zugfestigkeit EN-GJS-600-3 erreicht
+GA-2026-00005,hardness,pass,2025-10-25 10:30,5,0,228.0,220.0,30.0,0.0,,Härte Achsschenkel i.O.
+GA-2026-00006,visual,pass,2025-11-02 08:00,200,0,,,,,Bremsscheiben Großserie bestanden
+GA-2026-00006,dimensional,conditional,2025-11-02 14:00,20,2,,,,,"DIM-04",Geringfügige Gratbildung an 2 Teilen
+GA-2026-00007,xray,fail,2025-11-10 09:00,10,3,,,,,"POR-01,POR-03",Gasporosität und Lunker in 3 Kurbelgehäusen
+GA-2026-00007,visual,conditional,2025-11-10 11:00,30,2,,,,,"SRF-05",Brandstellen an 2 Teilen - nacharbeiten
+GA-2026-00008,visual,pass,2025-11-16 08:30,100,0,,,,,Wasserpumpengehäuse optisch einwandfrei
+GA-2026-00008,spectrometry,pass,2025-11-16 10:00,5,0,,,,,Legierungszusammensetzung korrekt
+GA-2026-00009,dimensional,pass,2025-11-22 08:00,10,0,285.020,285.000,0.100,0.100,,Schwungrad Planfläche i.O.
+GA-2026-00009,cmm,pass,2025-11-23 09:00,3,0,,,,,3D-Messung Kompressorgehäuse bestanden
+GA-2026-00010,visual,pass,2025-11-30 07:30,500,0,,,,,Kolbenrohlinge Sichtprüfung bestanden
+GA-2026-00010,dimensional,pass,2025-11-30 14:00,50,0,82.002,82.000,0.010,0.010,,Kolben D82 Durchmesser i.O.
+GA-2026-00011,ultrasonic,pass,2025-12-08 09:00,10,0,,,,,Zylinderrohre wanddickenmäßig homogen
+GA-2026-00011,hardness,pass,2025-12-08 11:00,5,0,92.0,85.0,15.0,0.0,,Härte CuSn10 bestanden
+GA-2026-00012,visual,pass,2025-12-15 08:00,60,0,,,,,Flanschplatten optisch einwandfrei
+GA-2026-00013,xray,fail,2025-12-22 09:00,8,2,,,,,"POR-03,POR-06",Lunker im Differentialgehäuse - Nacharbeit
+GA-2026-00013,dimensional,conditional,2025-12-22 14:00,10,1,,,,,"DIM-05",Leichter Versatz Trennebene bei 1 Teil
+GA-2026-00014,visual,pass,2025-12-28 08:00,80,0,,,,,Kupplungsglocke Serienfertigung i.O.
+GA-2026-00014,tensile,pass,2025-12-28 10:00,3,0,268.0,260.0,30.0,0.0,,Zugfestigkeit AlSi10Mg bestanden
+GA-2026-00015,visual,pass,2026-01-12 08:30,70,0,,,,,Lenkgetriebegehäuse optisch i.O.
+GA-2026-00015,leak,pass,2026-01-12 14:00,15,0,,,,,Dichtheitsprüfung 5 bar bestanden
+GA-2026-00020,spectrometry,pass,2026-02-05 09:00,2,0,,,,,Ni-Basis Legierung korrekt
+GA-2026-00020,xray,conditional,2026-02-05 14:00,5,1,,,,,"POR-02",Leichte Mikroporosität in 1 Turbinenrad

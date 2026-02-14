@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="scm_production_tree" model="ir.ui.view">
+        <field name="name">scm.production.order.tree</field>
+        <field name="model">scm.production.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state=='draft'" decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="part_id"/>
+                <field name="date_planned"/>
+                <field name="planned_qty"/>
+                <field name="produced_qty"/>
+                <field name="yield_pct"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scm_production_form" model="ir.ui.view">
+        <field name="name">scm.production.order.form</field>
+        <field name="model">scm.production.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Bestätigen" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Fertigung starten" type="object"
+                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Abschließen" type="object"
+                            class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Stornieren" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="part_id"/>
+                            <field name="bom_id" domain="[('part_id','=',part_id)]"/>
+                            <field name="date_planned"/>
+                        </group>
+                        <group>
+                            <field name="planned_qty"/>
+                            <field name="produced_qty"/>
+                            <field name="scrap_qty"/>
+                            <field name="yield_pct" widget="percentage"/>
+                            <field name="total_cost"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Arbeitsschritte">
+                            <field name="work_step_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="work_center"/>
+                                    <field name="planned_duration_min"/>
+                                    <field name="actual_duration_min"/>
+                                    <field name="efficiency_pct"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Lagerbewegungen">
+                            <field name="stock_move_ids">
+                                <list>
+                                    <field name="part_id"/>
+                                    <field name="warehouse_id"/>
+                                    <field name="move_type"/>
+                                    <field name="quantity"/>
+                                    <field name="lot_number"/>
+                                    <field name="date"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bemerkungen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="scm_production_action" model="ir.actions.act_window">
+        <field name="name">Fertigungsaufträge</field>
+        <field name="res_model">scm.production.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

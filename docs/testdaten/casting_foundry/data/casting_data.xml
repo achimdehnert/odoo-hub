@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Defect Types / Fehlerarten - always loaded -->
+        <record id="defect_porosity_gas" model="casting.defect.type">
+            <field name="name">Gasporosität</field>
+            <field name="code">POR-01</field>
+            <field name="category">porosity</field>
+            <field name="severity">major</field>
+            <field name="description">Eingeschlossene Gase bilden Hohlräume im Gussteil.</field>
+            <field name="remedy">Entgasung verbessern, Gießgeschwindigkeit reduzieren.</field>
+        </record>
+        <record id="defect_shrinkage" model="casting.defect.type">
+            <field name="name">Lunker (Makro)</field>
+            <field name="code">POR-03</field>
+            <field name="category">porosity</field>
+            <field name="severity">critical</field>
+            <field name="description">Schwindungshohlraum durch unzureichende Nachspeisung.</field>
+            <field name="remedy">Speiser optimieren, Erstarrungslenkung verbessern.</field>
+        </record>
+        <record id="defect_cold_shut" model="casting.defect.type">
+            <field name="name">Kaltlauf / Kaltschweißung</field>
+            <field name="code">MIS-02</field>
+            <field name="category">cold_shut</field>
+            <field name="severity">major</field>
+            <field name="description">Zwei Schmelzefronten treffen aufeinander ohne zu verschweißen.</field>
+            <field name="remedy">Gießtemperatur erhöhen, Anschnitt optimieren.</field>
+        </record>
+        <record id="defect_crack_hot" model="casting.defect.type">
+            <field name="name">Warmriss</field>
+            <field name="code">CRK-01</field>
+            <field name="category">crack</field>
+            <field name="severity">critical</field>
+            <field name="description">Rissbildung während der Erstarrung durch Schrumpfspannungen.</field>
+            <field name="remedy">Legierungszusammensetzung prüfen, Formsteifigkeit reduzieren.</field>
+        </record>
+        <record id="defect_sand_inclusion" model="casting.defect.type">
+            <field name="name">Sandeinschluss</field>
+            <field name="code">INC-01</field>
+            <field name="category">inclusion</field>
+            <field name="severity">minor</field>
+            <field name="description">Formsandpartikel eingeschlossen im Gussteil.</field>
+            <field name="remedy">Formfestigkeit erhöhen, Anschnitt überarbeiten.</field>
+        </record>
+        <record id="defect_dimensional" model="casting.defect.type">
+            <field name="name">Maßabweichung Außenkontur</field>
+            <field name="code">DIM-02</field>
+            <field name="category">dimensional</field>
+            <field name="severity">major</field>
+            <field name="description">Ist-Maß außerhalb der zulässigen Toleranz.</field>
+            <field name="remedy">Schwindmaß korrigieren, Form nacharbeiten.</field>
+        </record>
+        <record id="defect_surface_rough" model="casting.defect.type">
+            <field name="name">Rauheit außer Toleranz</field>
+            <field name="code">SRF-04</field>
+            <field name="category">surface</field>
+            <field name="severity">minor</field>
+            <field name="description">Oberflächenrauheit überschreitet Spezifikation.</field>
+            <field name="remedy">Formstoff optimieren, Schlichte verwenden.</field>
+        </record>
+        <record id="defect_distortion" model="casting.defect.type">
+            <field name="name">Verzug</field>
+            <field name="code">DIM-03</field>
+            <field name="category">distortion</field>
+            <field name="severity">major</field>
+            <field name="description">Thermisch bedingter Verzug nach Abkühlung.</field>
+            <field name="remedy">Abkühlbedingungen anpassen, Richtprozess einführen.</field>
+        </record>
+    </data>
+</odoo>

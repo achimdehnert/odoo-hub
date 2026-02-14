@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="scm_part_tree" model="ir.ui.view">
+        <field name="name">scm.part.tree</field>
+        <field name="model">scm.part</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="part_number"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="part_type"/>
+                <field name="material"/>
+                <field name="make_or_buy"/>
+                <field name="standard_cost"/>
+                <field name="stock_qty"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scm_part_form" model="ir.ui.view">
+        <field name="name">scm.part.form</field>
+        <field name="model">scm.part</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-list"
+                                type="object" name="action_view_boms"
+                                invisible="bom_count == 0">
+                            <field name="bom_count" widget="statinfo" string="Stücklisten"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-truck"
+                                type="object" name="action_view_suppliers"
+                                invisible="supplier_count == 0">
+                            <field name="supplier_count" widget="statinfo" string="Lieferanten"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="part_number"/>
+                            <field name="name"/>
+                            <field name="category_id"/>
+                            <field name="material"/>
+                        </group>
+                        <group>
+                            <field name="part_type"/>
+                            <field name="make_or_buy"/>
+                            <field name="standard_cost"/>
+                            <field name="stock_qty"/>
+                            <field name="weight_kg"/>
+                            <field name="unit"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Beschreibung..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="scm_part_search" model="ir.ui.view">
+        <field name="name">scm.part.search</field>
+        <field name="model">scm.part</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="part_number"/>
+                <field name="name"/>
+                <field name="material"/>
+                <filter name="make" string="Eigenfertigung" domain="[('make_or_buy','=','make')]"/>
+                <filter name="buy" string="Fremdbezug" domain="[('make_or_buy','=','buy')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_type" string="Teiletyp" context="{'group_by': 'part_type'}"/>
+                    <filter name="group_category" string="Kategorie" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="scm_part_action" model="ir.actions.act_window">
+        <field name="name">Teile</field>
+        <field name="res_model">scm.part</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="scm_part_category_action" model="ir.actions.act_window">
+        <field name="name">Teilekategorien</field>
+        <field name="res_model">scm.part.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

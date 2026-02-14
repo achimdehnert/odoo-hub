@@ -10,13 +10,14 @@ Django for existing 7+ apps, Odoo for management/reporting/backoffice.
 ```text
 odoo-hub/
 ├── addons/
-│   └── schutztat_reporting/   # Risk assessment sync (ADR-030)
-│       ├── models/            # Assessment, Hazard, ActionItem, SyncLog
-│       ├── views/             # List/Form XML views + menus
-│       ├── security/          # ACL (user=read, manager=full)
-│       └── data/              # Cron jobs (15 min sync)
+│   ├── schutztat_reporting/   # Risk assessment sync (ADR-030)
+│   ├── casting_foundry/       # Foundry management (33 files)
+│   └── scm_manufacturing/     # Supply chain & production (25 files)
 ├── docs/
-│   └── images/                # Mermaid ER diagrams
+│   ├── images/                # Mermaid ER diagrams
+│   └── testdaten/
+│       ├── casting_foundry/   # Module source + populate scripts
+│       └── csv/               # Static CSV test data (8 files)
 ├── docker/
 │   └── app/Dockerfile         # Odoo 18 + custom addons
 ├── docker-compose.prod.yml    # Production stack
@@ -37,9 +38,20 @@ Syncs risk assessment data from Django **risk-hub** via REST API:
 | `schutztat.action.item` | `/api/v1/actions` | 15 min |
 | `schutztat.sync.log` | — | local |
 
-### Planned: scm_manufacturing
+### casting_foundry (v18.0.1.0.0)
 
-Supply Chain Management module — see `docs/images/scm-overview.mer` for ER diagram.
+Foundry management with quality control:
+
+- **8 models:** Material, Alloy, Mold, Machine, Order, OrderLine, QualityCheck, DefectType
+- **Populate scripts:** Bulk data generation (small/medium/large)
+- **Workflow:** Draft → Confirmed → In Production → Quality Check → Done
+
+### scm_manufacturing (v18.0.1.0.0)
+
+Supply chain management (based on `docs/images/scm-overview.mer`):
+
+- **11 models:** Part, PartCategory, BOM, BOMLine, SupplierInfo, PurchaseOrder, PurchaseLine, ProductionOrder, WorkStep, Warehouse, StockMove, Delivery, IncomingInspection
+- **Workflows:** Purchase (Draft→Sent→Confirmed→Received→Done), Production (Draft→Confirmed→InProgress→Done), Delivery (Draft→Ready→Shipped→Delivered)
 
 ## Deployment
 

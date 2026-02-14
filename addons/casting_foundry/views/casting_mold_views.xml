@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="casting_mold_tree" model="ir.ui.view">
+        <field name="name">casting.mold.tree</field>
+        <field name="model">casting.mold</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="state=='maintenance'" decoration-danger="state=='retired'" decoration-muted="state=='new'">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="mold_type"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'maintenance'"
+                       decoration-danger="state == 'retired'"
+                       decoration-info="state == 'new'"/>
+                <field name="cavity_count"/>
+                <field name="part_weight_kg"/>
+                <field name="current_shots"/>
+                <field name="max_shots"/>
+                <field name="utilization_pct" widget="progressbar"/>
+                <field name="machine_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="casting_mold_form" model="ir.ui.view">
+        <field name="name">casting.mold.form</field>
+        <field name="model">casting.mold</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="new,active,maintenance,retired"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Stammdaten">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="mold_type"/>
+                            <field name="machine_id"/>
+                        </group>
+                        <group string="Spezifikation">
+                            <field name="cavity_count"/>
+                            <field name="part_weight_kg"/>
+                            <field name="cycle_time_min"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Lebensdauer">
+                            <field name="max_shots"/>
+                            <field name="current_shots"/>
+                            <field name="remaining_shots"/>
+                            <field name="utilization_pct" widget="progressbar"/>
+                        </group>
+                        <group string="Kosten">
+                            <field name="acquisition_cost"/>
+                            <field name="maintenance_cost"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Legierungen">
+                            <field name="alloy_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Notizen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="casting_mold_search" model="ir.ui.view">
+        <field name="name">casting.mold.search</field>
+        <field name="model">casting.mold</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="active_molds" string="Im Einsatz" domain="[('state','=','active')]"/>
+                <filter name="maintenance" string="In Wartung" domain="[('state','=','maintenance')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_type" string="Formtyp" context="{'group_by': 'mold_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_machine" string="Maschine" context="{'group_by': 'machine_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="casting_mold_pivot" model="ir.ui.view">
+        <field name="name">casting.mold.pivot</field>
+        <field name="model">casting.mold</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="mold_type" type="row"/>
+                <field name="state" type="col"/>
+                <field name="current_shots" type="measure"/>
+                <field name="acquisition_cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="casting_mold_action" model="ir.actions.act_window">
+        <field name="name">Gussformen</field>
+        <field name="res_model">casting.mold</field>
+        <field name="view_mode">list,form,pivot</field>
+    </record>
+</odoo>

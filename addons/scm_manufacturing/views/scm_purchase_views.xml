@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="scm_purchase_tree" model="ir.ui.view">
+        <field name="name">scm.purchase.order.tree</field>
+        <field name="model">scm.purchase.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state=='draft'" decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date_order"/>
+                <field name="date_expected"/>
+                <field name="total_amount"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('sent','confirmed')"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scm_purchase_form" model="ir.ui.view">
+        <field name="name">scm.purchase.order.form</field>
+        <field name="model">scm.purchase.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send" string="Versenden" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_confirm" string="Bestätigen" type="object"
+                            class="oe_highlight" invisible="state != 'sent'"/>
+                    <button name="action_receive" string="Wareneingang" type="object"
+                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Abschließen" type="object"
+                            class="oe_highlight" invisible="state != 'received'"/>
+                    <button name="action_cancel" string="Stornieren" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,sent,confirmed,received,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="warehouse_id"/>
+                            <field name="incoterm"/>
+                        </group>
+                        <group>
+                            <field name="date_order"/>
+                            <field name="date_expected"/>
+                            <field name="date_received"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Positionen">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="part_id"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="subtotal"/>
+                                    <field name="date_expected"/>
+                                    <field name="qty_received"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_amount"/>
+                            </group>
+                        </page>
+                        <page string="Wareneingangsprüfungen">
+                            <field name="inspection_ids">
+                                <list>
+                                    <field name="inspection_type"/>
+                                    <field name="inspection_date"/>
+                                    <field name="result" widget="badge"
+                                           decoration-success="result == 'accepted'"
+                                           decoration-warning="result == 'conditional'"
+                                           decoration-danger="result == 'rejected'"/>
+                                    <field name="inspector_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bemerkungen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="scm_purchase_action" model="ir.actions.act_window">
+        <field name="name">Bestellungen</field>
+        <field name="res_model">scm.purchase.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

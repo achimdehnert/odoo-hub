@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="casting_order_tree" model="ir.ui.view">
+        <field name="name">casting.order.tree</field>
+        <field name="model">casting.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state=='draft'" decoration-warning="state=='quality_check'" decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="customer_reference"/>
+                <field name="date_planned"/>
+                <field name="total_pieces"/>
+                <field name="total_weight_kg"/>
+                <field name="total_scrap_pct"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('confirmed','quality_check')"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="priority" widget="priority"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="casting_order_form" model="ir.ui.view">
+        <field name="name">casting.order.form</field>
+        <field name="model">casting.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Bestätigen" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start_production" string="Fertigung starten" type="object"
+                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_quality_check" string="QS-Prüfung" type="object"
+                            invisible="state != 'in_production'"/>
+                    <button name="action_done" string="Abschließen" type="object"
+                            class="oe_highlight" invisible="state not in ('in_production','quality_check')"/>
+                    <button name="action_cancel" string="Stornieren" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_production,quality_check,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-check-circle" type="object"
+                                name="action_quality_check"
+                                invisible="quality_check_count == 0">
+                            <field name="quality_check_count" widget="statinfo" string="Prüfungen"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="customer_reference"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group>
+                            <field name="date_planned"/>
+                            <field name="date_start"/>
+                            <field name="date_done"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Positionen">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="part_name"/>
+                                    <field name="part_number"/>
+                                    <field name="alloy_id"/>
+                                    <field name="casting_process"/>
+                                    <field name="mold_id"/>
+                                    <field name="machine_id"/>
+                                    <field name="quantity"/>
+                                    <field name="scrap_qty"/>
+                                    <field name="good_qty"/>
+                                    <field name="piece_weight_kg"/>
+                                    <field name="total_weight_kg"/>
+                                    <field name="heat_treatment"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_pieces"/>
+                                <field name="total_weight_kg"/>
+                                <field name="total_scrap_pct" widget="percentage"/>
+                            </group>
+                        </page>
+                        <page string="Qualitätsprüfungen">
+                            <field name="quality_check_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="check_type"/>
+                                    <field name="check_date"/>
+                                    <field name="result" widget="badge"
+                                           decoration-success="result == 'pass'"
+                                           decoration-warning="result == 'conditional'"
+                                           decoration-danger="result == 'fail'"/>
+                                    <field name="inspector_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bemerkungen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="casting_order_search" model="ir.ui.view">
+        <field name="name">casting.order.search</field>
+        <field name="model">casting.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="customer_reference"/>
+                <filter name="draft" string="Entwurf" domain="[('state','=','draft')]"/>
+                <filter name="in_production" string="In Fertigung" domain="[('state','=','in_production')]"/>
+                <filter name="done" string="Abgeschlossen" domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="priority_high" string="Dringend" domain="[('priority','in',['1','2'])]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_partner" string="Kunde" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_month" string="Monat" context="{'group_by': 'date_planned:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="casting_order_pivot" model="ir.ui.view">
+        <field name="name">casting.order.pivot</field>
+        <field name="model">casting.order</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="date_planned" interval="month" type="col"/>
+                <field name="state" type="row"/>
+                <field name="total_pieces" type="measure"/>
+                <field name="total_weight_kg" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="casting_order_graph" model="ir.ui.view">
+        <field name="name">casting.order.graph</field>
+        <field name="model">casting.order</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="date_planned" interval="month"/>
+                <field name="total_weight_kg" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="casting_order_action" model="ir.actions.act_window">
+        <field name="name">Gießaufträge</field>
+        <field name="res_model">casting.order</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_group_state': 1}</field>
+    </record>
+</odoo>

@@ -1,0 +1,16 @@
+code,name,material_type,density,melting_point,cost_per_kg
+AL,Aluminium,non_ferrous,2.700,660.3,2.80
+GG,Grauguss,ferrous,7.200,1200.0,0.85
+GGG,Sphäroguss,ferrous,7.100,1150.0,1.20
+GS,Stahlguss,ferrous,7.850,1520.0,1.45
+ZN,Zink,non_ferrous,7.130,419.5,3.50
+MG,Magnesium,non_ferrous,1.740,650.0,4.20
+CU,Kupfer,non_ferrous,8.960,1084.0,9.50
+BZ,Bronze,non_ferrous,8.800,950.0,12.80
+MS,Messing,non_ferrous,8.500,900.0,7.20
+CRS,Chromstahl,ferrous,7.750,1450.0,2.10
+MNS,Manganstahl,ferrous,7.800,1400.0,1.90
+NI,Nickelbasis,special,8.900,1455.0,28.50
+TI,Titan,special,4.510,1668.0,35.00
+SN,Zinn,non_ferrous,7.290,231.9,25.00
+PBF,Blei-Frei Legierung,special,7.300,327.5,3.10

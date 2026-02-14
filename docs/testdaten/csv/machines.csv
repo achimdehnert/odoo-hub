@@ -1,0 +1,26 @@
+code,name,machine_type,state,manufacturer,model,year_built,capacity_kg,clamping_force_t,max_temp_c,power_kw,hall,position
+MCH-0001,Druckgussmaschine DC-01,die_casting,operational,Bühler,Carat 840,2019,120.0,840.0,750.0,185.0,Halle A,Platz 1
+MCH-0002,Druckgussmaschine DC-02,die_casting,operational,Bühler,Carat 560,2020,80.0,560.0,720.0,132.0,Halle A,Platz 2
+MCH-0003,Druckgussmaschine DC-03,die_casting,operational,Frech,DAM 500,2018,95.0,500.0,700.0,110.0,Halle A,Platz 3
+MCH-0004,Druckgussmaschine DC-04,die_casting,maintenance,Idra,OL 2000,2015,250.0,2000.0,780.0,320.0,Halle A,Platz 4
+MCH-0005,Druckgussmaschine DC-05,die_casting,operational,Italpresse,TF 1600,2021,180.0,1600.0,760.0,250.0,Halle A,Platz 5
+MCH-0006,Kokillenguss KG-01,gravity_casting,operational,Heinrich Wagner Sinto,GDC-4000,2017,200.0,0.0,800.0,45.0,Halle B,Platz 1
+MCH-0007,Kokillenguss KG-02,gravity_casting,operational,Heinrich Wagner Sinto,GDC-2500,2019,150.0,0.0,780.0,38.0,Halle B,Platz 2
+MCH-0008,Kokillenguss KG-03,gravity_casting,breakdown,Kurtz Ersa,AL 60,2014,100.0,0.0,750.0,30.0,Halle B,Platz 3
+MCH-0009,Schmelzofen SO-01,melting_furnace,operational,ABP Induction,IFM 3000,2016,3000.0,0.0,1650.0,450.0,Halle C,Platz 1
+MCH-0010,Schmelzofen SO-02,melting_furnace,operational,Inductotherm,VIP 2000,2018,2000.0,0.0,1600.0,380.0,Halle C,Platz 2
+MCH-0011,Schmelzofen SO-03,melting_furnace,operational,ABP Induction,IFM 1500,2020,1500.0,0.0,1550.0,280.0,Halle C,Platz 3
+MCH-0012,Warmhalteofen WH-01,holding_furnace,operational,StrikoWestofen,StrikoMelter 900,2019,900.0,0.0,850.0,95.0,Halle C,Platz 4
+MCH-0013,Warmhalteofen WH-02,holding_furnace,operational,StrikoWestofen,Westomat 600,2021,600.0,0.0,800.0,65.0,Halle C,Platz 5
+MCH-0014,Formanlage FA-01,sand_molding,operational,DISA,DISAMATIC D3,2017,0.0,0.0,0.0,120.0,Halle D,Platz 1
+MCH-0015,Formanlage FA-02,sand_molding,operational,Künkel Wagner,KW Seiatsu,2016,0.0,0.0,0.0,95.0,Halle D,Platz 2
+MCH-0016,Formanlage FA-03,sand_molding,maintenance,Loramendi,SLC-3,2012,0.0,0.0,0.0,85.0,Halle D,Platz 3
+MCH-0017,Wärmebehandlung WT-01,heat_treatment,operational,Nabertherm,N 3000/26AS,2018,3000.0,0.0,600.0,220.0,Halle E,Platz 1
+MCH-0018,Wärmebehandlung WT-02,heat_treatment,operational,Aichelin,Duo-Line 5000,2020,5000.0,0.0,650.0,350.0,Halle E,Platz 2
+MCH-0019,Putzerei PT-01,finishing,operational,Rösler,RMBD 6/8,2019,0.0,0.0,0.0,55.0,Halle E,Platz 3
+MCH-0020,Putzerei PT-02,finishing,operational,Wheelabrator,SPH 1500,2017,0.0,0.0,0.0,45.0,Halle E,Platz 4
+MCH-0021,Röntgenprüfanlage XR-01,xray,operational,Yxlon,MU56 TB,2020,0.0,0.0,0.0,12.0,Halle E,Platz 5
+MCH-0022,Röntgenprüfanlage XR-02,xray,operational,VisiConsult,XRH222,2022,0.0,0.0,0.0,8.0,Halle E,Platz 6
+MCH-0023,Schleuderguss SG-01,centrifugal,operational,Centrifugal Casting Machine Inc,CCM-500,2015,500.0,0.0,1200.0,75.0,Halle B,Platz 4
+MCH-0024,Druckgussmaschine DC-06,die_casting,operational,Toshiba,DC 350,2022,65.0,350.0,680.0,90.0,Halle A,Platz 6
+MCH-0025,Druckgussmaschine DC-07,die_casting,operational,Ube,UB 1300,2023,160.0,1300.0,740.0,200.0,Halle A,Platz 7

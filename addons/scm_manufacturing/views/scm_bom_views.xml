@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="scm_bom_tree" model="ir.ui.view">
+        <field name="name">scm.bom.tree</field>
+        <field name="model">scm.bom</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="part_id"/>
+                <field name="revision"/>
+                <field name="bom_type"/>
+                <field name="line_count"/>
+                <field name="total_material_cost"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scm_bom_form" model="ir.ui.view">
+        <field name="name">scm.bom.form</field>
+        <field name="model">scm.bom</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="Aktivieren" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_obsolete" string="Veralten" type="object"
+                            invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="part_id"/>
+                            <field name="revision"/>
+                            <field name="bom_type"/>
+                        </group>
+                        <group>
+                            <field name="total_material_cost"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Komponenten">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="component_id"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="subtotal_cost"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bemerkungen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="scm_bom_action" model="ir.actions.act_window">
+        <field name="name">Stücklisten</field>
+        <field name="res_model">scm.bom</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

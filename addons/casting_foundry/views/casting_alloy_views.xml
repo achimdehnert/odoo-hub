@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="casting_alloy_tree" model="ir.ui.view">
+        <field name="name">casting.alloy.tree</field>
+        <field name="model">casting.alloy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="din_number"/>
+                <field name="base_material_id"/>
+                <field name="alloy_type"/>
+                <field name="tensile_strength"/>
+                <field name="yield_strength"/>
+                <field name="hardness_brinell"/>
+                <field name="pouring_temp_min"/>
+                <field name="pouring_temp_max"/>
+                <field name="cost_per_kg"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="casting_alloy_form" model="ir.ui.view">
+        <field name="name">casting.alloy.form</field>
+        <field name="model">casting.alloy</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Stammdaten">
+                            <field name="name"/>
+                            <field name="din_number"/>
+                            <field name="base_material_id"/>
+                            <field name="alloy_type"/>
+                            <field name="fluidity_rating"/>
+                            <field name="cost_per_kg"/>
+                        </group>
+                        <group string="Mechanische Eigenschaften">
+                            <field name="tensile_strength"/>
+                            <field name="yield_strength"/>
+                            <field name="elongation"/>
+                            <field name="hardness_brinell"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Gießeigenschaften">
+                            <field name="pouring_temp_min"/>
+                            <field name="pouring_temp_max"/>
+                            <field name="shrinkage_rate"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Technische Beschreibung..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="casting_alloy_search" model="ir.ui.view">
+        <field name="name">casting.alloy.search</field>
+        <field name="model">casting.alloy</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="din_number"/>
+                <field name="base_material_id"/>
+                <filter name="aluminum" string="Aluminium" domain="[('alloy_type','=','aluminum')]"/>
+                <filter name="cast_iron" string="Gusseisen" domain="[('alloy_type','in',['cast_iron'])]"/>
+                <filter name="cast_steel" string="Stahlguss" domain="[('alloy_type','=','cast_steel')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_type" string="Gusstyp" context="{'group_by': 'alloy_type'}"/>
+                    <filter name="group_material" string="Grundwerkstoff" context="{'group_by': 'base_material_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="casting_alloy_action" model="ir.actions.act_window">
+        <field name="name">Legierungen</field>
+        <field name="res_model">casting.alloy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
