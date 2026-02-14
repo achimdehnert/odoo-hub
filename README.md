@@ -55,22 +55,30 @@ Supply chain management (based on `docs/images/scm-overview.mer`):
 
 ## Deployment
 
-- **Server:** 46.225.127.211 (Hetzner CPX32, 8 GB)
-- **Domain:** schutztat.iil.pet
-- **Registry:** ghcr.io/achimdehnert/odoo-hub:latest
-- **Stack:** Odoo 18.0 + PostgreSQL 16 + Nginx
+- **Server:** 88.198.191.108 (Hetzner)
+- **Domain:** [odoo.iil.pet](https://odoo.iil.pet)
+- **Landing:** Static HTML at `/var/www/odoo.iil.pet/`
+- **SSL:** Let's Encrypt (auto-renew)
+- **Stack:** Odoo 18.0 + PostgreSQL 16 + Nginx reverse proxy
+- **Containers:** `odoo_web` (port 127.0.0.1:8069), `odoo_db`
 
 ## Quick Start
 
 ```bash
-# Build & run locally
+# Build & run (first time: init DB with -i base)
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml run --rm web \
+  odoo --config=/etc/odoo/odoo.conf --workers=0 -d odoo -i base --stop-after-init
 docker compose -f docker-compose.prod.yml up -d
 
-# Deploy to production
-bash deployment/scripts/deploy-remote.sh
+# Install custom modules
+docker compose -f docker-compose.prod.yml run --rm web \
+  odoo --config=/etc/odoo/odoo.conf --workers=0 -d odoo \
+  -i casting_foundry,scm_manufacturing,schutztat_reporting --stop-after-init
 ```
 
 ## Related
 
 - [ADR-030](https://github.com/achimdehnert/platform/blob/main/docs/adr/ADR-030-odoo-management-app.md)
 - [risk-hub](https://github.com/achimdehnert/risk-hub)
+- [iil.pet Portal](https://iil.pet) — Odoo Hub listed as app
