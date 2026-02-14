@@ -26,8 +26,8 @@
         "data/casting_sequence.xml",
         "data/casting_data.xml",
         # Views
-        "views/casting_material_views.xml",
         "views/casting_alloy_views.xml",
+        "views/casting_material_views.xml",
         "views/casting_mold_views.xml",
         "views/casting_machine_views.xml",
         "views/casting_order_views.xml",
