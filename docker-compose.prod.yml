@@ -1,7 +1,8 @@
-version: "3.8"
-
 services:
   web:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
     image: ghcr.io/achimdehnert/odoo-hub:${IMAGE_TAG:-latest}
     container_name: odoo_web
     restart: unless-stopped
@@ -10,7 +11,6 @@ services:
       - "127.0.0.1:8069:8069"
     volumes:
       - odoo_data:/var/lib/odoo
-      - odoo_addons:/mnt/extra-addons
     depends_on:
       db:
         condition: service_healthy
@@ -31,5 +31,4 @@ services:
 
 volumes:
   odoo_data:
-  odoo_addons:
   odoo_pgdata:

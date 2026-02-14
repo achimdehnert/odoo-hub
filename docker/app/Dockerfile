@@ -27,11 +27,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # -- Python deps for custom modules -------------------------------------------
 COPY requirements.txt /tmp/requirements.txt
 RUN if [ -s /tmp/requirements.txt ]; then \
-        pip install --no-cache-dir -r /tmp/requirements.txt; \
+        pip install --no-cache-dir --break-system-packages -r /tmp/requirements.txt; \
     fi
 
 # -- Copy custom addons -------------------------------------------------------
 COPY addons/ /mnt/extra-addons/
+
+# -- Odoo config ---------------------------------------------------------------
+COPY odoo.conf /etc/odoo/odoo.conf
 
 USER odoo
 
