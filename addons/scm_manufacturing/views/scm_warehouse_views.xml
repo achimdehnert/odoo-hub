@@ -55,6 +55,71 @@
         </field>
     </record>
 
+    <record id="scm_warehouse_search" model="ir.ui.view">
+        <field name="name">scm.warehouse.search</field>
+        <field name="model">scm.warehouse</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_type" string="Lagertyp"
+                            context="{'group_by': 'warehouse_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="scm_stock_move_form" model="ir.ui.view">
+        <field name="name">scm.stock.move.form</field>
+        <field name="model">scm.stock.move</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="part_id"/>
+                            <field name="warehouse_id"/>
+                            <field name="move_type"/>
+                            <field name="quantity"/>
+                        </group>
+                        <group>
+                            <field name="lot_number"/>
+                            <field name="date"/>
+                            <field name="reference"/>
+                            <field name="production_id"/>
+                            <field name="delivery_id"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Bemerkungen..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="scm_stock_move_search" model="ir.ui.view">
+        <field name="name">scm.stock.move.search</field>
+        <field name="model">scm.stock.move</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="part_id"/>
+                <field name="warehouse_id"/>
+                <field name="lot_number"/>
+                <field name="reference"/>
+                <filter name="in" string="Zugang" domain="[('move_type','=','in')]"/>
+                <filter name="out" string="Abgang" domain="[('move_type','=','out')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_warehouse" string="Lager"
+                            context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_type" string="Bewegungsart"
+                            context="{'group_by': 'move_type'}"/>
+                    <filter name="group_part" string="Teil"
+                            context="{'group_by': 'part_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="scm_warehouse_action" model="ir.actions.act_window">
         <field name="name">Lager</field>
         <field name="res_model">scm.warehouse</field>

@@ -63,6 +63,29 @@
         </field>
     </record>
 
+    <record id="scm_delivery_search" model="ir.ui.view">
+        <field name="name">scm.delivery.search</field>
+        <field name="model">scm.delivery</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="tracking_number"/>
+                <filter name="draft" string="Entwurf" domain="[('state','=','draft')]"/>
+                <filter name="shipped" string="Versendet" domain="[('state','=','shipped')]"/>
+                <filter name="delivered" string="Zugestellt" domain="[('state','=','delivered')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_partner" string="Empfänger"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_carrier" string="Spediteur"
+                            context="{'group_by': 'carrier'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="scm_delivery_action" model="ir.actions.act_window">
         <field name="name">Lieferungen</field>
         <field name="res_model">scm.delivery</field>

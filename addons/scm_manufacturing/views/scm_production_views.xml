@@ -91,6 +91,28 @@
         </field>
     </record>
 
+    <record id="scm_production_search" model="ir.ui.view">
+        <field name="name">scm.production.order.search</field>
+        <field name="model">scm.production.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="part_id"/>
+                <filter name="draft" string="Entwurf" domain="[('state','=','draft')]"/>
+                <filter name="in_progress" string="In Fertigung" domain="[('state','=','in_progress')]"/>
+                <filter name="done" string="Abgeschlossen" domain="[('state','=','done')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_part" string="Fertigteil"
+                            context="{'group_by': 'part_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_month" string="Geplant (Monat)"
+                            context="{'group_by': 'date_planned:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="scm_production_action" model="ir.actions.act_window">
         <field name="name">Fertigungsaufträge</field>
         <field name="res_model">scm.production.order</field>

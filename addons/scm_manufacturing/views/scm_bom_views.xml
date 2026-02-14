@@ -61,6 +61,27 @@
         </field>
     </record>
 
+    <record id="scm_bom_search" model="ir.ui.view">
+        <field name="name">scm.bom.search</field>
+        <field name="model">scm.bom</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="part_id"/>
+                <field name="revision"/>
+                <filter name="active_bom" string="Aktiv" domain="[('state','=','active')]"/>
+                <filter name="draft_bom" string="Entwurf" domain="[('state','=','draft')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_part" string="Fertigteil"
+                            context="{'group_by': 'part_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Typ"
+                            context="{'group_by': 'bom_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="scm_bom_action" model="ir.actions.act_window">
         <field name="name">Stücklisten</field>
         <field name="res_model">scm.bom</field>

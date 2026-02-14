@@ -94,6 +94,31 @@
         </field>
     </record>
 
+    <record id="scm_purchase_search" model="ir.ui.view">
+        <field name="name">scm.purchase.order.search</field>
+        <field name="model">scm.purchase.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <filter name="draft" string="Entwurf" domain="[('state','=','draft')]"/>
+                <filter name="confirmed" string="Bestätigt" domain="[('state','=','confirmed')]"/>
+                <filter name="done" string="Abgeschlossen" domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="this_month" string="Diesen Monat"
+                        domain="[('date_order','&gt;=', (context_today() - relativedelta(day=1)).strftime('%%Y-%%m-%%d'))]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_partner" string="Lieferant"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_month" string="Bestellmonat"
+                            context="{'group_by': 'date_order:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="scm_purchase_action" model="ir.actions.act_window">
         <field name="name">Bestellungen</field>
         <field name="res_model">scm.purchase.order</field>

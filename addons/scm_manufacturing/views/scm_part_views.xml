@@ -82,6 +82,48 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <!-- Part Category Views -->
+    <record id="scm_part_category_tree" model="ir.ui.view">
+        <field name="name">scm.part.category.tree</field>
+        <field name="model">scm.part.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="part_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scm_part_category_form" model="ir.ui.view">
+        <field name="name">scm.part.category.form</field>
+        <field name="model">scm.part.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="parent_id"/>
+                        </group>
+                        <group>
+                            <field name="part_count"/>
+                        </group>
+                    </group>
+                    <field name="child_ids">
+                        <list>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="part_count"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="scm_part_category_action" model="ir.actions.act_window">
         <field name="name">Teilekategorien</field>
         <field name="res_model">scm.part.category</field>

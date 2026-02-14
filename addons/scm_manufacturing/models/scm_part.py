@@ -89,3 +89,25 @@ class ScmPart(models.Model):
         for rec in self:
             rec.bom_count = len(rec.bom_ids)
             rec.supplier_count = len(rec.supplier_ids)
+
+    def action_view_boms(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Stücklisten",
+            "res_model": "scm.bom",
+            "view_mode": "list,form",
+            "domain": [("part_id", "=", self.id)],
+            "context": {"default_part_id": self.id},
+        }
+
+    def action_view_suppliers(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Lieferanten",
+            "res_model": "scm.supplier.info",
+            "view_mode": "list,form",
+            "domain": [("part_id", "=", self.id)],
+            "context": {"default_part_id": self.id},
+        }
