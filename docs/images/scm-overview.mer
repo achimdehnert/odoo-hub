@@ -1,0 +1,87 @@
+erDiagram
+    PART_CATEGORY ||--o{ PART : "classifies"
+    PART ||--o{ BOM : "has"
+    PART ||--o{ SUPPLIER_INFO : "sourced by"
+    PART ||--o{ STOCK_MOVE : "tracked in"
+    BOM ||--|{ BOM_LINE : "contains"
+    PART ||--o{ BOM_LINE : "used as component"
+    SUPPLIER_INFO }o--|| RES_PARTNER : "references"
+    PURCHASE_ORDER ||--|{ PURCHASE_LINE : "contains"
+    PURCHASE_ORDER ||--o{ INCOMING_INSPECTION : "inspected by"
+    PURCHASE_LINE }o--|| PART : "orders"
+    PURCHASE_ORDER }o--|| WAREHOUSE : "delivers to"
+    PRODUCTION_ORDER }o--|| PART : "produces"
+    PRODUCTION_ORDER }o--o| BOM : "uses"
+    PRODUCTION_ORDER ||--o{ WORK_STEP : "has steps"
+    PRODUCTION_ORDER ||--o{ STOCK_MOVE : "moves stock"
+    DELIVERY }o--|| PART : "ships"
+    DELIVERY ||--o{ STOCK_MOVE : "generates"
+    STOCK_MOVE }o--|| WAREHOUSE : "in/out"
+
+    PART {
+        string part_number
+        string name
+        string part_type
+        string material
+        string make_or_buy
+        float standard_cost
+        float stock_qty
+    }
+    BOM {
+        string revision
+        string bom_type
+        string state
+        float total_material_cost
+    }
+    SUPPLIER_INFO {
+        string priority
+        string rating
+        float price
+        int lead_time_days
+        float on_time_delivery_pct
+    }
+    PURCHASE_ORDER {
+        string name
+        string state
+        date date_order
+        string incoterm
+        float total_amount
+    }
+    PRODUCTION_ORDER {
+        string name
+        string state
+        float planned_qty
+        float produced_qty
+        float yield_pct
+        float total_cost
+    }
+    WORK_STEP {
+        string name
+        string work_center
+        float planned_duration_min
+        float actual_duration_min
+        float efficiency_pct
+    }
+    WAREHOUSE {
+        string code
+        string warehouse_type
+        int capacity_pallets
+    }
+    STOCK_MOVE {
+        string move_type
+        float quantity
+        string lot_number
+        datetime date
+    }
+    DELIVERY {
+        string name
+        string carrier
+        string tracking_number
+        float total_weight_kg
+    }
+    INCOMING_INSPECTION {
+        string inspection_type
+        string result
+        float acceptance_rate
+        string certificate_type
+    }
