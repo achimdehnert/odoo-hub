@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo Hub &mdash; IIL Platform</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏭</text></svg>">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #283548;
+            --border: #334155;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #8b5cf6;
+            --accent2: #a78bfa;
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --cyan: #06b6d4;
+            --blue: #3b82f6;
+            --red: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 4rem 1.5rem 3rem;
+            background: linear-gradient(180deg, rgba(139,92,246,0.08) 0%, transparent 100%);
+        }
+        .hero-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--muted);
+            font-size: 1.15rem;
+            margin-top: 0.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 8px 30px rgba(139,92,246,0.4); }
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--amber);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--amber);
+            box-shadow: 0 4px 20px rgba(245,158,11,0.15);
+        }
+
+        /* Container */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* Modules Grid */
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .modules { padding: 2rem 0; }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+        .module-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .module-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+        .module-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .module-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .module-header h3 { font-size: 1.1rem; font-weight: 700; }
+        .module-header .version {
+            margin-left: auto;
+            font-size: 0.72rem;
+            color: var(--muted);
+            background: var(--surface2);
+            padding: 0.15em 0.5em;
+            border-radius: 4px;
+        }
+        .module-card p { color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
+        .module-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        .stat {
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+        .stat strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* Tech Stack */
+        .stack { padding: 2rem 0 3rem; }
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .stack-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .stack-item .label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+        .stack-item .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--accent2); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 2rem; }
+            .module-grid { grid-template-columns: 1fr; }
+            .stack-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-icon">🏭</div>
+        <h1>Odoo Hub</h1>
+        <p>Odoo 18 Custom Module Hub &mdash; ERP-Erweiterungen f&uuml;r Arbeitssicherheit, Fertigung und Supply Chain Management</p>
+        <div class="hero-actions">
+            <a href="/web" class="btn btn-primary">&#9654; Odoo App</a>
+            <a href="/web#action=base_setup.action_general_configuration" class="btn btn-secondary">&#9881; Administration</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="modules">
+            <h2 class="section-title">Module</h2>
+            <div class="module-grid">
+                <div class="module-card">
+                    <div class="module-header">
+                        <div class="module-icon" style="background:rgba(249,115,22,0.15);color:var(--amber);">&#9888;</div>
+                        <h3>Schutztat Reporting</h3>
+                        <span class="version">v18.0.1.0</span>
+                    </div>
+                    <p>Synchronisiert Gef&auml;hrdungsbeurteilungen, Hazards und Ma&szlig;nahmen aus dem Django Risk-Hub via REST-API. Automatische Cron-Jobs alle 15 Minuten.</p>
+                    <div class="module-stats">
+                        <span class="stat"><strong>4</strong> Models</span>
+                        <span class="stat"><strong>3</strong> Cron-Jobs</span>
+                        <span class="stat"><strong>15 min</strong> Sync</span>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-header">
+                        <div class="module-icon" style="background:rgba(239,68,68,0.15);color:var(--red);">&#9881;</div>
+                        <h3>Casting Foundry</h3>
+                        <span class="version">v18.0.1.0</span>
+                    </div>
+                    <p>Gie&szlig;erei-Management mit Qualit&auml;tskontrolle. Materialien, Legierungen, Formen, Maschinen, Auftr&auml;ge und Qualit&auml;tspr&uuml;fungen.</p>
+                    <div class="module-stats">
+                        <span class="stat"><strong>8</strong> Models</span>
+                        <span class="stat"><strong>5</strong> Workflows</span>
+                        <span class="stat"><strong>33</strong> Files</span>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-header">
+                        <div class="module-icon" style="background:rgba(6,182,212,0.15);color:var(--cyan);">&#128230;</div>
+                        <h3>SCM Manufacturing</h3>
+                        <span class="version">v18.0.1.0</span>
+                    </div>
+                    <p>Supply Chain Management: Teile, St&uuml;cklisten, Einkauf, Fertigung, Lager, Lieferungen und Wareneingangskontrolle.</p>
+                    <div class="module-stats">
+                        <span class="stat"><strong>13</strong> Models</span>
+                        <span class="stat"><strong>3</strong> Workflows</span>
+                        <span class="stat"><strong>25</strong> Files</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stack">
+            <h2 class="section-title">Technologie</h2>
+            <div class="stack-grid">
+                <div class="stack-item">
+                    <div class="label">Framework</div>
+                    <div class="value">Odoo 18.0</div>
+                </div>
+                <div class="stack-item">
+                    <div class="label">Datenbank</div>
+                    <div class="value">PostgreSQL 16</div>
+                </div>
+                <div class="stack-item">
+                    <div class="label">Reverse Proxy</div>
+                    <div class="value">Nginx + TLS</div>
+                </div>
+                <div class="stack-item">
+                    <div class="label">Registry</div>
+                    <div class="value">GHCR</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>
+            Odoo Hub &bull;
+            <a href="https://iil.pet">IIL Platform</a> &bull;
+            <a href="https://github.com/achimdehnert/odoo-hub">GitHub</a>
+        </p>
+    </footer>
+</body>
+</html>
