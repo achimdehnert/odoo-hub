@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_schutztat_assessment_user,schutztat.assessment.user,model_schutztat_assessment,base.group_user,1,0,0,0
+access_schutztat_assessment_manager,schutztat.assessment.manager,model_schutztat_assessment,base.group_system,1,1,1,1
+access_schutztat_hazard_user,schutztat.hazard.user,model_schutztat_hazard,base.group_user,1,0,0,0
+access_schutztat_hazard_manager,schutztat.hazard.manager,model_schutztat_hazard,base.group_system,1,1,1,1
+access_schutztat_action_item_user,schutztat.action.item.user,model_schutztat_action_item,base.group_user,1,0,0,0
+access_schutztat_action_item_manager,schutztat.action.item.manager,model_schutztat_action_item,base.group_system,1,1,1,1
+access_schutztat_sync_log_user,schutztat.sync.log.user,model_schutztat_sync_log,base.group_user,1,0,0,0
+access_schutztat_sync_log_manager,schutztat.sync.log.manager,model_schutztat_sync_log,base.group_system,1,1,1,1

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top-level menu -->
+    <menuitem id="menu_schutztat_root"
+              name="Schutztat"
+              sequence="50"/>
+
+    <!-- Sub-menus -->
+    <menuitem id="menu_schutztat_reporting"
+              name="Reporting"
+              parent="menu_schutztat_root"
+              sequence="10"/>
+
+    <menuitem id="menu_schutztat_assessments"
+              name="Assessments"
+              parent="menu_schutztat_reporting"
+              action="action_schutztat_assessment"
+              sequence="10"/>
+
+    <menuitem id="menu_schutztat_hazards"
+              name="Hazards"
+              parent="menu_schutztat_reporting"
+              action="action_schutztat_hazard"
+              sequence="20"/>
+
+    <menuitem id="menu_schutztat_actions"
+              name="Action Items"
+              parent="menu_schutztat_reporting"
+              action="action_schutztat_action_item"
+              sequence="30"/>
+
+    <!-- Config sub-menu -->
+    <menuitem id="menu_schutztat_config"
+              name="Configuration"
+              parent="menu_schutztat_root"
+              sequence="90"/>
+
+    <menuitem id="menu_schutztat_sync_logs"
+              name="Sync Logs"
+              parent="menu_schutztat_config"
+              action="action_schutztat_sync_log"
+              sequence="10"/>
+</odoo>

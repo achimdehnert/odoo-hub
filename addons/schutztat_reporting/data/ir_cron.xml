@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cron_sync_assessments" model="ir.cron">
+            <field name="name">Schutztat: Sync Assessments</field>
+            <field name="model_id" ref="schutztat_reporting.model_schutztat_sync_log"/>
+            <field name="state">code</field>
+            <field name="code">model.action_sync_assessments()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_sync_hazards" model="ir.cron">
+            <field name="name">Schutztat: Sync Hazards</field>
+            <field name="model_id" ref="schutztat_reporting.model_schutztat_sync_log"/>
+            <field name="state">code</field>
+            <field name="code">model.action_sync_hazards()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="cron_sync_actions" model="ir.cron">
+            <field name="name">Schutztat: Sync Action Items</field>
+            <field name="model_id" ref="schutztat_reporting.model_schutztat_sync_log"/>
+            <field name="state">code</field>
+            <field name="code">model.action_sync_actions()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>
