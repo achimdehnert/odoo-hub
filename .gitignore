@@ -21,3 +21,7 @@ Thumbs.db
 filestore/
 sessions/
 *.log
+
+# Secrets (ADR-045) — NEVER commit plaintext
+secrets.env
+!secrets.enc.env
