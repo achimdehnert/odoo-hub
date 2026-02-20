@@ -1,0 +1,4 @@
+# Test requirements — no Odoo runtime needed
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.4

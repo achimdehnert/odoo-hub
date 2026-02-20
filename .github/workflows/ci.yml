@@ -1,3 +1,8 @@
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  ODOO-HUB CI — Lint + Addon Tests + Docker Build                         ║
+# ║  Tests: pytest (no Odoo runtime — manifest + structure validation)        ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
 name: CI
 
 on:
@@ -8,6 +13,7 @@ on:
 
 jobs:
   lint:
+    name: "Lint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,8 +23,25 @@ jobs:
       - run: pip install ruff
       - run: ruff check addons/
 
+  test:
+    name: "Addon Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Run addon manifest + structure tests
+        run: pytest --tb=short -v
+
   build:
-    needs: lint
+    name: "Docker Build"
+    needs: [lint, test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
