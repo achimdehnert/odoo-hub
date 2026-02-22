@@ -22,10 +22,10 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/odoo
+            cd /opt/odoo # noqa: hardcode
             export IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}
             docker compose pull
             docker compose up -d --force-recreate
             sleep 10
-            curl -sf http://127.0.0.1:8069/web/login || exit 1
+            curl -sf http://127.0.0.1:8069/web/login || exit 1 # noqa: hardcode
             echo "Deploy successful: $IMAGE_TAG"

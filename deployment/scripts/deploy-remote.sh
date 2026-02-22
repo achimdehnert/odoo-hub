@@ -5,10 +5,10 @@
 set -euo pipefail
 
 SERVER="46.225.127.211"
-PROJECT_DIR="/opt/odoo"
+PROJECT_DIR="/opt/odoo" # noqa: hardcode
 IMAGE="ghcr.io/achimdehnert/odoo-hub"
 IMAGE_TAG="${1:-latest}"
-HEALTH_URL="http://127.0.0.1:8069/web/login"
+HEALTH_URL="http://127.0.0.1:8069/web/login" # noqa: hardcode
 
 echo "=== Deploying odoo-hub:${IMAGE_TAG} to ${SERVER} ==="
 
