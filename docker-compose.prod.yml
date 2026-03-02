@@ -104,6 +104,9 @@ services:
 
   # ── aifw NL2SQL Microservice ────────────────────────────────────────────────
   # Internal only — not exposed via Traefik. Odoo calls it via http://aifw_service:8001
+  # Needs 'proxy' network for outbound LLM API calls (Anthropic/OpenAI).
+  # ALLOWED_HOSTS=["*"] + MIDDLEWARE=[] required: container name 'aifw_service'
+  # contains underscore which fails RFC 1034 hostname validation in Django.
   aifw_service:
     build:
       context: .

@@ -1,8 +1,16 @@
 """
 Django settings for aifw-service Microservice.
 
-Reads all sensitive config from environment variables.
-Non-sensitive defaults are hardcoded for container deployment.
+Design decisions:
+  - ALLOWED_HOSTS = ["*"]: This is an internal-only service (not Traefik-exposed).
+    Docker container names with underscores (aifw_service) fail RFC 1034 hostname
+    validation in Django's SecurityMiddleware/CommonMiddleware. Since the service
+    is firewalled to the internal Docker network, wildcard is safe and correct.
+  - MIDDLEWARE = []: SecurityMiddleware + CommonMiddleware both call request.get_host()
+    which raises DisallowedHost for underscore hostnames. No middleware needed for
+    an internal JSON API.
+  - LLM API keys: passed through docker-compose environment — litellm reads them
+    directly from os.environ, no re-assignment needed.
 """
 import os
 
@@ -10,23 +18,34 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
+# Wildcard required: Docker container name 'aifw_service' contains underscore,
+# which is rejected by RFC 1034 hostname validation in Django middleware.
+# Safe because this service is not exposed via Traefik (internal network only).
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "aifw",
-    "aifw_service",
+    "aifw_service",  # required for management command discovery (init_odoo_schema)
 ]
 
+# Empty middleware: SecurityMiddleware and CommonMiddleware both call
+# request.get_host() — this raises DisallowedHost for 'aifw_service:8001'
+# even with ALLOWED_HOSTS=["*"] because of RFC 1034 underscore rejection.
 MIDDLEWARE = []
 
 ROOT_URLCONF = "aifw_service.urls"
 
 WSGI_APPLICATION = "aifw_service.wsgi.application"
 
-# ── Database ────────────────────────────────────────────────────────────────
-# Primary DB: aifw own DB for LLMProvider, AIActionType, AIUsageLog, SchemaSource
+USE_TZ = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ── Database ──────────────────────────────────────────────────────────────────────
+# 'default': aifw own DB (LLMProvider, AIActionType, AIUsageLog, SchemaSource)
+# 'odoo':    Odoo DB — read-only access via nl2sql_ro role for SQL execution
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -37,7 +56,6 @@ DATABASES = {
         "PORT": os.environ.get("AIFW_DB_PORT", "5432"),
         "CONN_MAX_AGE": 60,
     },
-    # Odoo's PostgreSQL DB — used by SQLExecutor for NL2SQL queries (read-only via nl2sql_ro role)
     "odoo": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("ODOO_DB_NAME", "odoo"),
@@ -52,16 +70,7 @@ DATABASES = {
     },
 }
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# ── LLM Provider API Keys (read by litellm via aifw.service) ────────────────
-# Set whichever keys are available — aifw uses DB-configured provider routing.
-if os.environ.get("ANTHROPIC_API_KEY"):
-    os.environ["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
-if os.environ.get("OPENAI_API_KEY"):
-    os.environ["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
-
-# ── Logging ──────────────────────────────────────────────────────────────────
+# ── Logging ────────────────────────────────────────────────────────────────────
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -75,5 +84,6 @@ LOGGING = {
     "loggers": {
         "aifw": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "aifw_service": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "LiteLLM": {"handlers": ["console"], "level": "WARNING", "propagate": False},
     },
 }
