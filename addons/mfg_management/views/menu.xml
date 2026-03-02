@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_mfg_root"
+        name="MFG Cockpit"
+        web_icon="mfg_management,static/description/icon.png"
+        sequence="44"/>
+
+    <menuitem
+        id="menu_mfg_dashboard"
+        name="Cockpit"
+        parent="menu_mfg_root"
+        action="action_mfg_dashboard"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_mfg_production_board"
+        name="Production Board"
+        parent="menu_mfg_root"
+        action="action_mfg_production_board"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_mfg_machine_status"
+        name="Maschinenstatus"
+        parent="menu_mfg_root"
+        action="action_mfg_machine_status"
+        sequence="30"/>
+
+    <menuitem
+        id="menu_mfg_scm_overview"
+        name="SCM Übersicht"
+        parent="menu_mfg_root"
+        action="action_mfg_scm_overview"
+        sequence="40"/>
+</odoo>
