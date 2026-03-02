@@ -1,7 +1,7 @@
 /** @odoo-module **/
 import { Component, useState, onWillStart, onMounted } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { KpiCard } from "./kpi_card";
 
 export class MfgDashboard extends Component {
@@ -9,7 +9,6 @@ export class MfgDashboard extends Component {
     static components = { KpiCard };
 
     setup() {
-        this.http = useService("http");
         this.state = useState({ loading: true, data: null });
         onWillStart(() => this.loadData());
     }
@@ -17,8 +16,7 @@ export class MfgDashboard extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            const result = await this.http.get("/mfg_management/kpis");
-            this.state.data = result;
+            this.state.data = await rpc("/mfg_management/kpis");
         } finally {
             this.state.loading = false;
         }

@@ -1,14 +1,13 @@
 /** @odoo-module **/
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class ScmOverview extends Component {
     static template = "mfg_management.ScmOverview";
     static components = {};
 
     setup() {
-        this.http = useService("http");
         this.state = useState({ loading: true, data: null });
         onWillStart(() => this.loadData());
     }
@@ -16,7 +15,7 @@ export class ScmOverview extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            this.state.data = await this.http.get("/mfg_management/scm_overview");
+            this.state.data = await rpc("/mfg_management/scm_overview");
         } finally {
             this.state.loading = false;
         }

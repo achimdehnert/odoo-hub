@@ -1,14 +1,13 @@
 /** @odoo-module **/
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class MachineStatus extends Component {
     static template = "mfg_management.MachineStatus";
     static components = {};
 
     setup() {
-        this.http = useService("http");
         this.state = useState({ loading: true, machines: [], filter: "" });
         onWillStart(() => this.loadData());
     }
@@ -16,7 +15,7 @@ export class MachineStatus extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            const result = await this.http.get("/mfg_management/machine_status");
+            const result = await rpc("/mfg_management/machine_status");
             this.state.machines = result.machines || [];
         } finally {
             this.state.loading = false;
