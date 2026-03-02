@@ -9,5 +9,13 @@ export class KpiCard extends Component {
         value: [String, Number],
         sublabel: { type: String, optional: true },
         colorClass: { type: String, optional: true },
+        drilldownKey: { type: String, optional: true },
+        onDrilldown: { type: Function, optional: true },
     };
+
+    onClick() {
+        if (this.props.onDrilldown && this.props.drilldownKey) {
+            this.props.onDrilldown(this.props.drilldownKey);
+        }
+    }
 }

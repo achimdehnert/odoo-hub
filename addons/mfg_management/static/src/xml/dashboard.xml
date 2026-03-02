@@ -2,10 +2,12 @@
 <templates xml:space="preserve">
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     KPI Card
+     KPI Card  (clickable if drilldownKey + onDrilldown are set)
 ════════════════════════════════════════════════════════════════════ -->
 <t t-name="mfg_management.KpiCard">
-    <div class="mfg-kpi-card" t-att-class="props.colorClass or ''">
+    <div class="mfg-kpi-card"
+         t-att-class="(props.colorClass or '') + (props.drilldownKey ? ' mfg-kpi-clickable' : '')"
+         t-on-click="onClick">
         <div class="mfg-kpi-icon">
             <i t-att-class="'fa ' + (props.icon or 'fa-bar-chart')"/>
         </div>
@@ -16,6 +18,9 @@
                 <div class="mfg-kpi-sublabel"><t t-esc="props.sublabel"/></div>
             </t>
         </div>
+        <t t-if="props.drilldownKey">
+            <div class="mfg-kpi-arrow"><i class="fa fa-chevron-right"/></div>
+        </t>
     </div>
 </t>
 
@@ -24,11 +29,18 @@
 ════════════════════════════════════════════════════════════════════ -->
 <t t-name="mfg_management.Dashboard">
     <div class="mfg-dashboard">
+
+        <!-- Header -->
         <div class="mfg-dashboard-header">
             <h1><i class="fa fa-industry"/> Manufacturing Cockpit</h1>
-            <button class="btn btn-sm btn-outline-secondary" t-on-click="loadData">
-                <i class="fa fa-refresh"/> Aktualisieren
-            </button>
+            <div class="mfg-header-controls">
+                <button class="btn btn-sm btn-ai" t-on-click="toggleNl2sql">
+                    <i class="fa fa-magic"/> KI-Abfrage
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" t-on-click="loadData">
+                    <i class="fa fa-refresh"/> Aktualisieren
+                </button>
+            </div>
         </div>
 
         <t t-if="state.loading">
@@ -39,42 +51,285 @@
         </t>
 
         <t t-if="!state.loading and state.data">
-            <!-- KPI Row -->
+
+            <!-- ── NL2SQL Panel ───────────────────────────────────────── -->
+            <t t-if="state.nl2sql.open">
+                <div class="mfg-nl2sql-panel">
+                    <div class="mfg-nl2sql-header">
+                        <span><i class="fa fa-magic"/> KI-gestützte Datenabfrage (NL2SQL)</span>
+                        <button class="mfg-nl2sql-close" t-on-click="toggleNl2sql"><i class="fa fa-times"/></button>
+                    </div>
+
+                    <!-- Suggest chips -->
+                    <div class="mfg-nl2sql-suggests">
+                        <t t-foreach="nl2sqlSuggestQueries()" t-as="sq" t-key="sq">
+                            <button class="mfg-suggest-chip" t-on-click="() => this.applySuggest(sq)">
+                                <t t-esc="sq"/>
+                            </button>
+                        </t>
+                    </div>
+
+                    <!-- Input row -->
+                    <div class="mfg-nl2sql-input-row">
+                        <textarea class="mfg-nl2sql-textarea"
+                            placeholder="z.B. Welche Maschinen sind gerade in Störung? Zeige Aufträge mit Ausschuss &gt; 5%..."
+                            t-att-value="state.nl2sql.query"
+                            t-on-input="onNl2sqlInput"
+                            rows="2"/>
+                        <button class="btn btn-primary mfg-nl2sql-run"
+                            t-att-disabled="state.nl2sql.loading or !state.nl2sql.query"
+                            t-on-click="runNl2sql">
+                            <t t-if="state.nl2sql.loading">
+                                <i class="fa fa-spinner fa-spin"/> Läuft…
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-play"/> Ausführen
+                            </t>
+                        </button>
+                    </div>
+
+                    <!-- Generated SQL -->
+                    <t t-if="state.nl2sql.sql">
+                        <div class="mfg-nl2sql-sql">
+                            <span class="mfg-sql-label">SQL</span>
+                            <code><t t-esc="state.nl2sql.sql"/></code>
+                        </div>
+                    </t>
+
+                    <!-- Error -->
+                    <t t-if="state.nl2sql.error">
+                        <div class="mfg-nl2sql-error">
+                            <i class="fa fa-exclamation-circle"/> <t t-esc="state.nl2sql.error"/>
+                        </div>
+                    </t>
+
+                    <!-- Results table -->
+                    <t t-if="nl2sqlHasRows()">
+                        <div class="mfg-nl2sql-result">
+                            <div class="mfg-nl2sql-result-meta">
+                                <i class="fa fa-table"/>
+                                <strong><t t-esc="state.nl2sql.result.row_count"/></strong> Zeilen
+                                <span class="text-muted"> · <t t-esc="state.nl2sql.result.execution_time_ms"/> ms</span>
+                            </div>
+                            <div class="mfg-nl2sql-table-wrap">
+                                <table class="mfg-table mfg-nl2sql-table">
+                                    <thead>
+                                        <tr>
+                                            <t t-foreach="state.nl2sql.result.columns" t-as="col" t-key="col.name">
+                                                <th><t t-esc="col.name"/></th>
+                                            </t>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.nl2sql.result.rows" t-as="row" t-key="row_index">
+                                            <tr>
+                                                <t t-foreach="row" t-as="cell" t-key="cell_index">
+                                                    <td><t t-esc="cell"/></td>
+                                                </t>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-if="state.nl2sql.result and !nl2sqlHasRows() and !state.nl2sql.error">
+                        <div class="mfg-nl2sql-empty">
+                            <i class="fa fa-inbox"/> Keine Ergebnisse
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ── KPI Row ────────────────────────────────────────────── -->
             <div class="mfg-kpi-row">
                 <KpiCard
                     icon="'fa-tasks'"
                     label="'Aktive Aufträge (Guss)'"
                     value="activecastingOrders()"
-                    colorClass="'kpi-blue'"/>
+                    colorClass="'kpi-blue'"
+                    drilldownKey="'casting_active'"
+                    onDrilldown.bind="openDrilldown"/>
                 <KpiCard
                     icon="'fa-cogs'"
                     label="'Fertigung in Progress'"
                     value="state.data.scm_production.in_progress"
-                    colorClass="'kpi-orange'"/>
+                    colorClass="'kpi-orange'"
+                    drilldownKey="'scm_in_progress'"
+                    onDrilldown.bind="openDrilldown"/>
                 <KpiCard
                     icon="'fa-wrench'"
                     label="'Maschinen Betrieb'"
                     value="state.data.machines.operational"
-                    colorClass="'kpi-green'"/>
+                    colorClass="'kpi-green'"
+                    drilldownKey="'machines_op'"
+                    onDrilldown.bind="openDrilldown"/>
                 <KpiCard
                     icon="'fa-exclamation-triangle'"
                     label="'Maschinen Störung'"
                     value="state.data.machines.breakdown"
-                    colorClass="'kpi-red'"/>
+                    colorClass="'kpi-red'"
+                    drilldownKey="'machines_fail'"
+                    onDrilldown.bind="openDrilldown"/>
                 <KpiCard
                     icon="'fa-check-circle'"
                     label="'QS-Rate'"
                     value="state.data.quality.pass_rate + '%'"
                     sublabel="state.data.quality.total + ' Prüfungen'"
-                    colorClass="'kpi-teal'"/>
+                    colorClass="'kpi-teal'"
+                    drilldownKey="'quality'"
+                    onDrilldown.bind="openDrilldown"/>
                 <KpiCard
                     icon="'fa-shopping-cart'"
                     label="'Offene Bestellungen'"
                     value="openPurchases()"
-                    colorClass="'kpi-purple'"/>
+                    colorClass="'kpi-purple'"
+                    drilldownKey="'purchases_open'"
+                    onDrilldown.bind="openDrilldown"/>
             </div>
 
-            <!-- Status Overview Grid -->
+            <!-- ── Drilldown Overlay ──────────────────────────────────── -->
+            <t t-if="state.drilldown">
+                <div class="mfg-drilldown-backdrop" t-on-click="closeDrilldown"/>
+                <div class="mfg-drilldown-panel">
+                    <div class="mfg-drilldown-header">
+                        <h2><i class="fa fa-search"/> <t t-esc="drilldownTitle()"/></h2>
+                        <button class="mfg-drilldown-close" t-on-click="closeDrilldown">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+
+                    <t t-if="state.drilldownLoading">
+                        <div class="mfg-loading" style="min-height:120px">
+                            <i class="fa fa-spinner fa-spin fa-2x"/>
+                        </div>
+                    </t>
+
+                    <t t-if="!state.drilldownLoading and state.drilldownData">
+                        <t t-if="state.drilldownData.error">
+                            <div class="mfg-nl2sql-error"><i class="fa fa-exclamation-circle"/> <t t-esc="state.drilldownData.error"/></div>
+                        </t>
+
+                        <!-- Casting orders drilldown -->
+                        <t t-if="state.drilldown === 'casting_active' and state.drilldownData.rows">
+                            <table class="mfg-table">
+                                <thead><tr><th>Auftrag</th><th>Status</th><th>Geplant</th><th>Stück</th><th>Ausschuss%</th><th>Kunde</th></tr></thead>
+                                <tbody>
+                                    <t t-foreach="state.drilldownData.rows" t-as="r" t-key="r.id">
+                                        <tr>
+                                            <td class="mfg-monospace"><t t-esc="r.name"/></td>
+                                            <td><span class="mfg-badge" t-att-class="'cast-' + r.state"><t t-esc="r.state"/></span></td>
+                                            <td><t t-esc="r.date_planned or '—'"/></td>
+                                            <td><t t-esc="r.total_pieces or 0"/></td>
+                                            <td t-att-class="r.total_scrap_pct > 5 ? 'text-danger fw-bold' : ''">
+                                                <t t-esc="r.total_scrap_pct or 0"/>%
+                                            </td>
+                                            <td class="text-muted"><t t-esc="r.customer_reference or '—'"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <!-- Machine drilldown (op + fail) -->
+                        <t t-if="(state.drilldown === 'machines_op' or state.drilldown === 'machines_fail') and state.drilldownData.rows">
+                            <table class="mfg-table">
+                                <thead><tr><th>Code</th><th>Name</th><th>Typ</th><th>Halle</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <t t-foreach="state.drilldownData.rows" t-as="m" t-key="m.id">
+                                        <tr>
+                                            <td class="mfg-monospace"><t t-esc="m.code"/></td>
+                                            <td><t t-esc="m.name"/></td>
+                                            <td class="text-muted"><t t-esc="m.machine_type"/></td>
+                                            <td class="text-muted"><t t-esc="m.hall or '—'"/></td>
+                                            <td><span class="mfg-machine-state-badge" t-att-class="'sbadge-' + m.state"><t t-esc="m.state"/></span></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <!-- Quality drilldown -->
+                        <t t-if="state.drilldown === 'quality' and state.drilldownData.summary">
+                            <div class="mfg-drilldown-qs">
+                                <div class="mfg-qs-big">
+                                    <div class="mfg-qs-rate"><t t-esc="state.drilldownData.summary.pass_rate"/>%</div>
+                                    <div class="mfg-qs-label">Bestehensrate</div>
+                                </div>
+                                <div class="mfg-qs-breakdown">
+                                    <div class="mfg-qs-item qs-pass"><i class="fa fa-check-circle"/> Bestanden <strong><t t-esc="state.drilldownData.summary.pass"/></strong></div>
+                                    <div class="mfg-qs-item qs-fail"><i class="fa fa-times-circle"/> Nicht bestanden <strong><t t-esc="state.drilldownData.summary.fail"/></strong></div>
+                                    <div class="mfg-qs-item qs-cond"><i class="fa fa-exclamation-circle"/> Bedingt <strong><t t-esc="state.drilldownData.summary.conditional"/></strong></div>
+                                </div>
+                            </div>
+                            <t t-if="state.drilldownData.rows and state.drilldownData.rows.length">
+                                <table class="mfg-table" style="margin-top:16px">
+                                    <thead><tr><th>Prüfung</th><th>Ergebnis</th><th>Datum</th><th>Prüfer</th></tr></thead>
+                                    <tbody>
+                                        <t t-foreach="state.drilldownData.rows" t-as="q" t-key="q.id">
+                                            <tr>
+                                                <td class="mfg-monospace"><t t-esc="q.name"/></td>
+                                                <td><span class="mfg-badge" t-att-class="'qs-' + q.result"><t t-esc="q.result"/></span></td>
+                                                <td><t t-esc="q.date_check or '—'"/></td>
+                                                <td class="text-muted"><t t-esc="q.inspector_name or '—'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </t>
+
+                        <!-- Purchases drilldown -->
+                        <t t-if="state.drilldown === 'purchases_open' and state.drilldownData.rows">
+                            <table class="mfg-table">
+                                <thead><tr><th>Nr.</th><th>Lieferant</th><th>Status</th><th>Erwartet</th><th class="text-end">Betrag €</th></tr></thead>
+                                <tbody>
+                                    <t t-foreach="state.drilldownData.rows" t-as="p" t-key="p.id">
+                                        <tr>
+                                            <td class="mfg-monospace"><t t-esc="p.name"/></td>
+                                            <td><t t-esc="p.partner_name or '—'"/></td>
+                                            <td><span class="mfg-badge" t-att-class="'po-' + p.state"><t t-esc="p.state"/></span></td>
+                                            <td t-att-class="p.overdue ? 'text-danger fw-bold' : ''">
+                                                <t t-esc="p.date_expected or '—'"/>
+                                                <t t-if="p.overdue"> <i class="fa fa-warning"/></t>
+                                            </td>
+                                            <td class="text-end"><t t-esc="p.total_amount or 0"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <!-- SCM drilldown -->
+                        <t t-if="state.drilldown === 'scm_in_progress' and state.drilldownData.rows">
+                            <table class="mfg-table">
+                                <thead><tr><th>Auftrag</th><th>Teil</th><th>Status</th><th>Plan</th><th>Ist</th><th>Yield%</th></tr></thead>
+                                <tbody>
+                                    <t t-foreach="state.drilldownData.rows" t-as="s" t-key="s.id">
+                                        <tr>
+                                            <td class="mfg-monospace"><t t-esc="s.name"/></td>
+                                            <td class="text-muted"><t t-esc="s.part_name or '—'"/></td>
+                                            <td><span class="mfg-badge" t-att-class="'po-' + s.state"><t t-esc="s.state"/></span></td>
+                                            <td><t t-esc="s.planned_qty or 0"/></td>
+                                            <td><t t-esc="s.produced_qty or 0"/></td>
+                                            <td t-att-class="(s.yield_pct or 0) &lt; 80 ? 'text-warning fw-bold' : 'text-success'">
+                                                <t t-esc="s.yield_pct or 0"/>%
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <t t-if="state.drilldownData.rows and state.drilldownData.rows.length === 0">
+                            <div class="mfg-nl2sql-empty"><i class="fa fa-inbox"/> Keine Einträge</div>
+                        </t>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ── Status Overview Grid ───────────────────────────────── -->
             <div class="mfg-section-grid">
 
                 <!-- Casting Orders by State -->
@@ -82,8 +337,8 @@
                     <h3><i class="fa fa-fire"/> Gießaufträge</h3>
                     <div class="mfg-state-bars">
                         <t t-foreach="castingOrderStates()" t-as="s" t-key="s.key">
-                            <div class="mfg-state-bar-row">
-                                <span class="mfg-state-label" t-att-class="'badge-' + s.color"><t t-esc="s.label"/></span>
+                            <div class="mfg-state-bar-row mfg-state-bar-clickable" t-on-click="() => this.openDrilldown('casting_active')">
+                                <span class="mfg-state-label"><t t-esc="s.label"/></span>
                                 <div class="mfg-bar-track">
                                     <div class="mfg-bar-fill" t-att-style="'width:' + s.pct + '%;background:' + s.hex"/>
                                 </div>
@@ -98,7 +353,7 @@
                     <h3><i class="fa fa-cogs"/> Fertigungsaufträge (SCM)</h3>
                     <div class="mfg-state-bars">
                         <t t-foreach="scmOrderStates()" t-as="s" t-key="s.key">
-                            <div class="mfg-state-bar-row">
+                            <div class="mfg-state-bar-row mfg-state-bar-clickable" t-on-click="() => this.openDrilldown('scm_in_progress')">
                                 <span class="mfg-state-label"><t t-esc="s.label"/></span>
                                 <div class="mfg-bar-track">
                                     <div class="mfg-bar-fill" t-att-style="'width:' + s.pct + '%;background:' + s.hex"/>
@@ -109,11 +364,11 @@
                     </div>
                 </div>
 
-                <!-- Machine Status Donut-style -->
+                <!-- Machine Status -->
                 <div class="mfg-panel">
                     <h3><i class="fa fa-tachometer"/> Maschinenstatus</h3>
                     <div class="mfg-machine-legend">
-                        <div class="mfg-machine-legend-item state-operational">
+                        <div class="mfg-machine-legend-item state-operational mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_op')">
                             <span class="mfg-dot"/> Betrieb
                             <strong><t t-esc="state.data.machines.operational"/></strong>
                         </div>
@@ -121,7 +376,7 @@
                             <span class="mfg-dot"/> Wartung
                             <strong><t t-esc="state.data.machines.maintenance"/></strong>
                         </div>
-                        <div class="mfg-machine-legend-item state-breakdown">
+                        <div class="mfg-machine-legend-item state-breakdown mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_fail')">
                             <span class="mfg-dot"/> Störung
                             <strong><t t-esc="state.data.machines.breakdown"/></strong>
                         </div>
@@ -132,15 +387,15 @@
                     </div>
                     <div class="mfg-machine-bar-stacked">
                         <t t-if="totalMachines() > 0">
-                            <div class="mfg-seg seg-operational" t-att-style="'width:' + machPct('operational') + '%'" t-att-title="'Betrieb: ' + state.data.machines.operational"/>
-                            <div class="mfg-seg seg-maintenance" t-att-style="'width:' + machPct('maintenance') + '%'" t-att-title="'Wartung: ' + state.data.machines.maintenance"/>
-                            <div class="mfg-seg seg-breakdown"   t-att-style="'width:' + machPct('breakdown') + '%'"   t-att-title="'Störung: ' + state.data.machines.breakdown"/>
-                            <div class="mfg-seg seg-decomm"      t-att-style="'width:' + machPct('decommissioned') + '%'" t-att-title="'Stillgelegt: ' + state.data.machines.decommissioned"/>
+                            <div class="mfg-seg seg-operational" t-att-style="'width:' + machPct('operational') + '%'"/>
+                            <div class="mfg-seg seg-maintenance" t-att-style="'width:' + machPct('maintenance') + '%'"/>
+                            <div class="mfg-seg seg-breakdown"   t-att-style="'width:' + machPct('breakdown') + '%'"/>
+                            <div class="mfg-seg seg-decomm"      t-att-style="'width:' + machPct('decommissioned') + '%'"/>
                         </t>
                     </div>
                 </div>
 
-                <!-- Quality + Delivery -->
+                <!-- Deliveries -->
                 <div class="mfg-panel">
                     <h3><i class="fa fa-truck"/> Lieferungen</h3>
                     <div class="mfg-state-bars">

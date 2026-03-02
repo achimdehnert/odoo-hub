@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
+import logging
+from datetime import date
+
 from odoo import http
 from odoo.http import request
+
+_logger = logging.getLogger(__name__)
 
 
 class MfgDashboardController(http.Controller):
@@ -143,3 +149,164 @@ class MfgDashboardController(http.Controller):
             "open_deliveries": open_deliveries,
             "warehouses": warehouses,
         }
+
+    # ── Drilldown ──────────────────────────────────────────────────────────
+    @http.route("/mfg_management/drilldown", type="json", auth="user")
+    def get_drilldown(self, key):
+        env = request.env
+        today = date.today()
+
+        if key == "casting_active":
+            rows = env["casting.order"].search_read(
+                [("state", "not in", ["done", "cancelled"])],
+                fields=["name", "state", "date_planned", "total_pieces",
+                        "total_scrap_pct", "customer_reference"],
+                order="state asc, date_planned asc",
+                limit=100,
+            )
+            return {"rows": rows}
+
+        elif key == "scm_in_progress":
+            rows = env["scm.production.order"].search_read(
+                [("state", "not in", ["done", "cancelled"])],
+                fields=["name", "state", "date_planned", "planned_qty",
+                        "produced_qty", "yield_pct", "part_id"],
+                order="state asc, date_planned asc",
+                limit=100,
+            )
+            for r in rows:
+                if r.get("part_id"):
+                    r["part_name"] = r["part_id"][1]
+                    r["part_id"] = r["part_id"][0]
+            return {"rows": rows}
+
+        elif key == "machines_op":
+            rows = env["casting.machine"].search_read(
+                [("state", "=", "operational"), ("active", "=", True)],
+                fields=["name", "code", "machine_type", "hall", "state"],
+                order="code asc",
+            )
+            return {"rows": rows}
+
+        elif key == "machines_fail":
+            rows = env["casting.machine"].search_read(
+                [("state", "=", "breakdown"), ("active", "=", True)],
+                fields=["name", "code", "machine_type", "hall", "state"],
+                order="code asc",
+            )
+            return {"rows": rows}
+
+        elif key == "quality":
+            qc_pass = env["casting.quality.check"].search_count(
+                [("result", "=", "pass")])
+            qc_fail = env["casting.quality.check"].search_count(
+                [("result", "=", "fail")])
+            qc_cond = env["casting.quality.check"].search_count(
+                [("result", "=", "conditional")])
+            qc_total = qc_pass + qc_fail + qc_cond
+            rows = env["casting.quality.check"].search_read(
+                [],
+                fields=["name", "result", "date_check", "inspector_id"],
+                order="date_check desc",
+                limit=50,
+            )
+            for r in rows:
+                if r.get("inspector_id"):
+                    r["inspector_name"] = r["inspector_id"][1]
+                    r["inspector_id"] = r["inspector_id"][0]
+            return {
+                "summary": {
+                    "pass": qc_pass, "fail": qc_fail,
+                    "conditional": qc_cond, "total": qc_total,
+                    "pass_rate": round(qc_pass / qc_total * 100, 1) if qc_total else 0.0,
+                },
+                "rows": rows,
+            }
+
+        elif key == "purchases_open":
+            rows = env["scm.purchase.order"].search_read(
+                [("state", "in", ["draft", "sent", "confirmed"])],
+                fields=["name", "state", "partner_id", "date_order",
+                        "date_expected", "total_amount"],
+                order="date_expected asc",
+                limit=50,
+            )
+            for r in rows:
+                if r.get("partner_id"):
+                    r["partner_name"] = r["partner_id"][1]
+                    r["partner_id"] = r["partner_id"][0]
+                if r.get("date_expected"):
+                    try:
+                        exp = r["date_expected"]
+                        if hasattr(exp, "date"):
+                            exp = exp.date()
+                        elif isinstance(exp, str):
+                            from datetime import datetime
+                            exp = datetime.strptime(exp[:10], "%Y-%m-%d").date()
+                        r["overdue"] = exp < today
+                    except Exception:
+                        r["overdue"] = False
+                else:
+                    r["overdue"] = False
+            return {"rows": rows}
+
+        return {"error": f"Unbekannter Drilldown-Key: {key}"}
+
+    # ── NL2SQL Proxy ───────────────────────────────────────────────────────
+    @http.route("/mfg_management/nl2sql", type="json", auth="user")
+    def nl2sql_query(self, query):
+        """Proxy to mfg_nl2sql if installed, otherwise execute direct SQL fallback."""
+        if not query or not query.strip():
+            return {"error": "Leere Anfrage"}
+
+        # Try to delegate to the mfg_nl2sql module's controller logic
+        try:
+            # Import the nl2sql controller directly if the module is installed
+            from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+                NL2SQLController, sanitize_sql, detect_chart_type, build_chart_config
+            )
+            ctrl = NL2SQLController()
+            config = ctrl._get_llm_config()
+
+            if not config.get("api_key"):
+                return {
+                    "error": "KI-API Key nicht konfiguriert. "
+                             "Bitte unter Einstellungen > NL2SQL den API-Schlüssel hinterlegen.",
+                    "api_missing": True,
+                }
+
+            sql, tokens, err = ctrl._translate_nl_to_sql(query, domain_filter="all")
+            if err:
+                return {"error": err}
+
+            sanitized, san_err = sanitize_sql(sql, config.get("allow_write", False))
+            if san_err:
+                return {"error": f"SQL-Validierung: {san_err}", "sql": sql}
+
+            result = ctrl._execute_sql(sanitized, config.get("max_rows", 500))
+            if result.get("error"):
+                return {"error": result["error"], "sql": sanitized}
+
+            chart_type = detect_chart_type(result["columns"], result["rows"])
+            chart_config = build_chart_config(chart_type, result["columns"], result["rows"])
+
+            return {
+                "sql": sanitized,
+                "columns": result["columns"],
+                "rows": result["rows"],
+                "row_count": result["row_count"],
+                "execution_time_ms": result["execution_time_ms"],
+                "chart_type": chart_type,
+                "chart_config": chart_config,
+                "tokens_used": tokens,
+            }
+
+        except ImportError:
+            return {
+                "error": "Modul mfg_nl2sql ist nicht installiert. "
+                         "Bitte das NL2SQL-Modul aktivieren.",
+                "module_missing": True,
+            }
+        except Exception as exc:
+            _logger.exception("NL2SQL proxy error")
+            return {"error": f"Fehler: {str(exc)}"}
