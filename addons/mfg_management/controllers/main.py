@@ -206,11 +206,12 @@ class MfgDashboardController(http.Controller):
             qc_total = qc_pass + qc_fail + qc_cond
             rows = env["casting.quality.check"].search_read(
                 [],
-                fields=["name", "result", "date_check", "inspector_id"],
-                order="date_check desc",
+                fields=["name", "result", "check_date", "inspector_id"],
+                order="check_date desc",
                 limit=50,
             )
             for r in rows:
+                r["date_check"] = r.pop("check_date", None)
                 if r.get("inspector_id"):
                     r["inspector_name"] = r["inspector_id"][1]
                     r["inspector_id"] = r["inspector_id"][0]
