@@ -78,6 +78,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_proxy"
       - "traefik.http.routers.odoo.rule=Host(`${ODOO_DOMAIN}`)"
       - "traefik.http.routers.odoo.entrypoints=websecure"
       - "traefik.http.routers.odoo.tls.certresolver=le"
