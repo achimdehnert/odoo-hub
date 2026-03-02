@@ -2,10 +2,16 @@
 # Target: Hetzner CPX32 (4 vCPU, 8 GB RAM, 160 GB Disk), odoo-prod (46.225.127.211)
 # Stack: Traefik + Odoo 18 + PgBouncer + PostgreSQL 16
 #
+# Secrets Management (ADR-045 — Variante C: Hybrid SOPS + file-based):
+#   - Sensitive Werte (Passwörter) kommen aus /run/secrets/ (tmpfs, ADR-045)
+#   - Non-sensitive Compose-Interpolation (.env.prod) für ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG
+#   - .env.prod wird im CI/CD aus /run/secrets/ generiert (kein manuelles Editieren)
+#   - Nach Reboot: secrets-check.service blockiert Docker bis CI/CD re-deployed
+#
 # Anforderungen:
 #   - Docker >= 25, Compose V2
-#   - .env.prod mit: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
-#                    ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG (optional)
+#   - /run/secrets/ befüllt via CI/CD (SOPS-Decrypt, ADR-045 Phase 5)
+#   - .env.prod generiert via CI/CD aus /run/secrets/ (ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG)
 #   - docker/db/init.sql vorhanden (nl2sql_ro Role Setup)
 #
 # Idempotent: mehrfaches `docker compose up -d` ist sicher.
@@ -47,12 +53,16 @@ services:
     image: ghcr.io/achimdehnert/odoo-hub:${IMAGE_TAG:-latest}
     container_name: odoo_web
     restart: unless-stopped
+    # Non-sensitive Compose-Vars (ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG, POSTGRES_USER, POSTGRES_DB)
+    # Passwörter werden NUR über /run/secrets/ übergeben (ADR-045).
     env_file: .env.prod
     # Kein direktes Port-Mapping — Traffic läuft ausschließlich über Traefik
     expose:
       - "8069"
     volumes:
       - odoo_data:/var/lib/odoo
+      # Secrets aus /run/secrets/ als Read-Only in Container mounten (ADR-045)
+      - /run/secrets:/run/secrets:ro
     depends_on:
       db:
         condition: service_healthy
@@ -96,7 +106,10 @@ services:
       - PGBOUNCER_DATABASE_PORT=5432
       - PGBOUNCER_DATABASE_NAME=${POSTGRES_DB}
       - PGBOUNCER_DATABASE_USER=${POSTGRES_USER}
-      - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      # Passwort aus /run/secrets/ — kein Plaintext in Compose (ADR-045)
+      - PGBOUNCER_DATABASE_PASSWORD_FILE=/run/secrets/postgres_password
+    volumes:
+      - /run/secrets:/run/secrets:ro
     depends_on:
       db:
         condition: service_healthy
@@ -108,7 +121,12 @@ services:
     image: postgres:16-alpine
     container_name: odoo_db
     restart: unless-stopped
+    # Non-sensitive vars aus .env.prod (POSTGRES_USER, POSTGRES_DB)
+    # Passwort aus /run/secrets/ via POSTGRES_PASSWORD_FILE (ADR-045)
     env_file: .env.prod
+    environment:
+      # PostgreSQL 16 unterstützt _FILE-Suffix für alle PG_*-Variablen
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
     volumes:
       - odoo_pgdata:/var/lib/postgresql/data
       # Init-Script: einmalig ausgeführt wenn Volume leer (idempotent: IF NOT EXISTS).
@@ -116,6 +134,8 @@ services:
       # per `docker exec odoo_db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /init.sql`
       # ausgeführt werden falls neue Tabellen geGRANTet werden sollen.
       - ./docker/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      # Secrets aus /run/secrets/ für POSTGRES_PASSWORD_FILE (ADR-045)
+      - /run/secrets:/run/secrets:ro
     # PostgreSQL-Tuning für CPX32 (4 vCPU, 8 GB RAM).
     # Werte basieren auf: https://pgtune.leopard.in.ua/ für "Web Application", 8GB RAM.
     command: >

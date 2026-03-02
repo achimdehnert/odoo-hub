@@ -1,0 +1,169 @@
+name: Deploy odoo-hub to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DEPLOY_HOST: root@46.225.127.211
+  DEPLOY_PATH: /opt/odoo-hub
+
+jobs:
+  # ── Job 1: Secrets entschlüsseln + auf Server deployen ─────────────────────
+  secrets:
+    name: Deploy Secrets via SOPS
+    runs-on: ubuntu-latest
+    # Überspringen wenn SOPS_AGE_KEY nicht gesetzt (lokale Forks, PRs ohne Secret)
+    if: ${{ secrets.SOPS_AGE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sops + age
+        run: |
+          # sops
+          SOPS_VERSION="3.9.4"
+          curl -fsSL "https://github.com/mozilla/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64" \
+            -o /usr/local/bin/sops
+          chmod +x /usr/local/bin/sops
+
+          # age
+          AGE_VERSION="1.1.1"
+          curl -fsSL "https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION}/age-v${AGE_VERSION}-linux-amd64.tar.gz" \
+            | tar xz --strip-components=1 -C /usr/local/bin age/age age/age-keygen
+
+          sops --version
+          age --version
+
+      - name: Verify secrets.enc.env exists
+        run: |
+          if [[ ! -f secrets.enc.env ]]; then
+            echo "FEHLER: secrets.enc.env nicht gefunden."
+            echo "  -> ./scripts/create-secrets.sh ausführen und committen."
+            exit 1
+          fi
+
+      - name: Decrypt secrets + deploy to /run/secrets/
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          # SSH-Key einrichten
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 46.225.127.211 >> ~/.ssh/known_hosts
+
+          # Entschlüsseln im Runner-Speicher (kein Plaintext auf Disk)
+          DECRYPTED=$(sops -d secrets.enc.env)
+          COUNT=0
+
+          # Jeden Secret als separate Datei nach /run/secrets/ schreiben
+          while IFS='=' read -r key value; do
+            # Kommentare und leere Zeilen überspringen
+            [[ -z "${key}" || "${key}" =~ ^# ]] && continue
+
+            key_lower=$(echo "${key}" | tr '[:upper:]' '[:lower:]')
+
+            # printf statt echo — verhindert trailing newline (kritisch für API-Keys)
+            ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" \
+              "mkdir -p /run/secrets && \
+               printf '%s' '${value}' > /run/secrets/${key_lower} && \
+               chmod 400 /run/secrets/${key_lower} && \
+               chown root:root /run/secrets/${key_lower}"
+
+            COUNT=$((COUNT + 1))
+          done <<< "${DECRYPTED}"
+
+          echo "Deployed ${COUNT} secrets to /run/secrets/ on ${DEPLOY_HOST}"
+
+      - name: Verify required secrets on server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" '
+            REQUIRED="postgres_password postgres_db postgres_user odoo_admin_passwd odoo_domain acme_email"
+            MISSING=0
+            for f in $REQUIRED; do
+              if [ ! -s "/run/secrets/$f" ]; then
+                echo "FATAL: Missing or empty secret: $f" >&2
+                MISSING=$((MISSING + 1))
+              fi
+            done
+            if [ $MISSING -gt 0 ]; then
+              echo "$MISSING required secret(s) missing — deploy aborted." >&2
+              exit 1
+            fi
+            echo "All required secrets verified ($(ls /run/secrets/ | wc -l) total)."
+          '
+
+  # ── Job 2: Docker Stack deployen ────────────────────────────────────────────
+  deploy:
+    name: Deploy Docker Stack
+    runs-on: ubuntu-latest
+    needs: secrets
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 46.225.127.211 >> ~/.ssh/known_hosts
+
+      - name: Sync repo to server
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='secrets.env' \
+            --exclude='.env.prod' \
+            --exclude='*.log' \
+            ./ "${DEPLOY_HOST}:${DEPLOY_PATH}/"
+
+      - name: Generate .env.prod from /run/secrets/
+        # Traefik und docker-compose.prod.yml benötigen einige Werte als Umgebungsvariablen
+        # (ODOO_DOMAIN, ACME_EMAIL für Traefik-Labels + Healthcheck).
+        # read_secret() liest aus /run/secrets/ — diese Bridge-Datei ist kein Secret-Store,
+        # nur Compose-Interpolation. Passwörter stehen nur in /run/secrets/.
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            cd ${DEPLOY_PATH}
+            # Generiere minimale .env.prod für docker-compose Variable-Interpolation
+            # Nur nicht-sensitive Werte + Referenzen (keine Passwörter direkt)
+            cat > .env.prod << 'ENVEOF'
+            POSTGRES_USER=\$(cat /run/secrets/postgres_user 2>/dev/null || echo odoo)
+            POSTGRES_DB=\$(cat /run/secrets/postgres_db 2>/dev/null || echo odoo)
+            ODOO_DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
+            ACME_EMAIL=\$(cat /run/secrets/acme_email 2>/dev/null)
+            IMAGE_TAG=${GITHUB_SHA::8}
+          ENVEOF
+            # Sensitive Werte separat setzen (nur für Compose-Interpolation, chmod 600)
+            echo \"POSTGRES_PASSWORD=\$(cat /run/secrets/postgres_password)\" >> .env.prod
+            chmod 600 .env.prod
+          "
+
+      - name: Docker Compose up
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            cd ${DEPLOY_PATH}
+            docker compose -f docker-compose.prod.yml pull --quiet || true
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.yml ps
+          "
+
+      - name: Health check
+        run: |
+          sleep 15
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
+            if curl -sf --max-time 10 \"https://\${DOMAIN}/web/health\" > /dev/null; then
+              echo 'Health check passed.'
+            else
+              echo 'Health check failed — Logs:' >&2
+              docker compose -f ${DEPLOY_PATH}/docker-compose.prod.yml logs --tail=50 web >&2
+              exit 1
+            fi
+          "

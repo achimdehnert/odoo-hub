@@ -1,7 +1,12 @@
-# SOPS configuration for odoo-hub secrets (ADR-045)
-# Primary: developer machine | Backup: safe storage
+# .sops.yaml — SOPS Encryption Config (ADR-045)
+# Primary: developer machine (~/.config/sops/age/keys.txt)
+# Backup:  physically separate storage (USB / password manager)
+#
+# Secrets verschlüsseln: ./scripts/create-secrets.sh
+# Secrets entschlüsseln: sops -d secrets.enc.env
+
 creation_rules:
   - path_regex: secrets\.enc\.env$
     age: >-
       age1efdys3yj3y8gvu64v9h8m449h0gh5spwvzyrpcjtkj26w4q5g46q8nuf67,
-      age16ugm28mck7y95c5p2ul8hqctcn26qdagylj5fa4ykxytsz5nf4ssq49hef
+      age18j0jedd6mpsutqtp8qfky96rpmqwesu4frr2uy4vg58v2lnvfczqwxvcqk

@@ -12,12 +12,32 @@ venv/
 *.swp
 *.swo
 *~
-.env
-.env.prod
-.env.local
 .DS_Store
 Thumbs.db
 *:Zone.Identifier
+
+# ── Secrets (ADR-045) ─────────────────────────────────────────────────────────
+# Plaintext secrets: NIEMALS committen
+.env
+.env.prod
+.env.local
+.env.staging
+secrets.env
+secrets.plain.env
+
+# Encrypted secrets: SICHER zu committen (SOPS + age)
+!secrets.enc.env
+
+# Documentation hygiene (ADR-046)
+docs/_build/
+docs/build/
+docs/**/*.pdf
+docs/**/*.docx
+docs/**/*.pptx
+docs/**/*.zip
+docs/**/*.jpg
+docs/**/*.png
+
 filestore/
 sessions/
 *.log
