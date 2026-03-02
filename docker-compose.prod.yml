@@ -123,9 +123,6 @@ services:
     # Non-sensitive vars aus .env.prod (POSTGRES_USER, POSTGRES_DB)
     # Passwort aus /run/secrets/ via POSTGRES_PASSWORD_FILE (ADR-045)
     env_file: .env.prod
-    environment:
-      # PostgreSQL 16 unterstützt _FILE-Suffix für alle PG_*-Variablen
-      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
     volumes:
       - odoo_pgdata:/var/lib/postgresql/data
       # Init-Script: einmalig ausgeführt wenn Volume leer (idempotent: IF NOT EXISTS).
