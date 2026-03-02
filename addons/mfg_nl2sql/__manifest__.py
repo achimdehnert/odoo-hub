@@ -40,8 +40,8 @@
         'views/schema_metadata_views.xml',
         'views/dashboard_config_views.xml',
         'views/res_config_settings_views.xml',
-        'views/menu.xml',
         'views/dashboard_action.xml',
+        'views/menu.xml',
         # Wizards
         'wizard/save_query_wizard_views.xml',
     ],
