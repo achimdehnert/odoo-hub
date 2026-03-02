@@ -43,7 +43,6 @@ services:
       - traefik_certs:/letsencrypt
     networks:
       - proxy
-    restart: unless-stopped
 
   # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
