@@ -20,18 +20,36 @@
 
 services:
 
+  # ── Docker Socket Proxy ────────────────────────────────────────────────────
+  # Sits between Traefik and the Docker daemon.
+  # Fixes: Docker 29.x MinAPIVersion=1.44 rejects Traefik's legacy v1.24 handshake.
+  # Only exposes read-only container/network info — no write access to daemon.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    container_name: odoo_socket_proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket_proxy
+
   # ── Traefik Reverse Proxy ──────────────────────────────────────────────────
   traefik:
     image: traefik:v3.3
     container_name: odoo_traefik
     restart: unless-stopped
-    environment:
-      # Fix: Traefik <3.3 pinned Docker API client to 1.24 — explicit override ensures compat
-      - DOCKER_API_VERSION=1.44
+    depends_on:
+      - socket-proxy
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -44,10 +62,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_certs:/letsencrypt
     networks:
       - proxy
+      - socket_proxy
 
   # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
@@ -150,10 +168,14 @@ volumes:
     name: odoo_hub_traefik_certs
 
 networks:
-  # Internes Netzwerk: DB und PgBouncer sind nicht vom Internet erreichbar.
+  # Internes Netzwerk: DB nicht vom Internet erreichbar.
   internal:
     name: odoo_hub_internal
     internal: true
   # Proxy-Netzwerk: Traefik und Odoo-Web kommunizieren hier.
   proxy:
     name: odoo_hub_proxy
+  # Socket-Proxy-Netzwerk: Traefik ↔ socket-proxy (isoliert, kein Internet-Zugang).
+  socket_proxy:
+    name: odoo_hub_socket_proxy
+    internal: true
