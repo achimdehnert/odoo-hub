@@ -46,10 +46,7 @@ services:
 
   # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
-    build:
-      context: .
-      dockerfile: docker/app/Dockerfile
-    image: ghcr.io/achimdehnert/odoo-hub:${IMAGE_TAG:-latest}
+    image: odoo:18.0
     container_name: odoo_web
     restart: unless-stopped
     # Non-sensitive Compose-Vars (ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG, POSTGRES_USER, POSTGRES_DB)
@@ -67,7 +64,11 @@ services:
         condition: service_healthy
       pgbouncer:
         condition: service_started
-    command: ["odoo", "--config=/etc/odoo/odoo.conf"]
+    environment:
+      - HOST=pgbouncer
+      - PORT=5432
+      - USER=${POSTGRES_USER}
+      - PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - internal
       - proxy
@@ -91,7 +92,7 @@ services:
   # Session Pooling (nicht Transaction): SET LOCAL statement_timeout bleibt gültig.
   # Für NL2SQL-Execution kritisch — siehe ADR-001-REVIEW.md Befund C3.
   pgbouncer:
-    image: pgbouncer/pgbouncer:1.23
+    image: edoburu/pgbouncer:latest
     container_name: odoo_pgbouncer
     restart: unless-stopped
     environment:
@@ -105,8 +106,7 @@ services:
       - PGBOUNCER_DATABASE_PORT=5432
       - PGBOUNCER_DATABASE_NAME=${POSTGRES_DB}
       - PGBOUNCER_DATABASE_USER=${POSTGRES_USER}
-      # Passwort aus /run/secrets/ — kein Plaintext in Compose (ADR-045)
-      - PGBOUNCER_DATABASE_PASSWORD_FILE=/run/secrets/postgres_password
+      - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - /run/secrets:/run/secrets:ro
     depends_on:
