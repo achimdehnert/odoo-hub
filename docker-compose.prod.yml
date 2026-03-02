@@ -138,6 +138,7 @@ services:
       start_period: 60s
     networks:
       - internal
+      - proxy
     deploy:
       resources:
         limits:
