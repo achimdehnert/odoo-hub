@@ -8,7 +8,7 @@ export class ScmOverview extends Component {
     static components = {};
 
     setup() {
-        this.rpc = useService("rpc");
+        this.http = useService("http");
         this.state = useState({ loading: true, data: null });
         onWillStart(() => this.loadData());
     }
@@ -16,7 +16,7 @@ export class ScmOverview extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            this.state.data = await this.rpc("/mfg_management/scm_overview", {});
+            this.state.data = await this.http.get("/mfg_management/scm_overview");
         } finally {
             this.state.loading = false;
         }

@@ -8,7 +8,7 @@ export class ProductionBoard extends Component {
     static components = {};
 
     setup() {
-        this.rpc = useService("rpc");
+        this.http = useService("http");
         this.state = useState({ loading: true, data: null, tab: "casting" });
         onWillStart(() => this.loadData());
     }
@@ -16,7 +16,7 @@ export class ProductionBoard extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            this.state.data = await this.rpc("/mfg_management/production_board", {});
+            this.state.data = await this.http.get("/mfg_management/production_board");
         } finally {
             this.state.loading = false;
         }

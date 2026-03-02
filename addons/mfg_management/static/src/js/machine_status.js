@@ -8,7 +8,7 @@ export class MachineStatus extends Component {
     static components = {};
 
     setup() {
-        this.rpc = useService("rpc");
+        this.http = useService("http");
         this.state = useState({ loading: true, machines: [], filter: "" });
         onWillStart(() => this.loadData());
     }
@@ -16,7 +16,7 @@ export class MachineStatus extends Component {
     async loadData() {
         this.state.loading = true;
         try {
-            const result = await this.rpc("/mfg_management/machine_status", {});
+            const result = await this.http.get("/mfg_management/machine_status");
             this.state.machines = result.machines || [];
         } finally {
             this.state.loading = false;
