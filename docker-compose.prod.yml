@@ -62,10 +62,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      pgbouncer:
-        condition: service_started
     environment:
-      - HOST=pgbouncer
+      - HOST=db
       - PORT=5432
       - USER=${POSTGRES_USER}
       - PASSWORD=${POSTGRES_PASSWORD}
@@ -88,34 +86,9 @@ services:
           cpus: "2.0"
           memory: 2G
 
-  # ── PgBouncer Connection Pooler ───────────────────────────────────────────
-  # Session Pooling (nicht Transaction): SET LOCAL statement_timeout bleibt gültig.
-  # Für NL2SQL-Execution kritisch — siehe ADR-001-REVIEW.md Befund C3.
-  pgbouncer:
-    image: bitnami/pgbouncer:1.23.1
-    container_name: odoo_pgbouncer
-    restart: unless-stopped
-    environment:
-      # Session Pooling: Verbindung bleibt einem Client während der Session zugeordnet.
-      # Kein Transaction Pooling — SET LOCAL / SET SESSION bleiben wirksam.
-      - PGBOUNCER_POOL_MODE=session
-      - PGBOUNCER_MAX_CLIENT_CONN=100
-      - PGBOUNCER_DEFAULT_POOL_SIZE=20
-      - PGBOUNCER_SERVER_IDLE_TIMEOUT=600
-      - PGBOUNCER_DATABASE_HOST=db
-      - PGBOUNCER_DATABASE_PORT=5432
-      - PGBOUNCER_DATABASE_NAME=${POSTGRES_DB}
-      - PGBOUNCER_DATABASE_USER=${POSTGRES_USER}
-      - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - /run/secrets:/run/secrets:ro
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - internal
-
-  # ── PostgreSQL 16 ─────────────────────────────────────────────────────────
+  # ── PostgreSQL 16
+  # NOTE: PgBouncer wird nachgerüstet sobald passendes Docker-Image verfügbar
+  # (ADR-001-REVIEW Befund C3 — Session Pooling für NL2SQL SET LOCAL) ─────────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: odoo_db
