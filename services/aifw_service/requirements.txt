@@ -1,5 +1,8 @@
 Django>=5.0,<6.0
 gunicorn>=21.2
 psycopg2-binary>=2.9
-iil-aifw[nl2sql]>=0.6.0
+# iil-aifw is installed from source (see Dockerfile COPY step)
 sqlglot>=25.0
+litellm>=1.30
+tenacity>=8.2
+pandas>=2.0
