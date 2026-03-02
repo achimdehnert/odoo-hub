@@ -1,6 +1,6 @@
 # docker-compose.prod.yml — odoo-hub Production Stack
 # Target: Hetzner CPX32 (4 vCPU, 8 GB RAM, 160 GB Disk), odoo-prod (46.225.127.211)
-# Stack: Traefik + Odoo 18 + PgBouncer + PostgreSQL 16
+# Stack: Traefik v3.3 + Odoo 18 + PostgreSQL 16
 #
 # Secrets Management (ADR-045 — Variante C: Hybrid SOPS + file-based):
 #   - Sensitive Werte (Passwörter) kommen aus /run/secrets/ (tmpfs, ADR-045)
@@ -22,12 +22,16 @@ services:
 
   # ── Traefik Reverse Proxy ──────────────────────────────────────────────────
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3.3
     container_name: odoo_traefik
     restart: unless-stopped
+    environment:
+      # Fix: Traefik <3.3 pinned Docker API client to 1.24 — explicit override ensures compat
+      - DOCKER_API_VERSION=1.44
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -35,6 +39,7 @@ services:
       - "--certificatesresolvers.le.acme.tlschallenge=true"
       - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
     ports:
       - "80:80"
       - "443:443"
