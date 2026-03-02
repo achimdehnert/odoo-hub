@@ -57,6 +57,7 @@ services:
       - "8069"
     volumes:
       - odoo_data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons:ro
       # Secrets aus /run/secrets/ als Read-Only in Container mounten (ADR-045)
       - /run/secrets:/run/secrets:ro
     depends_on:
