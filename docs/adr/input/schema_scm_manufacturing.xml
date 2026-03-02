@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+    <!-- ============================================================ -->
+    <!-- SCM MASTER DATA Domain                                        -->
+    <!-- ============================================================ -->
+
+    <!-- scm.part.category -->
+    <record id="schema_scm_part_category" model="nl2sql.schema.table">
+        <field name="name">scm_part_category</field>
+        <field name="model_name">scm.part.category</field>
+        <field name="domain">scm_master_data</field>
+        <field name="description">Teilekategorien (hierarchisch, z.B. Zahnräder, Lager, Gehäuse)</field>
+        <field name="sample_queries">Zeige alle Teilekategorien
+Wie viele Teile pro Kategorie?</field>
+    </record>
+    <record id="col_spc_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part_category"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_spc_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part_category"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Bezeichnung der Kategorie</field>
+    </record>
+    <record id="col_spc_code" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part_category"/>
+        <field name="name">code</field><field name="data_type">varchar</field>
+        <field name="description">Kurzzeichen (z.B. ZR, LGR, GEH)</field>
+    </record>
+    <record id="col_spc_parent" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part_category"/>
+        <field name="name">parent_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part_category</field>
+        <field name="description">Übergeordnete Kategorie (hierarchisch)</field>
+    </record>
+
+    <!-- scm.part -->
+    <record id="schema_scm_part" model="nl2sql.schema.table">
+        <field name="name">scm_part</field>
+        <field name="model_name">scm.part</field>
+        <field name="domain">scm_master_data</field>
+        <field name="description">Teile-Stammdaten (Rohmaterial, Halbfertigteile, Fertigteile, Verbrauchsmaterial)</field>
+        <field name="sample_queries">Zeige alle Fertigteile mit Lagerbestand unter 10
+Welche Teile sind Eigenfertigung?
+Top 10 teuerste Teile nach Standardkosten
+Wie viele Teile gibt es pro Teiletyp?</field>
+    </record>
+    <record id="col_sp_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sp_part_number" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">part_number</field><field name="data_type">varchar</field>
+        <field name="description">Eindeutige Teilenummer</field>
+    </record>
+    <record id="col_sp_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Bezeichnung des Teils</field>
+    </record>
+    <record id="col_sp_category" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">category_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part_category</field>
+        <field name="description">Teilekategorie</field>
+    </record>
+    <record id="col_sp_part_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">part_type</field><field name="data_type">selection</field>
+        <field name="selection_values">raw,semi,finished,consumable</field>
+        <field name="description">Teiletyp: raw=Rohmaterial, semi=Halbfertigteil, finished=Fertigteil, consumable=Verbrauchsmaterial</field>
+    </record>
+    <record id="col_sp_material" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">material</field><field name="data_type">varchar</field>
+        <field name="description">Werkstoff (z.B. C45, 42CrMo4, AlSi9Cu3)</field>
+    </record>
+    <record id="col_sp_make_or_buy" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">make_or_buy</field><field name="data_type">selection</field>
+        <field name="selection_values">make,buy</field>
+        <field name="description">Eigenfertigung (make) oder Fremdbezug (buy)</field>
+    </record>
+    <record id="col_sp_standard_cost" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">standard_cost</field><field name="data_type">float</field>
+        <field name="description">Standardkosten in EUR</field>
+    </record>
+    <record id="col_sp_stock_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">stock_qty</field><field name="data_type">float</field>
+        <field name="description">Aktueller Lagerbestand</field>
+    </record>
+    <record id="col_sp_unit" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">unit</field><field name="data_type">varchar</field>
+        <field name="description">Mengeneinheit (Stk, kg, m, ...)</field>
+    </record>
+    <record id="col_sp_weight" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">weight_kg</field><field name="data_type">float</field>
+        <field name="description">Stückgewicht in kg</field>
+    </record>
+    <record id="col_sp_active" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_part"/>
+        <field name="name">active</field><field name="data_type">boolean</field>
+        <field name="description">Aktiv (false = archiviert)</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- SCM PROCUREMENT Domain                                        -->
+    <!-- ============================================================ -->
+
+    <!-- scm.supplier.info -->
+    <record id="schema_scm_supplier_info" model="nl2sql.schema.table">
+        <field name="name">scm_supplier_info</field>
+        <field name="model_name">scm.supplier.info</field>
+        <field name="domain">scm_procurement</field>
+        <field name="description">Lieferanteninformationen pro Teil (Preis, Lieferzeit, Bewertung)</field>
+        <field name="sample_queries">Welcher Lieferant hat die beste Bewertung?
+Zeige Lieferanten mit Lieferzeit über 20 Tage
+Durchschnittliche Liefertreue pro Lieferant
+Teile ohne zugewiesenen Lieferanten</field>
+    </record>
+    <record id="col_ssi_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_ssi_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Zugeordnetes Teil</field>
+    </record>
+    <record id="col_ssi_partner" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">partner_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_partner</field>
+        <field name="description">Lieferant (Kontakt)</field>
+    </record>
+    <record id="col_ssi_priority" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">priority</field><field name="data_type">selection</field>
+        <field name="selection_values">1,2,3</field>
+        <field name="description">Priorität: 1=Hauptlieferant, 2=Zweitlieferant, 3=Ersatzlieferant</field>
+    </record>
+    <record id="col_ssi_rating" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">rating</field><field name="data_type">selection</field>
+        <field name="selection_values">a,b,c,d</field>
+        <field name="description">Bewertung: a=Bevorzugt, b=Qualifiziert, c=Bedingt, d=Gesperrt</field>
+    </record>
+    <record id="col_ssi_price" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">price</field><field name="data_type">float</field>
+        <field name="description">Einkaufspreis in EUR</field>
+    </record>
+    <record id="col_ssi_min_order" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">min_order_qty</field><field name="data_type">float</field>
+        <field name="description">Mindestbestellmenge</field>
+    </record>
+    <record id="col_ssi_lead_time" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">lead_time_days</field><field name="data_type">integer</field>
+        <field name="description">Lieferzeit in Tagen</field>
+    </record>
+    <record id="col_ssi_otd" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_supplier_info"/>
+        <field name="name">on_time_delivery_pct</field><field name="data_type">float</field>
+        <field name="description">Liefertreue in Prozent</field>
+    </record>
+
+    <!-- scm.purchase.order -->
+    <record id="schema_scm_purchase_order" model="nl2sql.schema.table">
+        <field name="name">scm_purchase_order</field>
+        <field name="model_name">scm.purchase.order</field>
+        <field name="domain">scm_procurement</field>
+        <field name="description">Bestellungen an Lieferanten (Einkaufsaufträge mit Incoterms)</field>
+        <field name="sample_queries">Wie viele offene Bestellungen gibt es?
+Gesamtvolumen aller Bestellungen dieses Monats
+Top 5 Lieferanten nach Bestellvolumen
+Überfällige Bestellungen (erwartetes Lieferdatum überschritten)</field>
+    </record>
+    <record id="col_spo_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_spo_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Bestellnummer (z.B. PO/00001)</field>
+    </record>
+    <record id="col_spo_partner" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">partner_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_partner</field>
+        <field name="description">Lieferant</field>
+    </record>
+    <record id="col_spo_warehouse" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">warehouse_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_warehouse</field>
+        <field name="description">Ziellager</field>
+    </record>
+    <record id="col_spo_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,sent,confirmed,received,done,cancelled</field>
+        <field name="description">Status: draft=Entwurf, sent=Versendet, confirmed=Bestätigt, received=Eingegangen, done=Abgeschlossen, cancelled=Storniert</field>
+    </record>
+    <record id="col_spo_date_order" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">date_order</field><field name="data_type">date</field>
+        <field name="description">Bestelldatum</field>
+    </record>
+    <record id="col_spo_date_expected" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">date_expected</field><field name="data_type">date</field>
+        <field name="description">Erwartetes Lieferdatum</field>
+    </record>
+    <record id="col_spo_date_received" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">date_received</field><field name="data_type">date</field>
+        <field name="description">Tatsächliches Eingangsdatum</field>
+    </record>
+    <record id="col_spo_incoterm" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">incoterm</field><field name="data_type">selection</field>
+        <field name="selection_values">exw,fca,cpt,cip,dap,ddp</field>
+        <field name="description">Lieferbedingung: exw=Ab Werk, fca=Frei Frachtführer, cpt=Fracht bezahlt, cip=Fracht/Versich., dap=Geliefert Ort, ddp=Geliefert verzollt</field>
+    </record>
+    <record id="col_spo_total" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_order"/>
+        <field name="name">total_amount</field><field name="data_type">float</field>
+        <field name="description">Gesamtbetrag in EUR (computed)</field>
+    </record>
+
+    <!-- scm.purchase.line -->
+    <record id="schema_scm_purchase_line" model="nl2sql.schema.table">
+        <field name="name">scm_purchase_line</field>
+        <field name="model_name">scm.purchase.line</field>
+        <field name="domain">scm_procurement</field>
+        <field name="description">Bestellpositionen (einzelne Teile einer Bestellung)</field>
+    </record>
+    <record id="col_spl_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_spl_order" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">order_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_purchase_order</field>
+        <field name="description">Zugehörige Bestellung</field>
+    </record>
+    <record id="col_spl_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Bestelltes Teil</field>
+    </record>
+    <record id="col_spl_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">quantity</field><field name="data_type">float</field>
+        <field name="description">Bestellmenge</field>
+    </record>
+    <record id="col_spl_price" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">unit_price</field><field name="data_type">float</field>
+        <field name="description">Stückpreis in EUR</field>
+    </record>
+    <record id="col_spl_subtotal" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">subtotal</field><field name="data_type">float</field>
+        <field name="description">Positionssumme in EUR (computed)</field>
+    </record>
+    <record id="col_spl_qty_received" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_purchase_line"/>
+        <field name="name">qty_received</field><field name="data_type">float</field>
+        <field name="description">Bereits eingegangene Menge</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- SCM PRODUCTION Domain                                         -->
+    <!-- ============================================================ -->
+
+    <!-- scm.bom -->
+    <record id="schema_scm_bom" model="nl2sql.schema.table">
+        <field name="name">scm_bom</field>
+        <field name="model_name">scm.bom</field>
+        <field name="domain">scm_production</field>
+        <field name="description">Stücklisten (Bill of Materials) mit Revisionen</field>
+        <field name="sample_queries">Zeige alle aktiven Stücklisten
+Welche Stückliste hat die höchsten Materialkosten?
+Stücklisten in Revision B oder höher</field>
+    </record>
+    <record id="col_sb_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sb_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Fertigteil, für das die Stückliste gilt</field>
+    </record>
+    <record id="col_sb_revision" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">revision</field><field name="data_type">varchar</field>
+        <field name="description">Revisionsstand (z.B. A, B, C)</field>
+    </record>
+    <record id="col_sb_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">bom_type</field><field name="data_type">selection</field>
+        <field name="selection_values">standard,phantom,variant</field>
+        <field name="description">Typ: standard=Standard, phantom=Phantom/Kit, variant=Variante</field>
+    </record>
+    <record id="col_sb_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,active,obsolete</field>
+        <field name="description">Status: draft=Entwurf, active=Aktiv, obsolete=Veraltet</field>
+    </record>
+    <record id="col_sb_total_cost" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom"/>
+        <field name="name">total_material_cost</field><field name="data_type">float</field>
+        <field name="description">Gesamte Materialkosten in EUR (computed)</field>
+    </record>
+
+    <!-- scm.bom.line -->
+    <record id="schema_scm_bom_line" model="nl2sql.schema.table">
+        <field name="name">scm_bom_line</field>
+        <field name="model_name">scm.bom.line</field>
+        <field name="domain">scm_production</field>
+        <field name="description">Stücklistenpositionen (Komponenten einer BOM)</field>
+    </record>
+    <record id="col_sbl_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom_line"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sbl_bom" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom_line"/>
+        <field name="name">bom_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_bom</field>
+        <field name="description">Zugehörige Stückliste</field>
+    </record>
+    <record id="col_sbl_component" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom_line"/>
+        <field name="name">component_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Komponente (Teil)</field>
+    </record>
+    <record id="col_sbl_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom_line"/>
+        <field name="name">quantity</field><field name="data_type">float</field>
+        <field name="description">Menge pro Fertigteil</field>
+    </record>
+    <record id="col_sbl_cost" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_bom_line"/>
+        <field name="name">subtotal_cost</field><field name="data_type">float</field>
+        <field name="description">Materialkosten Position in EUR (computed)</field>
+    </record>
+
+    <!-- scm.production.order -->
+    <record id="schema_scm_production_order" model="nl2sql.schema.table">
+        <field name="name">scm_production_order</field>
+        <field name="model_name">scm.production.order</field>
+        <field name="domain">scm_production</field>
+        <field name="description">Fertigungsaufträge mit Mengenplanung und Ausbeute-Tracking</field>
+        <field name="sample_queries">Wie viele Fertigungsaufträge sind in Bearbeitung?
+Durchschnittliche Ausbeute pro Monat
+Fertigungsaufträge mit Ausbeute unter 90%
+Gesamtkosten der Fertigung dieses Quartals</field>
+    </record>
+    <record id="col_sprod_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sprod_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Fertigungsnummer (z.B. MF/00001)</field>
+    </record>
+    <record id="col_sprod_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Zu fertigendes Teil</field>
+    </record>
+    <record id="col_sprod_bom" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">bom_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_bom</field>
+        <field name="description">Verwendete Stückliste</field>
+    </record>
+    <record id="col_sprod_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,confirmed,in_progress,done,cancelled</field>
+        <field name="description">Status: draft=Entwurf, confirmed=Bestätigt, in_progress=In Fertigung, done=Abgeschlossen, cancelled=Storniert</field>
+    </record>
+    <record id="col_sprod_date_planned" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">date_planned</field><field name="data_type">date</field>
+        <field name="description">Geplantes Fertigungsdatum</field>
+    </record>
+    <record id="col_sprod_date_start" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">date_start</field><field name="data_type">datetime</field>
+        <field name="description">Tatsächlicher Produktionsstart</field>
+    </record>
+    <record id="col_sprod_date_done" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">date_done</field><field name="data_type">datetime</field>
+        <field name="description">Fertigstellungszeitpunkt</field>
+    </record>
+    <record id="col_sprod_planned_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">planned_qty</field><field name="data_type">float</field>
+        <field name="description">Geplante Menge</field>
+    </record>
+    <record id="col_sprod_produced_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">produced_qty</field><field name="data_type">float</field>
+        <field name="description">Tatsächlich produzierte Menge</field>
+    </record>
+    <record id="col_sprod_scrap_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">scrap_qty</field><field name="data_type">float</field>
+        <field name="description">Ausschussmenge</field>
+    </record>
+    <record id="col_sprod_yield" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">yield_pct</field><field name="data_type">float</field>
+        <field name="description">Ausbeute in Prozent (computed: produced/planned * 100)</field>
+    </record>
+    <record id="col_sprod_total_cost" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_production_order"/>
+        <field name="name">total_cost</field><field name="data_type">float</field>
+        <field name="description">Gesamtkosten in EUR</field>
+    </record>
+
+    <!-- scm.work.step -->
+    <record id="schema_scm_work_step" model="nl2sql.schema.table">
+        <field name="name">scm_work_step</field>
+        <field name="model_name">scm.work.step</field>
+        <field name="domain">scm_production</field>
+        <field name="description">Arbeitsschritte innerhalb von Fertigungsaufträgen</field>
+        <field name="sample_queries">Durchschnittliche Effizienz pro Arbeitsplatz
+Welche Arbeitsschritte dauern länger als geplant?</field>
+    </record>
+    <record id="col_sws_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sws_production" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">production_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_production_order</field>
+        <field name="description">Zugehöriger Fertigungsauftrag</field>
+    </record>
+    <record id="col_sws_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Bezeichnung des Arbeitsschritts</field>
+    </record>
+    <record id="col_sws_work_center" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">work_center</field><field name="data_type">varchar</field>
+        <field name="description">Arbeitsplatz / Maschine</field>
+    </record>
+    <record id="col_sws_planned_dur" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">planned_duration_min</field><field name="data_type">float</field>
+        <field name="description">Geplante Dauer in Minuten</field>
+    </record>
+    <record id="col_sws_actual_dur" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">actual_duration_min</field><field name="data_type">float</field>
+        <field name="description">Tatsächliche Dauer in Minuten</field>
+    </record>
+    <record id="col_sws_efficiency" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">efficiency_pct</field><field name="data_type">float</field>
+        <field name="description">Effizienz in Prozent (computed: planned/actual * 100)</field>
+    </record>
+    <record id="col_sws_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_work_step"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">pending,in_progress,done</field>
+        <field name="description">Status: pending=Offen, in_progress=In Bearbeitung, done=Abgeschlossen</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- SCM WAREHOUSE Domain                                          -->
+    <!-- ============================================================ -->
+
+    <!-- scm.warehouse -->
+    <record id="schema_scm_warehouse" model="nl2sql.schema.table">
+        <field name="name">scm_warehouse</field>
+        <field name="model_name">scm.warehouse</field>
+        <field name="domain">scm_warehouse</field>
+        <field name="description">Lager (Rohstoff-, Zwischen-, Fertigwaren-, Sperr-, Versandlager)</field>
+        <field name="sample_queries">Zeige alle Lager mit Kapazität
+Welche Lager sind Sperrlager?</field>
+    </record>
+    <record id="col_swh_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_swh_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Lagername</field>
+    </record>
+    <record id="col_swh_code" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">code</field><field name="data_type">varchar</field>
+        <field name="description">Lagercode (eindeutig)</field>
+    </record>
+    <record id="col_swh_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">warehouse_type</field><field name="data_type">selection</field>
+        <field name="selection_values">raw,wip,finished,quarantine,shipping</field>
+        <field name="description">Lagertyp: raw=Rohstoff, wip=Zwischenlager, finished=Fertigware, quarantine=Sperrlager, shipping=Versand</field>
+    </record>
+    <record id="col_swh_capacity" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">capacity_pallets</field><field name="data_type">integer</field>
+        <field name="description">Kapazität in Paletten</field>
+    </record>
+    <record id="col_swh_manager" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_warehouse"/>
+        <field name="name">manager_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_users</field>
+        <field name="description">Lagerleiter</field>
+    </record>
+
+    <!-- scm.stock.move -->
+    <record id="schema_scm_stock_move" model="nl2sql.schema.table">
+        <field name="name">scm_stock_move</field>
+        <field name="model_name">scm.stock.move</field>
+        <field name="domain">scm_warehouse</field>
+        <field name="description">Lagerbewegungen (Zugang, Abgang, Umbuchung, Korrektur, Verschrottung)</field>
+        <field name="sample_queries">Lagerbewegungen der letzten 7 Tage
+Wie viel Material wurde diesen Monat verschrottet?
+Zugänge vs. Abgänge pro Lager</field>
+    </record>
+    <record id="col_ssm_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_ssm_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Bewegtes Teil</field>
+    </record>
+    <record id="col_ssm_warehouse" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">warehouse_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_warehouse</field>
+        <field name="description">Betroffenes Lager</field>
+    </record>
+    <record id="col_ssm_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">move_type</field><field name="data_type">selection</field>
+        <field name="selection_values">in,out,transfer,adjust,scrap</field>
+        <field name="description">Bewegungsart: in=Zugang, out=Abgang, transfer=Umbuchung, adjust=Korrektur, scrap=Verschrottung</field>
+    </record>
+    <record id="col_ssm_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">quantity</field><field name="data_type">float</field>
+        <field name="description">Bewegte Menge</field>
+    </record>
+    <record id="col_ssm_lot" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">lot_number</field><field name="data_type">varchar</field>
+        <field name="description">Losnummer / Charge</field>
+    </record>
+    <record id="col_ssm_date" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">date</field><field name="data_type">datetime</field>
+        <field name="description">Zeitpunkt der Lagerbewegung</field>
+    </record>
+    <record id="col_ssm_reference" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">reference</field><field name="data_type">varchar</field>
+        <field name="description">Referenz (Bestellnummer, Fertigungsnummer etc.)</field>
+    </record>
+    <record id="col_ssm_production" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">production_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_production_order</field>
+        <field name="description">Zugehöriger Fertigungsauftrag (optional)</field>
+    </record>
+    <record id="col_ssm_delivery" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_stock_move"/>
+        <field name="name">delivery_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_delivery</field>
+        <field name="description">Zugehörige Lieferung (optional)</field>
+    </record>
+
+    <!-- scm.delivery -->
+    <record id="schema_scm_delivery" model="nl2sql.schema.table">
+        <field name="name">scm_delivery</field>
+        <field name="model_name">scm.delivery</field>
+        <field name="domain">scm_warehouse</field>
+        <field name="description">Ausgangslieferungen an Kunden (Lieferscheine)</field>
+        <field name="sample_queries">Wie viele Lieferungen wurden diesen Monat versendet?
+Durchschnittliche Lieferzeit (Versand bis Zustellung)
+Offene Lieferungen die noch nicht versendet wurden</field>
+    </record>
+    <record id="col_sdl_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sdl_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Lieferschein-Nr. (z.B. DL/00001)</field>
+    </record>
+    <record id="col_sdl_partner" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">partner_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_partner</field>
+        <field name="description">Empfänger / Kunde</field>
+    </record>
+    <record id="col_sdl_part" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">part_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_part</field>
+        <field name="description">Geliefertes Teil</field>
+    </record>
+    <record id="col_sdl_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">quantity</field><field name="data_type">float</field>
+        <field name="description">Liefermenge</field>
+    </record>
+    <record id="col_sdl_carrier" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">carrier</field><field name="data_type">varchar</field>
+        <field name="description">Spediteur</field>
+    </record>
+    <record id="col_sdl_tracking" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">tracking_number</field><field name="data_type">varchar</field>
+        <field name="description">Sendungsnummer</field>
+    </record>
+    <record id="col_sdl_weight" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">total_weight_kg</field><field name="data_type">float</field>
+        <field name="description">Gesamtgewicht in kg</field>
+    </record>
+    <record id="col_sdl_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,ready,shipped,delivered,cancelled</field>
+        <field name="description">Status: draft=Entwurf, ready=Versandbereit, shipped=Versendet, delivered=Zugestellt, cancelled=Storniert</field>
+    </record>
+    <record id="col_sdl_date_shipped" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">date_shipped</field><field name="data_type">date</field>
+        <field name="description">Versanddatum</field>
+    </record>
+    <record id="col_sdl_date_delivered" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_delivery"/>
+        <field name="name">date_delivered</field><field name="data_type">date</field>
+        <field name="description">Zustelldatum</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- SCM QUALITY Domain                                            -->
+    <!-- ============================================================ -->
+
+    <!-- scm.incoming.inspection -->
+    <record id="schema_scm_incoming_inspection" model="nl2sql.schema.table">
+        <field name="name">scm_incoming_inspection</field>
+        <field name="model_name">scm.incoming.inspection</field>
+        <field name="domain">scm_quality</field>
+        <field name="description">Wareneingangsprüfungen (Sicht-, Maß-, Funktions-, Werkstoff-, Dokumentenprüfung nach EN 10204)</field>
+        <field name="sample_queries">Wie viele Prüfungen wurden abgelehnt?
+Annahmequote pro Lieferant
+Prüfungen mit Zeugnis 3.1 nach EN 10204
+Durchschnittliche Fehleranzahl pro Prüfart</field>
+    </record>
+    <record id="col_sii_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sii_purchase" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">purchase_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">scm_purchase_order</field>
+        <field name="description">Zugehörige Bestellung</field>
+    </record>
+    <record id="col_sii_inspector" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">inspector_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_users</field>
+        <field name="description">Prüfer</field>
+    </record>
+    <record id="col_sii_date" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">inspection_date</field><field name="data_type">datetime</field>
+        <field name="description">Prüfdatum</field>
+    </record>
+    <record id="col_sii_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">inspection_type</field><field name="data_type">selection</field>
+        <field name="selection_values">visual,dimensional,functional,material,documentation</field>
+        <field name="description">Prüfart: visual=Sichtprüfung, dimensional=Maßprüfung, functional=Funktionsprüfung, material=Werkstoffprüfung, documentation=Dokumentenprüfung</field>
+    </record>
+    <record id="col_sii_result" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">result</field><field name="data_type">selection</field>
+        <field name="selection_values">accepted,conditional,rejected</field>
+        <field name="description">Ergebnis: accepted=Angenommen, conditional=Bedingt angenommen, rejected=Abgelehnt</field>
+    </record>
+    <record id="col_sii_sample_size" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">sample_size</field><field name="data_type">integer</field>
+        <field name="description">Stichprobengröße</field>
+    </record>
+    <record id="col_sii_defects" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">defect_count</field><field name="data_type">integer</field>
+        <field name="description">Anzahl gefundener Fehler</field>
+    </record>
+    <record id="col_sii_acceptance_rate" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">acceptance_rate</field><field name="data_type">float</field>
+        <field name="description">Annahmequote in Prozent</field>
+    </record>
+    <record id="col_sii_cert" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_scm_incoming_inspection"/>
+        <field name="name">certificate_type</field><field name="data_type">selection</field>
+        <field name="selection_values">none,2_1,2_2,3_1,3_2</field>
+        <field name="description">Zeugnis nach EN 10204: none=Kein, 2_1=Werkszeugnis 2.1, 2_2=Werkszeugnis 2.2, 3_1=Abnahmeprüfzeugnis 3.1, 3_2=Abnahmeprüfzeugnis 3.2</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- res_users (für JOINs auf manager_id, inspector_id)            -->
+    <!-- ============================================================ -->
+    <record id="schema_res_users" model="nl2sql.schema.table">
+        <field name="name">res_users</field>
+        <field name="model_name">res.users</field>
+        <field name="domain">master_data</field>
+        <field name="description">Benutzer (für JOINs auf Lagerleiter, Prüfer etc.)</field>
+    </record>
+    <record id="col_ru_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_users"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_ru_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_users"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Anzeigename des Benutzers</field>
+    </record>
+    <record id="col_ru_login" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_users"/>
+        <field name="name">login</field><field name="data_type">varchar</field>
+        <field name="description">Login-Name</field>
+    </record>
+
+    </data>
+</odoo>

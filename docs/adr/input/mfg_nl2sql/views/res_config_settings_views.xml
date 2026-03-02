@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_config_settings_nl2sql" model="ir.ui.view">
+        <field name="name">res.config.settings.nl2sql</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="NL2SQL" string="NL2SQL"
+                     data-key="mfg_nl2sql" groups="mfg_nl2sql.group_nl2sql_manager">
+                    <block title="LLM-Konfiguration"
+                           help="Konfiguration der KI-Schnittstelle für die SQL-Übersetzung">
+                        <setting string="LLM Provider" help="Wähle den KI-Anbieter">
+                            <field name="nl2sql_llm_provider"/>
+                        </setting>
+                        <setting string="API Key" help="API-Schlüssel für den gewählten Provider">
+                            <field name="nl2sql_api_key" password="True"/>
+                        </setting>
+                        <setting string="Model" help="Modell-Name (z.B. claude-sonnet-4-5-20250929)">
+                            <field name="nl2sql_model_name"/>
+                        </setting>
+                    </block>
+                    <block title="Ausführung"
+                           help="Einstellungen für die SQL-Ausführung">
+                        <setting string="Max Tokens">
+                            <field name="nl2sql_max_tokens"/>
+                        </setting>
+                        <setting string="Temperature"
+                                 help="0.0 = deterministisch, 1.0 = kreativ">
+                            <field name="nl2sql_temperature"/>
+                        </setting>
+                        <setting string="Query Timeout (Sekunden)">
+                            <field name="nl2sql_query_timeout"/>
+                        </setting>
+                        <setting string="Max Ergebnis-Zeilen">
+                            <field name="nl2sql_max_rows"/>
+                        </setting>
+                    </block>
+                    <block title="Sicherheit">
+                        <setting string="Schreibzugriff erlauben"
+                                 help="ACHTUNG: Erlaubt INSERT/UPDATE/DELETE Queries">
+                            <field name="nl2sql_allow_write"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_nl2sql_settings" model="ir.actions.act_window">
+        <field name="name">NL2SQL Einstellungen</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'mfg_nl2sql'}</field>
+    </record>
+</odoo>

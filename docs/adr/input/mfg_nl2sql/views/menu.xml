@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- Top-Level Menu                                                 -->
+    <!-- ============================================================ -->
+    <menuitem
+        id="menu_nl2sql_root"
+        name="NL2SQL"
+        web_icon="mfg_nl2sql,static/description/icon.png"
+        sequence="45"/>
+
+    <!-- Dashboard (OWL Client Action) -->
+    <menuitem
+        id="menu_nl2sql_dashboard"
+        name="Dashboard"
+        parent="menu_nl2sql_root"
+        action="action_nl2sql_dashboard"
+        sequence="10"/>
+
+    <!-- ============================================================ -->
+    <!-- Abfragen Submenu                                               -->
+    <!-- ============================================================ -->
+    <menuitem
+        id="menu_nl2sql_queries"
+        name="Abfragen"
+        parent="menu_nl2sql_root"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_nl2sql_history"
+        name="Verlauf"
+        parent="menu_nl2sql_queries"
+        action="action_query_history"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_nl2sql_saved"
+        name="Gespeicherte Abfragen"
+        parent="menu_nl2sql_queries"
+        action="action_saved_query"
+        sequence="20"/>
+
+    <!-- ============================================================ -->
+    <!-- Konfiguration Submenu                                          -->
+    <!-- ============================================================ -->
+    <menuitem
+        id="menu_nl2sql_config"
+        name="Konfiguration"
+        parent="menu_nl2sql_root"
+        groups="group_nl2sql_manager"
+        sequence="90"/>
+
+    <menuitem
+        id="menu_nl2sql_schema"
+        name="Schema-Metadaten"
+        parent="menu_nl2sql_config"
+        action="action_schema_table"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_nl2sql_dashboard_config"
+        name="Dashboard-Einstellungen"
+        parent="menu_nl2sql_config"
+        action="action_dashboard_config"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_nl2sql_settings"
+        name="LLM-Einstellungen"
+        parent="menu_nl2sql_config"
+        action="action_nl2sql_settings"
+        sequence="30"/>
+</odoo>

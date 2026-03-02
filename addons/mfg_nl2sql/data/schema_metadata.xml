@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+    <!-- ============================================================ -->
+    <!-- SUPPLY CHAIN Domain                                            -->
+    <!-- ============================================================ -->
+    <record id="schema_purchase_order" model="nl2sql.schema.table">
+        <field name="name">purchase_order</field>
+        <field name="model_name">purchase.order</field>
+        <field name="domain">supply_chain</field>
+        <field name="description">Bestellungen an Lieferanten (Einkaufsaufträge)</field>
+        <field name="sample_queries">Wie viele offene Bestellungen gibt es?
+Zeige die Top 10 Lieferanten nach Bestellvolumen
+Welcher Lieferant hat die längste Lieferzeit?</field>
+    </record>
+    <record id="col_po_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+        <field name="description">Eindeutige ID</field>
+    </record>
+    <record id="col_po_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Bestellnummer (z.B. PO00001)</field>
+    </record>
+    <record id="col_po_partner" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">partner_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">res_partner</field>
+        <field name="description">Lieferant (Fremdschlüssel zu res_partner)</field>
+    </record>
+    <record id="col_po_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,sent,purchase,done,cancel</field>
+        <field name="description">Status: draft=Entwurf, sent=Gesendet, purchase=Bestellt, done=Abgeschlossen, cancel=Storniert</field>
+    </record>
+    <record id="col_po_amount" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">amount_total</field><field name="data_type">float</field>
+        <field name="description">Gesamtbetrag in EUR</field>
+    </record>
+    <record id="col_po_date_order" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">date_order</field><field name="data_type">datetime</field>
+        <field name="description">Bestelldatum</field>
+    </record>
+    <record id="col_po_date_planned" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_purchase_order"/>
+        <field name="name">date_planned</field><field name="data_type">datetime</field>
+        <field name="description">Geplantes Lieferdatum</field>
+    </record>
+
+    <!-- Stock (Lagerbestände) -->
+    <record id="schema_stock_quant" model="nl2sql.schema.table">
+        <field name="name">stock_quant</field>
+        <field name="model_name">stock.quant</field>
+        <field name="domain">supply_chain</field>
+        <field name="description">Aktuelle Lagerbestände pro Produkt und Lagerort</field>
+        <field name="sample_queries">Zeige die Top 10 Artikel nach Lagerbestand
+Welche Artikel haben einen Bestand unter 10 Stück?</field>
+    </record>
+    <record id="col_sq_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_quant"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sq_product" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_quant"/>
+        <field name="name">product_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">product_product</field>
+        <field name="description">Produkt</field>
+    </record>
+    <record id="col_sq_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_quant"/>
+        <field name="name">quantity</field><field name="data_type">float</field>
+        <field name="description">Verfügbare Menge</field>
+    </record>
+    <record id="col_sq_location" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_quant"/>
+        <field name="name">location_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">stock_location</field>
+        <field name="description">Lagerort</field>
+    </record>
+
+    <!-- res_partner (Stammdaten, für JOINs) -->
+    <record id="schema_res_partner" model="nl2sql.schema.table">
+        <field name="name">res_partner</field>
+        <field name="model_name">res.partner</field>
+        <field name="domain">master_data</field>
+        <field name="description">Kontakte und Lieferanten (Stammdaten)</field>
+    </record>
+    <record id="col_rp_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_partner"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_rp_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_partner"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Name des Kontakts/Lieferanten</field>
+    </record>
+    <record id="col_rp_supplier" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_partner"/>
+        <field name="name">supplier_rank</field><field name="data_type">integer</field>
+        <field name="description">Lieferanten-Rang (>0 = ist Lieferant)</field>
+    </record>
+    <record id="col_rp_city" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_res_partner"/>
+        <field name="name">city</field><field name="data_type">varchar</field>
+        <field name="description">Stadt</field>
+    </record>
+
+    <!-- product_product -->
+    <record id="schema_product_product" model="nl2sql.schema.table">
+        <field name="name">product_product</field>
+        <field name="model_name">product.product</field>
+        <field name="domain">master_data</field>
+        <field name="description">Produkte und Artikel</field>
+    </record>
+    <record id="col_pp_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_product"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_pp_tmpl" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_product"/>
+        <field name="name">product_tmpl_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">product_template</field>
+        <field name="description">Produkt-Template</field>
+    </record>
+    <record id="col_pp_default_code" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_product"/>
+        <field name="name">default_code</field><field name="data_type">varchar</field>
+        <field name="description">Interne Referenz / Artikelnummer</field>
+    </record>
+
+    <!-- product_template -->
+    <record id="schema_product_template" model="nl2sql.schema.table">
+        <field name="name">product_template</field>
+        <field name="model_name">product.template</field>
+        <field name="domain">master_data</field>
+        <field name="description">Produkt-Vorlagen mit Name, Preis etc.</field>
+    </record>
+    <record id="col_pt_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_template"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_pt_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_template"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Produktname</field>
+    </record>
+    <record id="col_pt_list_price" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_template"/>
+        <field name="name">list_price</field><field name="data_type">float</field>
+        <field name="description">Verkaufspreis</field>
+    </record>
+    <record id="col_pt_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_product_template"/>
+        <field name="name">type</field><field name="data_type">selection</field>
+        <field name="selection_values">consu,service,product</field>
+        <field name="description">Produkttyp: consu=Verbrauchsmaterial, service=Dienstleistung, product=Lagerprodukt</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- PRODUCTION Domain                                              -->
+    <!-- ============================================================ -->
+    <record id="schema_mrp_production" model="nl2sql.schema.table">
+        <field name="name">mrp_production</field>
+        <field name="model_name">mrp.production</field>
+        <field name="domain">production</field>
+        <field name="description">Fertigungsaufträge (Manufacturing Orders)</field>
+        <field name="sample_queries">Wie viele offene Fertigungsaufträge gibt es?
+Zeige die Fertigungsaufträge der letzten Woche
+Welches Produkt wird am häufigsten gefertigt?</field>
+    </record>
+    <record id="col_mp_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_mp_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Fertigungsauftragsnummer (z.B. MO/00001)</field>
+    </record>
+    <record id="col_mp_product" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">product_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">product_product</field>
+        <field name="description">Zu fertigendes Produkt</field>
+    </record>
+    <record id="col_mp_qty" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">product_qty</field><field name="data_type">float</field>
+        <field name="description">Geplante Menge</field>
+    </record>
+    <record id="col_mp_qty_produced" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">qty_produced</field><field name="data_type">float</field>
+        <field name="description">Bereits produzierte Menge</field>
+    </record>
+    <record id="col_mp_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">draft,confirmed,progress,to_close,done,cancel</field>
+        <field name="description">Status: draft=Entwurf, confirmed=Bestätigt, progress=In Bearbeitung, to_close=Abzuschließen, done=Erledigt, cancel=Storniert</field>
+    </record>
+    <record id="col_mp_date_start" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">date_start</field><field name="data_type">datetime</field>
+        <field name="description">Geplanter Starttermin</field>
+    </record>
+    <record id="col_mp_date_finished" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_production"/>
+        <field name="name">date_finished</field><field name="data_type">datetime</field>
+        <field name="description">Tatsächliches Enddatum</field>
+    </record>
+
+    <!-- mrp_workcenter (Maschinen/Arbeitsplätze) -->
+    <record id="schema_mrp_workcenter" model="nl2sql.schema.table">
+        <field name="name">mrp_workcenter</field>
+        <field name="model_name">mrp.workcenter</field>
+        <field name="domain">production</field>
+        <field name="description">Arbeitsplätze und Maschinen</field>
+        <field name="sample_queries">Zeige alle Maschinen mit ihrer Kapazität
+Welche Maschine hat die höchste Auslastung?</field>
+    </record>
+    <record id="col_mw_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workcenter"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_mw_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workcenter"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Name der Maschine/Arbeitsplatz</field>
+    </record>
+    <record id="col_mw_capacity" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workcenter"/>
+        <field name="name">capacity</field><field name="data_type">float</field>
+        <field name="description">Kapazität (Stück/Stunde)</field>
+    </record>
+    <record id="col_mw_time_efficiency" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workcenter"/>
+        <field name="name">time_efficiency</field><field name="data_type">float</field>
+        <field name="description">Zeiteffizienz in Prozent (100 = Standardleistung)</field>
+    </record>
+
+    <!-- mrp_workorder (Arbeitsvorgänge) -->
+    <record id="schema_mrp_workorder" model="nl2sql.schema.table">
+        <field name="name">mrp_workorder</field>
+        <field name="model_name">mrp.workorder</field>
+        <field name="domain">production</field>
+        <field name="description">Arbeitsvorgänge innerhalb von Fertigungsaufträgen</field>
+    </record>
+    <record id="col_mwo_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_mwo_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Arbeitsvorgang-Name</field>
+    </record>
+    <record id="col_mwo_production" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">production_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">mrp_production</field>
+        <field name="description">Zugehöriger Fertigungsauftrag</field>
+    </record>
+    <record id="col_mwo_workcenter" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">workcenter_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">mrp_workcenter</field>
+        <field name="description">Maschine/Arbeitsplatz</field>
+    </record>
+    <record id="col_mwo_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">state</field><field name="data_type">selection</field>
+        <field name="selection_values">pending,waiting,ready,progress,done,cancel</field>
+        <field name="description">Status des Arbeitsvorgangs</field>
+    </record>
+    <record id="col_mwo_duration" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">duration</field><field name="data_type">float</field>
+        <field name="description">Tatsächliche Dauer in Minuten</field>
+    </record>
+    <record id="col_mwo_duration_expected" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_mrp_workorder"/>
+        <field name="name">duration_expected</field><field name="data_type">float</field>
+        <field name="description">Geplante Dauer in Minuten</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- QUALITY Domain                                                 -->
+    <!-- ============================================================ -->
+    <record id="schema_quality_check" model="nl2sql.schema.table">
+        <field name="name">quality_check</field>
+        <field name="model_name">quality.check</field>
+        <field name="domain">quality</field>
+        <field name="description">Qualitätsprüfungen (Quality Checks)</field>
+        <field name="sample_queries">Wie viele Qualitätsprüfungen sind fehlgeschlagen?
+Zeige die Fehlerrate nach Prüfpunkt
+Qualitätsprüfungen der letzten 30 Tage</field>
+    </record>
+    <record id="col_qc_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_qc_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Prüfbezeichnung</field>
+    </record>
+    <record id="col_qc_product" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">product_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">product_product</field>
+        <field name="description">Geprüftes Produkt</field>
+    </record>
+    <record id="col_qc_quality_state" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">quality_state</field><field name="data_type">selection</field>
+        <field name="selection_values">none,pass,fail</field>
+        <field name="description">Ergebnis: none=Offen, pass=Bestanden, fail=Fehlgeschlagen</field>
+    </record>
+    <record id="col_qc_point" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">point_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">quality_point</field>
+        <field name="description">Qualitäts-Prüfpunkt</field>
+    </record>
+    <record id="col_qc_create_date" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_check"/>
+        <field name="name">create_date</field><field name="data_type">datetime</field>
+        <field name="description">Erstelldatum der Prüfung</field>
+    </record>
+
+    <!-- quality_point -->
+    <record id="schema_quality_point" model="nl2sql.schema.table">
+        <field name="name">quality_point</field>
+        <field name="model_name">quality.point</field>
+        <field name="domain">quality</field>
+        <field name="description">Qualitäts-Prüfpunkte (Quality Control Points)</field>
+    </record>
+    <record id="col_qp_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_point"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_qp_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_point"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Name des Prüfpunkts</field>
+    </record>
+    <record id="col_qp_test_type" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_point"/>
+        <field name="name">test_type_id</field><field name="data_type">many2one</field>
+        <field name="description">Art der Prüfung (Sichtprüfung, Maßprüfung, etc.)</field>
+    </record>
+
+    <!-- quality_alert (Reklamationen) -->
+    <record id="schema_quality_alert" model="nl2sql.schema.table">
+        <field name="name">quality_alert</field>
+        <field name="model_name">quality.alert</field>
+        <field name="domain">quality</field>
+        <field name="description">Qualitäts-Meldungen und Reklamationen</field>
+        <field name="sample_queries">Wie viele offene Reklamationen gibt es?
+Zeige Reklamationen nach Priorität</field>
+    </record>
+    <record id="col_qa_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_qa_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">name</field><field name="data_type">varchar</field>
+        <field name="description">Meldungsnummer</field>
+    </record>
+    <record id="col_qa_product" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">product_id</field><field name="data_type">many2one</field>
+        <field name="foreign_key_table">product_product</field>
+        <field name="description">Betroffenes Produkt</field>
+    </record>
+    <record id="col_qa_stage" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">stage_id</field><field name="data_type">many2one</field>
+        <field name="description">Bearbeitungsstufe (Kanban-Stufe)</field>
+    </record>
+    <record id="col_qa_priority" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">priority</field><field name="data_type">selection</field>
+        <field name="selection_values">0,1,2,3</field>
+        <field name="description">Priorität: 0=Normal, 1=Niedrig, 2=Hoch, 3=Sehr hoch</field>
+    </record>
+    <record id="col_qa_create_date" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_quality_alert"/>
+        <field name="name">create_date</field><field name="data_type">datetime</field>
+        <field name="description">Erstelldatum der Meldung</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- stock_location (for JOINs)                                     -->
+    <!-- ============================================================ -->
+    <record id="schema_stock_location" model="nl2sql.schema.table">
+        <field name="name">stock_location</field>
+        <field name="model_name">stock.location</field>
+        <field name="domain">supply_chain</field>
+        <field name="description">Lagerorte (Warehouse, Shelf, etc.)</field>
+    </record>
+    <record id="col_sl_id" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_location"/>
+        <field name="name">id</field><field name="data_type">integer</field>
+        <field name="is_primary_key" eval="True"/>
+    </record>
+    <record id="col_sl_name" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_location"/>
+        <field name="name">complete_name</field><field name="data_type">varchar</field>
+        <field name="description">Vollständiger Lagerort-Pfad</field>
+    </record>
+    <record id="col_sl_usage" model="nl2sql.schema.column">
+        <field name="table_id" ref="schema_stock_location"/>
+        <field name="name">usage</field><field name="data_type">selection</field>
+        <field name="selection_values">supplier,view,internal,customer,inventory,transit,production</field>
+        <field name="description">Verwendungstyp des Lagerorts</field>
+    </record>
+
+    </data>
+</odoo>

@@ -1,4 +1,45 @@
+# docker-compose.prod.yml — odoo-hub Production Stack
+# Target: Hetzner CPX32 (4 vCPU, 8 GB RAM, 160 GB Disk), odoo-prod (46.225.127.211)
+# Stack: Traefik + Odoo 18 + PgBouncer + PostgreSQL 16
+#
+# Anforderungen:
+#   - Docker >= 25, Compose V2
+#   - .env.prod mit: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
+#                    ODOO_DOMAIN, ACME_EMAIL, IMAGE_TAG (optional)
+#   - docker/db/init.sql vorhanden (nl2sql_ro Role Setup)
+#
+# Idempotent: mehrfaches `docker compose up -d` ist sicher.
+# Netzwerk: DB + PgBouncer nur intern erreichbar (internal: true).
+# Ressourcen: Limits verhindern, dass NL2SQL-Queries den Host erschöpfen.
+
 services:
+
+  # ── Traefik Reverse Proxy ──────────────────────────────────────────────────
+  traefik:
+    image: traefik:v3.1
+    container_name: odoo_traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
     build:
       context: .
@@ -7,15 +48,62 @@ services:
     container_name: odoo_web
     restart: unless-stopped
     env_file: .env.prod
-    ports:
-      - "127.0.0.1:8069:8069"
+    # Kein direktes Port-Mapping — Traffic läuft ausschließlich über Traefik
+    expose:
+      - "8069"
     volumes:
       - odoo_data:/var/lib/odoo
     depends_on:
       db:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
     command: ["odoo", "--config=/etc/odoo/odoo.conf"]
+    networks:
+      - internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.odoo.rule=Host(`${ODOO_DOMAIN}`)"
+      - "traefik.http.routers.odoo.entrypoints=websecure"
+      - "traefik.http.routers.odoo.tls.certresolver=le"
+      - "traefik.http.services.odoo.loadbalancer.server.port=8069"
+      # Odoo Websocket (longpolling)
+      - "traefik.http.routers.odoo-longpoll.rule=Host(`${ODOO_DOMAIN}`) && PathPrefix(`/longpolling`)"
+      - "traefik.http.routers.odoo-longpoll.entrypoints=websecure"
+      - "traefik.http.routers.odoo-longpoll.tls.certresolver=le"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
 
+  # ── PgBouncer Connection Pooler ───────────────────────────────────────────
+  # Session Pooling (nicht Transaction): SET LOCAL statement_timeout bleibt gültig.
+  # Für NL2SQL-Execution kritisch — siehe ADR-001-REVIEW.md Befund C3.
+  pgbouncer:
+    image: pgbouncer/pgbouncer:1.23
+    container_name: odoo_pgbouncer
+    restart: unless-stopped
+    environment:
+      # Session Pooling: Verbindung bleibt einem Client während der Session zugeordnet.
+      # Kein Transaction Pooling — SET LOCAL / SET SESSION bleiben wirksam.
+      - PGBOUNCER_POOL_MODE=session
+      - PGBOUNCER_MAX_CLIENT_CONN=100
+      - PGBOUNCER_DEFAULT_POOL_SIZE=20
+      - PGBOUNCER_SERVER_IDLE_TIMEOUT=600
+      - PGBOUNCER_DATABASE_HOST=db
+      - PGBOUNCER_DATABASE_PORT=5432
+      - PGBOUNCER_DATABASE_NAME=${POSTGRES_DB}
+      - PGBOUNCER_DATABASE_USER=${POSTGRES_USER}
+      - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ── PostgreSQL 16 ─────────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: odoo_db
@@ -23,12 +111,54 @@ services:
     env_file: .env.prod
     volumes:
       - odoo_pgdata:/var/lib/postgresql/data
+      # Init-Script: einmalig ausgeführt wenn Volume leer (idempotent: IF NOT EXISTS).
+      # Erstellt nl2sql_ro Read-Only Role. Muss nach Modul-Installation erneut
+      # per `docker exec odoo_db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /init.sql`
+      # ausgeführt werden falls neue Tabellen geGRANTet werden sollen.
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    # PostgreSQL-Tuning für CPX32 (4 vCPU, 8 GB RAM).
+    # Werte basieren auf: https://pgtune.leopard.in.ua/ für "Web Application", 8GB RAM.
+    command: >
+      postgres
+        -c max_connections=50
+        -c shared_buffers=512MB
+        -c work_mem=16MB
+        -c maintenance_work_mem=128MB
+        -c effective_cache_size=1536MB
+        -c wal_buffers=16MB
+        -c checkpoint_completion_target=0.9
+        -c random_page_cost=1.1
+        -c log_statement=ddl
+        -c log_min_duration_statement=1000
+        -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+        -c log_timezone=Europe/Berlin
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      # Prüft PostgreSQL-Verfügbarkeit UND ob die Zieldatenbank existiert.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1G
 
 volumes:
   odoo_data:
+    name: odoo_hub_data        # Expliziter Name für Backup-Scripts
   odoo_pgdata:
+    name: odoo_hub_pgdata      # Expliziter Name für Backup-Scripts
+  traefik_certs:
+    name: odoo_hub_traefik_certs
+
+networks:
+  # Internes Netzwerk: DB und PgBouncer sind nicht vom Internet erreichbar.
+  internal:
+    name: odoo_hub_internal
+    internal: true
+  # Proxy-Netzwerk: Traefik und Odoo-Web kommunizieren hier.
+  proxy:
+    name: odoo_hub_proxy

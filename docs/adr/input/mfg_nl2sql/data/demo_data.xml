@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+    <!-- Example saved queries as dashboard tiles -->
+    <record id="saved_query_open_po" model="nl2sql.saved.query">
+        <field name="name">Offene Bestellungen</field>
+        <field name="query_text">Wie viele offene Bestellungen gibt es und was ist der Gesamtwert?</field>
+        <field name="domain_filter">supply_chain</field>
+        <field name="chart_type">kpi</field>
+        <field name="is_dashboard_tile" eval="True"/>
+        <field name="tile_color">blue</field>
+        <field name="tile_icon">fa-shopping-cart</field>
+        <field name="is_shared" eval="True"/>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="saved_query_production_status" model="nl2sql.saved.query">
+        <field name="name">Fertigungsstatus</field>
+        <field name="query_text">Zeige die Anzahl Fertigungsaufträge gruppiert nach Status</field>
+        <field name="domain_filter">production</field>
+        <field name="chart_type">bar</field>
+        <field name="is_dashboard_tile" eval="True"/>
+        <field name="tile_color">green</field>
+        <field name="tile_icon">fa-industry</field>
+        <field name="is_shared" eval="True"/>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="saved_query_quality_rate" model="nl2sql.saved.query">
+        <field name="name">Qualitätsrate</field>
+        <field name="query_text">Wie hoch ist die Bestehensquote aller Qualitätsprüfungen?</field>
+        <field name="domain_filter">quality</field>
+        <field name="chart_type">kpi</field>
+        <field name="is_dashboard_tile" eval="True"/>
+        <field name="tile_color">teal</field>
+        <field name="tile_icon">fa-check-circle</field>
+        <field name="is_shared" eval="True"/>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="saved_query_low_stock" model="nl2sql.saved.query">
+        <field name="name">Niedrige Bestände</field>
+        <field name="query_text">Welche 10 Artikel haben den niedrigsten Lagerbestand?</field>
+        <field name="domain_filter">supply_chain</field>
+        <field name="chart_type">hbar</field>
+        <field name="is_dashboard_tile" eval="True"/>
+        <field name="tile_color">orange</field>
+        <field name="tile_icon">fa-exclamation-triangle</field>
+        <field name="is_shared" eval="True"/>
+        <field name="sequence">40</field>
+    </record>
+
+    </data>
+</odoo>

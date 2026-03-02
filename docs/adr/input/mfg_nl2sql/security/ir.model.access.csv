@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_schema_table_user,nl2sql.schema.table.user,model_nl2sql_schema_table,group_nl2sql_user,1,0,0,0
+access_schema_table_manager,nl2sql.schema.table.manager,model_nl2sql_schema_table,group_nl2sql_manager,1,1,1,1
+access_schema_column_user,nl2sql.schema.column.user,model_nl2sql_schema_column,group_nl2sql_user,1,0,0,0
+access_schema_column_manager,nl2sql.schema.column.manager,model_nl2sql_schema_column,group_nl2sql_manager,1,1,1,1
+access_query_history_user,nl2sql.query.history.user,model_nl2sql_query_history,group_nl2sql_user,1,1,1,1
+access_query_history_manager,nl2sql.query.history.manager,model_nl2sql_query_history,group_nl2sql_manager,1,1,1,1
+access_saved_query_user,nl2sql.saved.query.user,model_nl2sql_saved_query,group_nl2sql_user,1,1,1,0
+access_saved_query_manager,nl2sql.saved.query.manager,model_nl2sql_saved_query,group_nl2sql_manager,1,1,1,1
+access_dashboard_config_user,nl2sql.dashboard.config.user,model_nl2sql_dashboard_config,group_nl2sql_user,1,1,1,1
+access_dashboard_config_manager,nl2sql.dashboard.config.manager,model_nl2sql_dashboard_config,group_nl2sql_manager,1,1,1,1
+access_save_query_wizard_user,nl2sql.save.query.wizard.user,model_nl2sql_save_query_wizard,group_nl2sql_user,1,1,1,1

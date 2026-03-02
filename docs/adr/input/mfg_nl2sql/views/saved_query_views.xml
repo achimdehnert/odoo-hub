@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_saved_query_list" model="ir.ui.view">
+        <field name="name">nl2sql.saved.query.list</field>
+        <field name="model">nl2sql.saved.query</field>
+        <field name="arch" type="xml">
+            <list string="Gespeicherte Abfragen" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="query_text"/>
+                <field name="domain_filter"/>
+                <field name="chart_type"/>
+                <field name="is_dashboard_tile"/>
+                <field name="is_shared"/>
+                <field name="last_run"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_saved_query_form" model="ir.ui.view">
+        <field name="name">nl2sql.saved.query.form</field>
+        <field name="model">nl2sql.saved.query</field>
+        <field name="arch" type="xml">
+            <form string="Gespeicherte Abfrage">
+                <header>
+                    <button name="action_run" type="object"
+                            string="Ausführen" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Abfrage">
+                            <field name="name"/>
+                            <field name="query_text"/>
+                            <field name="domain_filter"/>
+                            <field name="chart_type"/>
+                        </group>
+                        <group string="Dashboard">
+                            <field name="is_dashboard_tile"/>
+                            <field name="tile_color" invisible="not is_dashboard_tile"/>
+                            <field name="tile_icon" invisible="not is_dashboard_tile"/>
+                            <field name="refresh_interval"/>
+                            <field name="is_shared"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="SQL (cached)" name="sql">
+                            <field name="generated_sql"/>
+                        </page>
+                        <page string="Verlauf" name="history">
+                            <field name="history_ids">
+                                <list>
+                                    <field name="create_date"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="result_row_count"/>
+                                    <field name="execution_time_ms"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_saved_query" model="ir.actions.act_window">
+        <field name="name">Gespeicherte Abfragen</field>
+        <field name="res_model">nl2sql.saved.query</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
