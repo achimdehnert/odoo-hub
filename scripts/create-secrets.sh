@@ -172,6 +172,7 @@ echo "${SECRETS_CONTENT}" | sops \
     --encrypt \
     --input-type dotenv \
     --output-type dotenv \
+    --filename-override secrets.enc.env \
     /dev/stdin > "${ENCRYPTED_FILE}"
 
 echo ""
