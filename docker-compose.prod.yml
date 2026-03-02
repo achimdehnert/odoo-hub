@@ -20,32 +20,18 @@
 
 services:
 
-  # ── Docker Socket Proxy ────────────────────────────────────────────────────
-  # Minimal Python proxy: rewrites /v1.{<44}/ → /v1.44/ at TCP level.
-  # Supports HTTP streaming/longpoll (Docker events) via threading.
-  # Fixes: Docker 29.x MinAPIVersion=1.44 rejecting Traefik's /v1.24/version.
-  socket-proxy:
-    build: ./docker/socket-proxy
-    image: odoo-hub-socket-proxy:latest
-    container_name: odoo_socket_proxy
-    restart: unless-stopped
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - socket_proxy
-
   # ── Traefik Reverse Proxy ──────────────────────────────────────────────────
+  # NOTE: Requires Docker ≤27.x (MinAPIVersion=1.24).
+  # Docker 28+ raised MinAPIVersion to 1.44 which breaks Traefik's initial
+  # /v1.24/version handshake. Pin Docker to 27.5.1 on the host.
   traefik:
     image: traefik:v3.3
     container_name: odoo_traefik
     restart: unless-stopped
-    depends_on:
-      - socket-proxy
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -58,10 +44,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_certs:/letsencrypt
     networks:
       - proxy
-      - socket_proxy
 
   # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
@@ -171,7 +157,3 @@ networks:
   # Proxy-Netzwerk: Traefik und Odoo-Web kommunizieren hier.
   proxy:
     name: odoo_hub_proxy
-  # Socket-Proxy-Netzwerk: isoliert, kein Internet-Zugang.
-  socket_proxy:
-    name: odoo_hub_socket_proxy
-    internal: true
