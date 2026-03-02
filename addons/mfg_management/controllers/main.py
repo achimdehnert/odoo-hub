@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 from odoo import http
-from odoo.http import request
+from odoo.http import request, Response
 
 
 class MfgDashboardController(http.Controller):
 
-    @http.route("/mfg_management/kpis", type="json", auth="user")
+    @http.route("/mfg_management/kpis", type="http", auth="user", methods=["GET"], csrf=False)
     def get_kpis(self):
         env = request.env
 
@@ -47,7 +48,7 @@ class MfgDashboardController(http.Controller):
         parts_low_stock = env["scm.part"].search_count([("stock_qty", "<=", 0), ("active", "=", True)])
         parts_total = env["scm.part"].search_count([("active", "=", True)])
 
-        return {
+        return Response(json.dumps({
             "casting_orders": casting_states,
             "scm_production": scm_states,
             "machines": machine_states,
@@ -64,9 +65,9 @@ class MfgDashboardController(http.Controller):
                 "total": parts_total,
                 "low_stock": parts_low_stock,
             },
-        }
+        }), content_type="application/json")
 
-    @http.route("/mfg_management/production_board", type="json", auth="user")
+    @http.route("/mfg_management/production_board", type="http", auth="user", methods=["GET"], csrf=False)
     def get_production_board(self):
         env = request.env
 
@@ -89,12 +90,12 @@ class MfgDashboardController(http.Controller):
                 o["part_name"] = o["part_id"][1]
                 o["part_id"] = o["part_id"][0]
 
-        return {
+        return Response(json.dumps({
             "casting_orders": casting_orders,
             "scm_orders": scm_orders,
-        }
+        }), content_type="application/json")
 
-    @http.route("/mfg_management/machine_status", type="json", auth="user")
+    @http.route("/mfg_management/machine_status", type="http", auth="user", methods=["GET"], csrf=False)
     def get_machine_status(self):
         env = request.env
 
@@ -104,9 +105,9 @@ class MfgDashboardController(http.Controller):
             order="state asc, name asc",
         )
 
-        return {"machines": machines}
+        return Response(json.dumps({"machines": machines}), content_type="application/json")
 
-    @http.route("/mfg_management/scm_overview", type="json", auth="user")
+    @http.route("/mfg_management/scm_overview", type="http", auth="user", methods=["GET"], csrf=False)
     def get_scm_overview(self):
         env = request.env
 
@@ -138,8 +139,8 @@ class MfgDashboardController(http.Controller):
             order="code asc",
         )
 
-        return {
+        return Response(json.dumps({
             "open_purchases": open_purchases,
             "open_deliveries": open_deliveries,
             "warehouses": warehouses,
-        }
+        }), content_type="application/json")
