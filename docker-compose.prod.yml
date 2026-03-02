@@ -92,7 +92,7 @@ services:
   # Session Pooling (nicht Transaction): SET LOCAL statement_timeout bleibt gültig.
   # Für NL2SQL-Execution kritisch — siehe ADR-001-REVIEW.md Befund C3.
   pgbouncer:
-    image: edoburu/pgbouncer:latest
+    image: bitnami/pgbouncer:1.23.1
     container_name: odoo_pgbouncer
     restart: unless-stopped
     environment:
