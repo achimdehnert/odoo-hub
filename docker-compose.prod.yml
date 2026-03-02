@@ -20,32 +20,20 @@
 
 services:
 
-  # ── Docker Socket Proxy ────────────────────────────────────────────────────
-  # Nginx-based TCP→Unix proxy between Traefik and Docker daemon.
-  # Rewrites legacy API version /v1.{1..43}/ → /v1.44/ so Docker 29.x
-  # (MinAPIVersion=1.44) accepts Traefik's hardcoded /v1.24/version request.
-  socket-proxy:
-    image: nginx:alpine
-    container_name: odoo_socket_proxy
-    restart: unless-stopped
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/socket-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-    networks:
-      - socket_proxy
-
   # ── Traefik Reverse Proxy ──────────────────────────────────────────────────
   traefik:
     image: traefik:v3.3
     container_name: odoo_traefik
     restart: unless-stopped
-    depends_on:
-      - socket-proxy
+    environment:
+      # Fix: Docker 29.x sets MinAPIVersion=1.44. Traefik's Go client initially
+      # negotiates with /v1.24/version which Docker rejects. Setting this env var
+      # forces the Go Docker client to use API 1.44 from the first request.
+      DOCKER_API_VERSION: "1.44"
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -58,10 +46,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_certs:/letsencrypt
     networks:
       - proxy
-      - socket_proxy
 
   # ── Odoo 18 Web ────────────────────────────────────────────────────────────
   web:
@@ -171,7 +159,3 @@ networks:
   # Proxy-Netzwerk: Traefik und Odoo-Web kommunizieren hier.
   proxy:
     name: odoo_hub_proxy
-  # Socket-Proxy-Netzwerk: Traefik ↔ socket-proxy (isoliert, kein Internet-Zugang).
-  socket_proxy:
-    name: odoo_hub_socket_proxy
-    internal: true
