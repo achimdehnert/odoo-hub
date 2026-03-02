@@ -1,0 +1,5 @@
+Django>=5.0,<6.0
+gunicorn>=21.2
+psycopg2-binary>=2.9
+iil-aifw[nl2sql]>=0.6.0
+sqlglot>=25.0

@@ -116,25 +116,51 @@ END $$;
 ALTER DEFAULT PRIVILEGES FOR ROLE odoo IN SCHEMA public
     GRANT SELECT ON TABLES TO nl2sql_ro;
 
--- ── 5. SCM-Custom-Tabellen (optional, nur wenn scm_manufacturing installiert) ──
--- Auskommentiert — nach scm_manufacturing-Installation einkommentieren und
--- dieses Script erneut ausführen:
---
--- DO $$
--- DECLARE
---     tbl TEXT;
---     scm_tbls TEXT[] := ARRAY[
---         'scm_part', 'scm_part_category',
---         'scm_bom', 'scm_bom_line',
---         'scm_supplier_info',
---         'scm_purchase_order', 'scm_purchase_order_line',
---         'scm_production_order', 'scm_work_step',
---         'scm_warehouse', 'scm_delivery',
---         'scm_stock_move', 'scm_incoming_inspection'
---     ];
--- BEGIN
---     FOREACH tbl IN ARRAY scm_tbls LOOP
---         EXECUTE format('GRANT SELECT ON TABLE %I TO nl2sql_ro', tbl);
---         RAISE NOTICE '[init.sql] GRANT SELECT ON % TO nl2sql_ro — OK', tbl;
---     END LOOP;
--- END $$;
+-- ── 5. SCM + Casting Custom-Tabellen ────────────────────────────────────────
+-- GRANTs für alle Custom-Module. Fehlende Tabellen werden übersprungen.
+
+DO $$
+DECLARE
+    tbl TEXT;
+    custom_tbls TEXT[] := ARRAY[
+        -- SCM Manufacturing
+        'scm_part', 'scm_part_category',
+        'scm_bom', 'scm_bom_line',
+        'scm_supplier_info',
+        'scm_purchase_order', 'scm_purchase_order_line',
+        'scm_production_order', 'scm_work_step',
+        'scm_warehouse', 'scm_delivery',
+        'scm_stock_move', 'scm_incoming_inspection',
+        -- Casting Foundry
+        'casting_order', 'casting_order_line',
+        'casting_machine', 'casting_alloy',
+        'casting_quality_check', 'casting_defect',
+        'casting_mold', 'casting_mold_usage'
+    ];
+BEGIN
+    FOREACH tbl IN ARRAY custom_tbls LOOP
+        IF EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = tbl
+        ) THEN
+            EXECUTE format('GRANT SELECT ON TABLE %I TO nl2sql_ro', tbl);
+            RAISE NOTICE '[init.sql] GRANT SELECT ON % TO nl2sql_ro — OK', tbl;
+        ELSE
+            RAISE NOTICE '[init.sql] % existiert noch nicht — übersprungen', tbl;
+        END IF;
+    END LOOP;
+END $$;
+
+-- ── 6. aifw-Service User ────────────────────────────────────────────────────
+-- Die aifw DB wird von 02_aifw_db.sh angelegt (CREATE DATABASE außerhalb
+-- einer Transaktion). Hier nur den User anlegen + Rechte vergeben.
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'aifw') THEN
+        CREATE USER aifw PASSWORD 'changeme_set_via_env_aifw';
+        RAISE NOTICE '[init.sql] User aifw angelegt.';
+    ELSE
+        RAISE NOTICE '[init.sql] User aifw existiert bereits.';
+    END IF;
+END $$;

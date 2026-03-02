@@ -102,6 +102,48 @@ services:
           cpus: "2.0"
           memory: 2G
 
+  # ── aifw NL2SQL Microservice ────────────────────────────────────────────────
+  # Internal only — not exposed via Traefik. Odoo calls it via http://aifw_service:8001
+  aifw_service:
+    build:
+      context: ./services/aifw_service
+      dockerfile: Dockerfile
+    container_name: aifw_service
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "/app/entrypoint.sh"]
+    env_file: .env.prod
+    environment:
+      - DJANGO_SETTINGS_MODULE=aifw_service.settings
+      - DJANGO_SECRET_KEY=${AIFW_SECRET_KEY}
+      - AIFW_DB_HOST=db
+      - AIFW_DB_NAME=${AIFW_DB_NAME:-aifw}
+      - AIFW_DB_USER=${AIFW_DB_USER:-aifw}
+      - AIFW_DB_PASSWORD=${AIFW_DB_PASSWORD}
+      - ODOO_DB_HOST=db
+      - ODOO_DB_NAME=${POSTGRES_DB}
+      - ODOO_NL2SQL_USER=nl2sql_user
+      - ODOO_NL2SQL_PASSWORD=${ODOO_NL2SQL_PASSWORD}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    expose:
+      - "8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
   # ── PostgreSQL 16
   # NOTE: PgBouncer wird nachgerüstet sobald passendes Docker-Image verfügbar
   # (ADR-001-REVIEW Befund C3 — Session Pooling für NL2SQL SET LOCAL) ─────────────────────────────────────────────────────────
@@ -119,6 +161,7 @@ services:
       # per `docker exec odoo_db psql -U $POSTGRES_USER -d $POSTGRES_DB -f /init.sql`
       # ausgeführt werden falls neue Tabellen geGRANTet werden sollen.
       - ./docker/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./docker/db/02_aifw_db.sh:/docker-entrypoint-initdb.d/02_aifw_db.sh:ro
       # Secrets aus /run/secrets/ für POSTGRES_PASSWORD_FILE (ADR-045)
       - /run/secrets:/run/secrets:ro
     # PostgreSQL-Tuning für CPX32 (4 vCPU, 8 GB RAM).
@@ -158,6 +201,8 @@ volumes:
     name: odoo_hub_pgdata      # Expliziter Name für Backup-Scripts
   traefik_certs:
     name: odoo_hub_traefik_certs
+  aifw_pgdata:
+    name: odoo_hub_aifw_pgdata # aifw eigene DB (LLMProvider, AIActionType, UsageLogs, SchemaSource)
 
 networks:
   # Internes Netzwerk: DB nicht vom Internet erreichbar.

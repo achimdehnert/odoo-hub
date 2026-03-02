@@ -253,61 +253,60 @@ class MfgDashboardController(http.Controller):
 
         return {"error": f"Unbekannter Drilldown-Key: {key}"}
 
-    # ── NL2SQL Proxy ───────────────────────────────────────────────────────
+    # ── NL2SQL Proxy → aifw_service ───────────────────────────────────────
     @http.route("/mfg_management/nl2sql", type="json", auth="user")
-    def nl2sql_query(self, query):
-        """Proxy to mfg_nl2sql if installed, otherwise execute direct SQL fallback."""
+    def nl2sql_query(self, query, source_code="odoo_mfg", conversation_history=None):
+        """HTTP proxy to aifw_service NL2SQL microservice."""
+        import urllib.request
+        import urllib.error
+
         if not query or not query.strip():
             return {"error": "Leere Anfrage"}
 
-        # Try to delegate to the mfg_nl2sql module's controller logic
+        aifw_url = request.env["ir.config_parameter"].sudo().get_param(
+            "mfg_management.aifw_service_url", "http://aifw_service:8001"
+        )
+        endpoint = f"{aifw_url.rstrip('/')}/nl2sql/query"
+
+        payload = json.dumps({
+            "query": query,
+            "source_code": source_code,
+            "conversation_history": conversation_history or [],
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            endpoint,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
         try:
-            # Import the nl2sql controller directly if the module is installed
-            from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
-                NL2SQLController, sanitize_sql, detect_chart_type, build_chart_config
-            )
-            ctrl = NL2SQLController()
-            config = ctrl._get_llm_config()
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                body = resp.read()
+                result = json.loads(body)
+                return result
 
-            if not config.get("api_key"):
+        except urllib.error.HTTPError as exc:
+            try:
+                err_body = json.loads(exc.read())
                 return {
-                    "error": "KI-API Key nicht konfiguriert. "
-                             "Bitte unter Einstellungen > NL2SQL den API-Schlüssel hinterlegen.",
-                    "api_missing": True,
+                    "success": False,
+                    "error": err_body.get("error", f"HTTP {exc.code}"),
+                    "error_type": err_body.get("error_type", "HTTPError"),
                 }
+            except Exception:
+                return {"success": False, "error": f"aifw-service HTTP {exc.code}"}
 
-            sql, tokens, err = ctrl._translate_nl_to_sql(query, domain_filter="all")
-            if err:
-                return {"error": err}
-
-            sanitized, san_err = sanitize_sql(sql, config.get("allow_write", False))
-            if san_err:
-                return {"error": f"SQL-Validierung: {san_err}", "sql": sql}
-
-            result = ctrl._execute_sql(sanitized, config.get("max_rows", 500))
-            if result.get("error"):
-                return {"error": result["error"], "sql": sanitized}
-
-            chart_type = detect_chart_type(result["columns"], result["rows"])
-            chart_config = build_chart_config(chart_type, result["columns"], result["rows"])
-
+        except urllib.error.URLError as exc:
+            _logger.warning("aifw_service nicht erreichbar: %s", exc.reason)
             return {
-                "sql": sanitized,
-                "columns": result["columns"],
-                "rows": result["rows"],
-                "row_count": result["row_count"],
-                "execution_time_ms": result["execution_time_ms"],
-                "chart_type": chart_type,
-                "chart_config": chart_config,
-                "tokens_used": tokens,
+                "success": False,
+                "error": "KI-Service nicht erreichbar. "
+                         "Bitte aifw_service Container prüfen.",
+                "error_type": "ServiceUnavailable",
             }
 
-        except ImportError:
-            return {
-                "error": "Modul mfg_nl2sql ist nicht installiert. "
-                         "Bitte das NL2SQL-Modul aktivieren.",
-                "module_missing": True,
-            }
         except Exception as exc:
             _logger.exception("NL2SQL proxy error")
-            return {"error": f"Fehler: {str(exc)}"}
+            return {"success": False, "error": f"Fehler: {str(exc)}"}

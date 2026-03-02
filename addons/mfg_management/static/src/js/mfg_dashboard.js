@@ -145,11 +145,27 @@ export class MfgDashboard extends Component {
         this.state.nl2sql.sql = null;
         try {
             const res = await rpc("/mfg_management/nl2sql", { query: q });
-            if (res.error) {
-                this.state.nl2sql.error = res.error;
+            if (res.error || res.success === false) {
+                this.state.nl2sql.error = res.error || "Unbekannter Fehler";
+                if (res.sql) this.state.nl2sql.sql = res.sql;
             } else {
-                this.state.nl2sql.result = res;
-                this.state.nl2sql.sql = res.sql;
+                // aifw_service returns rows as list[dict] — normalize to {columns, rows as list[list]}
+                const cols = (res.columns || []).map(c => typeof c === "object" ? c : { name: c });
+                const colNames = cols.map(c => c.name);
+                const rowsAsLists = (res.rows || []).map(row =>
+                    Array.isArray(row) ? row : colNames.map(name => row[name] ?? null)
+                );
+                this.state.nl2sql.result = {
+                    columns: cols,
+                    rows: rowsAsLists,
+                    row_count: res.row_count || rowsAsLists.length,
+                    execution_time_ms: res.execution_time_ms || 0,
+                    truncated: res.truncated || false,
+                    chart_type: res.chart_type || "table",
+                    chart: res.chart || {},
+                    summary: res.summary || "",
+                };
+                this.state.nl2sql.sql = res.sql || "";
             }
         } catch (e) {
             this.state.nl2sql.error = String(e);
