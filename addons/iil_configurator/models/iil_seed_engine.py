@@ -63,7 +63,9 @@ class IilSeedEngine(models.AbstractModel):
                 [('is_demo_data', '=', True)]
             ).unlink()
         if industry in ('machining', 'both'):
-            pass  # analog für mfg_machining-Models (Sprint 4)
+            self.env['machining.order'].sudo().search(
+                [('is_demo_data', '=', True)]
+            ).unlink()
 
     @api.model
     def _generate_casting_data(self, months, order_count):
@@ -129,10 +131,124 @@ class IilSeedEngine(models.AbstractModel):
                     'is_demo_data': True,
                 })
 
+    # ── Machining Stammdaten ─────────────────────────────────────────────────
+
+    _MACHINING_MACHINES = [
+        {'name': 'DMG MORI DMU 50',        'code': 'BAZ-001', 'machine_type': 'machining_center', 'manufacturer': 'DMG MORI', 'model': 'DMU 50',     'year_built': 2019, 'axes': 5, 'max_spindle_rpm': 18000, 'travel_x_mm': 500, 'travel_y_mm': 450, 'travel_z_mm': 400, 'hall': 'Halle A', 'position': 'A-01'},
+        {'name': 'Mazak Integrex i-400',    'code': 'BAZ-002', 'machine_type': 'machining_center', 'manufacturer': 'Mazak',    'model': 'Integrex i-400', 'year_built': 2020, 'axes': 5, 'max_spindle_rpm': 12000, 'travel_x_mm': 1054, 'travel_y_mm': 0,   'travel_z_mm': 550, 'hall': 'Halle A', 'position': 'A-02'},
+        {'name': 'Hermle C 400',            'code': 'BAZ-003', 'machine_type': 'machining_center', 'manufacturer': 'Hermle',   'model': 'C 400',         'year_built': 2021, 'axes': 5, 'max_spindle_rpm': 18000, 'travel_x_mm': 850, 'travel_y_mm': 700, 'travel_z_mm': 500, 'hall': 'Halle A', 'position': 'A-03'},
+        {'name': 'Deckel Maho DMF 260',     'code': 'FRA-001', 'machine_type': 'milling',          'manufacturer': 'DMG MORI', 'model': 'DMF 260',      'year_built': 2018, 'axes': 3, 'max_spindle_rpm': 10000, 'travel_x_mm': 2600, 'travel_y_mm': 900, 'travel_z_mm': 800, 'hall': 'Halle B', 'position': 'B-01'},
+        {'name': 'Emco Hyperturn 65',       'code': 'DRE-001', 'machine_type': 'lathe',            'manufacturer': 'Emco',     'model': 'Hyperturn 65',  'year_built': 2019, 'axes': 2, 'max_spindle_rpm': 4500,  'travel_x_mm': 320, 'travel_y_mm': 0,   'travel_z_mm': 1000,'hall': 'Halle B', 'position': 'B-02'},
+        {'name': 'INDEX C200',              'code': 'DRE-002', 'machine_type': 'lathe',            'manufacturer': 'INDEX',    'model': 'C200',          'year_built': 2022, 'axes': 2, 'max_spindle_rpm': 6300,  'travel_x_mm': 260, 'travel_y_mm': 0,   'travel_z_mm': 700, 'hall': 'Halle B', 'position': 'B-03'},
+        {'name': 'Studer S33',              'code': 'SCH-001', 'machine_type': 'grinding',         'manufacturer': 'Studer',   'model': 'S33',           'year_built': 2017, 'axes': 3, 'max_spindle_rpm': 60000, 'travel_x_mm': 175, 'travel_y_mm': 0,   'travel_z_mm': 700, 'hall': 'Halle C', 'position': 'C-01'},
+        {'name': 'Zeiss Contura G2',        'code': 'KMG-001', 'machine_type': 'measuring',        'manufacturer': 'Zeiss',    'model': 'Contura G2',    'year_built': 2020, 'axes': 3, 'max_spindle_rpm': 0,     'travel_x_mm': 900, 'travel_y_mm': 1500,'travel_z_mm': 600, 'hall': 'Halle C', 'position': 'C-02'},
+    ]
+
+    _MACHINING_MATERIALS = [
+        ('Stahl 1.4301 (V2A)',    12.5),
+        ('Stahl 1.7225 (42CrMo4)', 8.0),
+        ('Aluminium EN AW-6082',   4.0),
+        ('Titan Grade 5 (Ti6Al4V)', 35.0),
+        ('Messing CuZn39Pb3',      6.5),
+        ('Grauguss GG-25',         5.0),
+        ('Kunststoff PA66-GF30',   2.5),
+        ('Stahl C45',              5.5),
+    ]
+
+    _DRAWING_PREFIXES = ['WZ', 'TL', 'GH', 'FL', 'ZY', 'KO', 'LA', 'SP']
+
     @api.model
     def _generate_machining_data(self, months, order_count):
-        """Werkzeugmaschinen-Demo — Implementierung Sprint 4."""
-        _logger.info("IIL Seed Engine: machining data generator not yet implemented (Sprint 4).")
+        """CNC-Fertigungsaufträge Demo-Daten — Sprint 4.
+
+        Generiert:
+        - 8 realistische CNC-Maschinen (Stammdaten, idempotent via code)
+        - Fertigungsaufträge mit realistischen Trends:
+          - Auslastung: wachsend über Zeitraum (+3%/Monat)
+          - Ausschuss: Maschinentyp-abhängig (BAZ am besten, Drehen mittel)
+          - Zykluszeit: Material-abhängig (Titan/Stahl langsamer)
+        """
+        env = self.env
+
+        # Maschinen anlegen (idempotent via code)
+        machines = []
+        for spec in self._MACHINING_MACHINES:
+            machine = env['machining.machine'].search(
+                [('code', '=', spec['code'])], limit=1
+            )
+            if not machine:
+                machine = env['machining.machine'].create(spec)
+            machines.append(machine)
+
+        if not machines:
+            raise UserError('Keine CNC-Maschinen verfügbar — Seed-Engine-Fehler.')
+
+        # Aufträge generieren
+        base_date = date.today().replace(day=1)
+        orders_per_month = max(1, order_count // months)
+
+        for month_offset in range(months, 0, -1):
+            month_start = base_date - relativedelta(months=month_offset)
+
+            # Auslastungstrend: leicht wachsend
+            volume_factor = 1.0 + (months - month_offset) * 0.03
+            actual_orders = int(
+                orders_per_month * volume_factor * random.uniform(0.85, 1.15)
+            )
+
+            for i in range(actual_orders):
+                order_date = month_start + timedelta(days=random.randint(0, 27))
+                machine = random.choice(machines)
+                material, cycle_base = random.choice(self._MACHINING_MATERIALS)
+                drawing_no = (
+                    f"{random.choice(self._DRAWING_PREFIXES)}"
+                    f"-{random.randint(1000, 9999)}"
+                )
+
+                # Zykluszeit: Basiszeit ± 20% Streuung
+                cycle_time = round(cycle_base * random.uniform(0.8, 1.2), 1)
+
+                # Mengen
+                planned_qty = random.choice([1, 5, 10, 25, 50, 100, 200])
+                scrap_pct = random.gauss(0.02, 0.01)
+                scrap_pct = max(0.0, min(scrap_pct, 0.15))
+                scrap_qty = int(planned_qty * scrap_pct)
+                produced_qty = planned_qty - scrap_qty
+
+                # Status-Verteilung: ältere Aufträge eher 'done'
+                if month_offset > 2:
+                    state = random.choices(
+                        ['done', 'cancelled'],
+                        weights=[0.92, 0.08]
+                    )[0]
+                elif month_offset == 2:
+                    state = random.choices(
+                        ['done', 'in_production', 'quality_check'],
+                        weights=[0.6, 0.3, 0.1]
+                    )[0]
+                else:
+                    state = random.choices(
+                        ['confirmed', 'in_production', 'quality_check', 'draft'],
+                        weights=[0.3, 0.4, 0.2, 0.1]
+                    )[0]
+
+                env['machining.order'].create({
+                    'date_planned':  order_date,
+                    'machine_id':    machine.id,
+                    'material':      material,
+                    'drawing_no':    drawing_no,
+                    'cycle_time_min': cycle_time,
+                    'planned_qty':   planned_qty,
+                    'produced_qty':  produced_qty if state == 'done' else 0,
+                    'scrap_qty':     scrap_qty if state == 'done' else 0,
+                    'state':         state,
+                    'is_demo_data':  True,
+                })
+
+        _logger.info(
+            "IIL Seed Engine: %d Maschinierung-Aufträge für %d Monate generiert.",
+            order_count, months,
+        )
 
     @api.model
     def _generate_casting_and_machining_data(self, months, order_count):
