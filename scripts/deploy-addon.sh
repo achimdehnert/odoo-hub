@@ -73,7 +73,7 @@ rsync -az \
 
 if [ -n "${AIFW_REPO}" ] && [ -d "${AIFW_REPO}" ]; then
   echo "     rsync aifw → ${SERVER}:${COMPOSE_DIR}/aifw"
-  rsync -az \
+  rsync -az --delete \
     --exclude='.git' \
     --exclude='__pycache__' \
     --exclude='*.pyc' \
