@@ -42,6 +42,8 @@
         "web.assets_backend": [
             "scm_manufacturing/static/src/js/scm_panel.js",
             "scm_manufacturing/static/src/xml/scm_panel.xml",
+            "scm_manufacturing/static/src/js/stock_panel.js",
+            "scm_manufacturing/static/src/xml/stock_panel.xml",
         ],
     },
     "installable": True,

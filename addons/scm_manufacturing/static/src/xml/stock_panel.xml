@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="scm_manufacturing.StockPanel">
+    <div class="iil-stock-panel">
+        <t t-if="state.loading">
+            <div class="iil-panel-loading"><i class="fa fa-spinner fa-spin"/> Lade Lagerdaten…</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="iil-panel-error"><i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- KPI-Zeile -->
+            <div class="iil-kpi-row">
+                <div t-att-class="'iil-kpi-card ' + stockHealthClass()">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.stock_health_pct"/>%</div>
+                    <div class="iil-kpi-label">Lagergesundheit</div>
+                    <div class="iil-kpi-sub"><t t-esc="state.kpis.parts_low"/> von <t t-esc="state.kpis.parts_total"/> Teile kritisch</div>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.parts_total"/></div>
+                    <div class="iil-kpi-label">Teile gesamt</div>
+                    <div class="iil-kpi-sub">
+                        <t t-esc="state.kpis.parts_raw"/> Rohst. ·
+                        <t t-esc="state.kpis.parts_semi"/> HF ·
+                        <t t-esc="state.kpis.parts_finished"/> FT
+                    </div>
+                </div>
+                <div class="iil-kpi-card iil-trend-good">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_in"/></div>
+                    <div class="iil-kpi-label">Zugänge (Monat)</div>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_out"/></div>
+                    <div class="iil-kpi-label">Abgänge (Monat)</div>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="formatValue(state.kpis.stock_value)"/> €</div>
+                    <div class="iil-kpi-label">Lagerwert</div>
+                    <div class="iil-kpi-sub">Standardkosten</div>
+                </div>
+            </div>
+
+            <!-- Lager nach Typ -->
+            <t t-if="state.kpis.warehouses.length">
+                <div class="iil-section-title">Lager</div>
+                <div class="iil-status-bar-row">
+                    <t t-foreach="state.kpis.warehouses" t-as="w" t-key="w.id">
+                        <div class="iil-status-chip" t-att-style="'background:' + warehouseTypeColor(w.warehouse_type)">
+                            <span class="iil-status-count"><t t-esc="w.code"/></span>
+                            <span class="iil-status-label"><t t-esc="warehouseTypeLabel(w.warehouse_type)"/></span>
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Kritische Teile -->
+            <div class="iil-section-title">Teile mit Nullbestand</div>
+            <div class="iil-machine-list">
+                <t t-foreach="state.kpis.critical_parts" t-as="p" t-key="p.id">
+                    <div class="iil-machine-row">
+                        <span class="iil-machine-state-dot" style="background:#ef4444"/>
+                        <span class="iil-machine-name"><t t-esc="p.part_number"/> — <t t-esc="p.name"/></span>
+                        <span class="iil-machine-hall"><t t-esc="partTypeLabel(p.part_type)"/></span>
+                        <span class="iil-machine-orders" style="color:#ef4444"><t t-esc="p.stock_qty"/> <t t-esc="p.unit"/></span>
+                    </div>
+                </t>
+                <t t-if="!state.kpis.critical_parts.length">
+                    <div class="iil-empty"><i class="fa fa-check-circle me-1" style="color:#22c55e"/> Alle Teile auf Lager</div>
+                </t>
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>
