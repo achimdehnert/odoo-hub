@@ -38,6 +38,12 @@
     "demo": [
         "demo/demo_materials.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "casting_foundry/static/src/js/casting_panel.js",
+            "casting_foundry/static/src/xml/casting_panel.xml",
+        ],
+    },
     "installable": True,
     "application": True,
     "auto_install": False,

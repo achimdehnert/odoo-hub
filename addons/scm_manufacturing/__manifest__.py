@@ -38,6 +38,12 @@
     "demo": [
         "demo/demo_data.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "scm_manufacturing/static/src/js/scm_panel.js",
+            "scm_manufacturing/static/src/xml/scm_panel.xml",
+        ],
+    },
     "installable": True,
     "application": True,
     "auto_install": False,
