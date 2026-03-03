@@ -117,11 +117,7 @@ class IilConfiguratorWizard(models.TransientModel):
             if self.generate_demo_data:
                 self._generate_demo_data()
         self._apply_dashboard_layout()
-        return {
-            'type': 'ir.actions.client',
-            'tag':  'mfg_management.dashboard',
-            'params': {'reconfigure': True},
-        }
+        return self.env.ref('mfg_management.action_mfg_dashboard').read()[0]
 
     def _generate_demo_data(self):
         """Delegiert an IilSeedEngine. company_size steuert Auftragsanzahl."""
