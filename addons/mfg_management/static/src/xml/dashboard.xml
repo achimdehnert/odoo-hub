@@ -3,16 +3,46 @@
 
 <!-- ═══════════════════════════════════════════════════════════════════
      KPI Card  (clickable if drilldownKey + onDrilldown are set)
+     Optional: gaugeValue (0-100) renders SVG arc gauge instead of icon
 ════════════════════════════════════════════════════════════════════ -->
 <t t-name="mfg_management.KpiCard">
     <div class="mfg-kpi-card"
          t-att-class="(props.colorClass or '') + (props.drilldownKey ? ' mfg-kpi-clickable' : '')"
          t-on-click="onClick">
-        <div class="mfg-kpi-icon">
-            <i t-att-class="'fa ' + (props.icon or 'fa-bar-chart')"/>
-        </div>
+
+        <!-- Gauge variant -->
+        <t t-if="hasGauge">
+            <div class="mfg-kpi-gauge">
+                <svg viewBox="0 0 72 72" width="72" height="72">
+                    <path class="mfg-gauge-track"
+                          t-att-d="gaugeTrackPath"
+                          fill="none" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round"/>
+                    <path class="mfg-gauge-arc"
+                          t-att-d="gaugeArcPath"
+                          fill="none"
+                          t-att-stroke="gaugeStrokeColor"
+                          stroke-width="6" stroke-linecap="round"
+                          style="transition: stroke-dashoffset 0.6s ease"/>
+                    <text x="36" y="40" text-anchor="middle"
+                          class="mfg-gauge-text"
+                          t-att-fill="gaugeStrokeColor">
+                        <t t-esc="props.value"/>
+                    </text>
+                </svg>
+            </div>
+        </t>
+
+        <!-- Icon variant -->
+        <t t-if="!hasGauge">
+            <div class="mfg-kpi-icon">
+                <i t-att-class="'fa ' + (props.icon or 'fa-bar-chart')"/>
+            </div>
+        </t>
+
         <div class="mfg-kpi-body">
-            <div class="mfg-kpi-value"><t t-esc="props.value"/></div>
+            <t t-if="!hasGauge">
+                <div class="mfg-kpi-value"><t t-esc="props.value"/></div>
+            </t>
             <div class="mfg-kpi-label"><t t-esc="props.label"/></div>
             <t t-if="props.sublabel">
                 <div class="mfg-kpi-sublabel"><t t-esc="props.sublabel"/></div>
@@ -173,13 +203,13 @@
                     drilldownKey="'machines_fail'"
                     onDrilldown.bind="openDrilldown"/>
                 <KpiCard
-                    icon="'fa-check-circle'"
                     label="'QS-Rate'"
                     value="state.data.quality.pass_rate + '%'"
                     sublabel="state.data.quality.total + ' Prüfungen'"
                     colorClass="'kpi-teal'"
                     drilldownKey="'quality'"
-                    onDrilldown.bind="openDrilldown"/>
+                    onDrilldown.bind="openDrilldown"
+                    gaugeValue="state.data.quality.pass_rate"/>
                 <KpiCard
                     icon="'fa-shopping-cart'"
                     label="'Offene Bestellungen'"
@@ -364,34 +394,52 @@
                     </div>
                 </div>
 
-                <!-- Machine Status -->
-                <div class="mfg-panel">
+                <!-- Machine Status — Donut Chart -->
+                <div class="mfg-panel mfg-panel-machines">
                     <h3><i class="fa fa-tachometer"/> Maschinenstatus</h3>
-                    <div class="mfg-machine-legend">
-                        <div class="mfg-machine-legend-item state-operational mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_op')">
-                            <span class="mfg-dot"/> Betrieb
-                            <strong><t t-esc="state.data.machines.operational"/></strong>
+                    <div class="mfg-machine-donut-wrap">
+                        <!-- SVG Donut -->
+                        <div class="mfg-donut-svg-wrap">
+                            <svg viewBox="0 0 80 80" width="120" height="120">
+                                <t t-if="totalMachines() > 0">
+                                    <t t-foreach="donutSegments()" t-as="seg" t-key="seg.state">
+                                        <circle cx="40" cy="40" r="28"
+                                            fill="none"
+                                            t-att-stroke="seg.color"
+                                            stroke-width="14"
+                                            t-att-stroke-dasharray="seg.dashArray"
+                                            t-att-stroke-dashoffset="seg.dashOffset"
+                                            stroke-linecap="butt"
+                                            style="transform: rotate(-90deg); transform-origin: 50% 50%"/>
+                                    </t>
+                                </t>
+                                <text x="40" y="36" text-anchor="middle" class="mfg-donut-total-num"><t t-esc="totalMachines()"/></text>
+                                <text x="40" y="49" text-anchor="middle" class="mfg-donut-total-lbl">gesamt</text>
+                            </svg>
                         </div>
-                        <div class="mfg-machine-legend-item state-maintenance">
-                            <span class="mfg-dot"/> Wartung
-                            <strong><t t-esc="state.data.machines.maintenance"/></strong>
+                        <!-- Legend -->
+                        <div class="mfg-donut-legend">
+                            <div class="mfg-donut-legend-item mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_op')">
+                                <span class="mfg-dot state-operational"/> <span>Betrieb</span>
+                                <strong class="text-success"><t t-esc="state.data.machines.operational"/></strong>
+                                <span class="mfg-donut-pct"><t t-esc="machPct('operational')"/>%</span>
+                            </div>
+                            <div class="mfg-donut-legend-item">
+                                <span class="mfg-dot state-maintenance"/> <span>Wartung</span>
+                                <strong class="text-warning"><t t-esc="state.data.machines.maintenance"/></strong>
+                                <span class="mfg-donut-pct"><t t-esc="machPct('maintenance')"/>%</span>
+                            </div>
+                            <div class="mfg-donut-legend-item mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_fail')">
+                                <span class="mfg-dot state-breakdown"/> <span>Störung</span>
+                                <strong class="text-danger"><t t-esc="state.data.machines.breakdown"/></strong>
+                                <span class="mfg-donut-pct"><t t-esc="machPct('breakdown')"/>%</span>
+                            </div>
+                            <div class="mfg-donut-legend-item">
+                                <span class="mfg-dot state-decommissioned"/> <span>Stillgelegt</span>
+                                <strong class="text-muted"><t t-esc="state.data.machines.decommissioned"/></strong>
+                                <span class="mfg-donut-pct"><t t-esc="machPct('decommissioned')"/>%</span>
+                            </div>
                         </div>
-                        <div class="mfg-machine-legend-item state-breakdown mfg-legend-clickable" t-on-click="() => this.openDrilldown('machines_fail')">
-                            <span class="mfg-dot"/> Störung
-                            <strong><t t-esc="state.data.machines.breakdown"/></strong>
-                        </div>
-                        <div class="mfg-machine-legend-item state-decommissioned">
-                            <span class="mfg-dot"/> Stillgelegt
-                            <strong><t t-esc="state.data.machines.decommissioned"/></strong>
-                        </div>
-                    </div>
-                    <div class="mfg-machine-bar-stacked">
-                        <t t-if="totalMachines() > 0">
-                            <div class="mfg-seg seg-operational" t-att-style="'width:' + machPct('operational') + '%'"/>
-                            <div class="mfg-seg seg-maintenance" t-att-style="'width:' + machPct('maintenance') + '%'"/>
-                            <div class="mfg-seg seg-breakdown"   t-att-style="'width:' + machPct('breakdown') + '%'"/>
-                            <div class="mfg-seg seg-decomm"      t-att-style="'width:' + machPct('decommissioned') + '%'"/>
-                        </t>
                     </div>
                 </div>
 

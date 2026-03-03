@@ -219,10 +219,14 @@
     flex-shrink: 0;
 }
 
-.state-operational .mfg-dot { background: #22c55e; }
-.state-maintenance  .mfg-dot { background: #f59e0b; }
-.state-breakdown    .mfg-dot { background: #ef4444; }
-.state-decommissioned .mfg-dot { background: #94a3b8; }
+.state-operational .mfg-dot,
+.mfg-dot.state-operational  { background: #22c55e; }
+.state-maintenance .mfg-dot,
+.mfg-dot.state-maintenance   { background: #f59e0b; }
+.state-breakdown .mfg-dot,
+.mfg-dot.state-breakdown     { background: #ef4444; }
+.state-decommissioned .mfg-dot,
+.mfg-dot.state-decommissioned{ background: #94a3b8; }
 
 .mfg-machine-bar-stacked {
     height: 12px;
@@ -237,6 +241,11 @@
 .seg-maintenance  { background: #f59e0b; }
 .seg-breakdown    { background: #ef4444; }
 .seg-decomm       { background: #94a3b8; }
+
+.text-success { color: #16a34a; }
+.text-warning { color: #d97706; }
+.text-danger  { color: #dc2626; }
+.text-muted   { color: #94a3b8; }
 
 .mfg-parts-alert {
     margin-top: 14px;
@@ -593,6 +602,82 @@
 .mfg-wh-cap {
     font-size: .75rem;
     margin-top: 6px;
+}
+
+/* ── SVG Arc Gauge (QS-Rate KpiCard) ─────────────────────────────── */
+.mfg-kpi-gauge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mfg-gauge-text {
+    font-size: 13px;
+    font-weight: 800;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* KpiCard with gauge is taller to fit SVG */
+.mfg-kpi-card:has(.mfg-kpi-gauge) {
+    padding: 14px 16px;
+    align-items: center;
+}
+
+/* ── Donut Chart (Machine Status Panel) ──────────────────────────── */
+.mfg-machine-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.mfg-donut-svg-wrap {
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
+}
+
+.mfg-donut-total-num {
+    font-size: 14px;
+    font-weight: 800;
+    fill: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.mfg-donut-total-lbl {
+    font-size: 7px;
+    fill: #94a3b8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.mfg-donut-legend {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mfg-donut-legend-item {
+    display: grid;
+    grid-template-columns: 12px 1fr auto auto;
+    align-items: center;
+    gap: 6px;
+    font-size: .80rem;
+    color: #475569;
+    border-radius: 6px;
+    padding: 3px 4px;
+}
+
+.mfg-donut-legend-item strong {
+    font-size: .95rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.mfg-donut-pct {
+    font-size: .72rem;
+    color: #94a3b8;
+    min-width: 34px;
+    text-align: right;
 }
 
 /* ── Clickable KPI tiles ─────────────────────────────────────────── */

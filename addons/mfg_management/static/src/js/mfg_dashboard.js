@@ -58,6 +58,33 @@ export class MfgDashboard extends Component {
         return Math.round((this.state.data.machines[state] || 0) / total * 100);
     }
 
+    donutSegments() {
+        const total = this.totalMachines();
+        if (!total) return [];
+        const circumference = 2 * Math.PI * 28;
+        const segments = [
+            { state: "operational",    color: "#22c55e" },
+            { state: "maintenance",    color: "#f59e0b" },
+            { state: "breakdown",      color: "#ef4444" },
+            { state: "decommissioned", color: "#94a3b8" },
+        ];
+        let offset = 0;
+        return segments.map(s => {
+            const count = this.state.data.machines[s.state] || 0;
+            const pct = count / total;
+            const dash = pct * circumference;
+            const gap = circumference - dash;
+            const seg = {
+                ...s,
+                dashArray: `${dash.toFixed(2)} ${gap.toFixed(2)}`,
+                dashOffset: (-offset * circumference / 1).toFixed(2),
+            };
+            offset += pct;
+            seg.dashOffset = (-(offset - pct) * circumference).toFixed(2);
+            return seg;
+        });
+    }
+
     castingOrderStates() {
         const d = this.state.data.casting_orders;
         const total = Object.values(d).reduce((a, b) => a + b, 0) || 1;
