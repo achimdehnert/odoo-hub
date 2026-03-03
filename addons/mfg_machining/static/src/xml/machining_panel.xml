@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="mfg_machining.MachiningPanel">
+    <div class="iil-machining-panel">
+
+        <!-- Loading -->
+        <t t-if="state.loading">
+            <div class="iil-panel-loading">
+                <i class="fa fa-spinner fa-spin"/> Lade CNC-Daten…
+            </div>
+        </t>
+
+        <!-- Error -->
+        <t t-elif="state.error">
+            <div class="iil-panel-error">
+                <i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/>
+            </div>
+        </t>
+
+        <!-- Content -->
+        <t t-else="">
+            <!-- KPI-Zeile -->
+            <div class="iil-kpi-row">
+
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="activeOrders()"/></div>
+                    <div class="iil-kpi-label">Aktive Aufträge</div>
+                </div>
+
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="machineAvailabilityPct()"/>%</div>
+                    <div class="iil-kpi-label">Maschinenverfügbarkeit</div>
+                    <div class="iil-kpi-sub">
+                        <t t-esc="state.kpis.machine_states.operational"/> /
+                        <t t-esc="totalMachines()"/> Maschinen
+                    </div>
+                </div>
+
+                <div t-att-class="'iil-kpi-card iil-trend-' + scrapTrend()">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.scrap_pct"/>%</div>
+                    <div class="iil-kpi-label">Ausschuss (lfd. Monat)</div>
+                    <div class="iil-kpi-sub">VM: <t t-esc="state.kpis.scrap_pct_last_month"/>%</div>
+                </div>
+
+                <div t-att-class="'iil-kpi-card iil-trend-' + producedTrend()">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.produced_this_month"/></div>
+                    <div class="iil-kpi-label">Produziert (lfd. Monat)</div>
+                    <div class="iil-kpi-sub">VM: <t t-esc="state.kpis.produced_last_month"/></div>
+                </div>
+
+            </div>
+
+            <!-- Auftrags-Statusleiste -->
+            <div class="iil-section-title">Aufträge nach Status</div>
+            <div class="iil-status-bar-row">
+                <t t-foreach="orderStates()" t-as="s" t-key="s.key">
+                    <div class="iil-status-chip" t-att-style="'background:' + s.hex">
+                        <span class="iil-status-count"><t t-esc="s.count"/></span>
+                        <span class="iil-status-label"><t t-esc="orderStateLabel(s.key)"/></span>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Top-Maschinen -->
+            <div class="iil-section-title">Maschinenauslastung (aktive Aufträge)</div>
+            <div class="iil-machine-list">
+                <t t-foreach="state.kpis.machine_load" t-as="m" t-key="m.id">
+                    <div class="iil-machine-row">
+                        <span class="iil-machine-state-dot"
+                              t-att-style="'background:' + machineStateColor(m.state)"/>
+                        <span class="iil-machine-name"><t t-esc="m.name"/></span>
+                        <span class="iil-machine-hall"><t t-esc="m.hall"/></span>
+                        <span class="iil-machine-orders">
+                            <t t-esc="m.active_orders"/> Auftr.
+                        </span>
+                    </div>
+                </t>
+                <t t-if="!state.kpis.machine_load.length">
+                    <div class="iil-empty">Keine aktiven Aufträge</div>
+                </t>
+            </div>
+
+        </t>
+    </div>
+</t>
+
+</templates>

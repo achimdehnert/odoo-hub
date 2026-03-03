@@ -12,6 +12,12 @@
         'data/sequences.xml',
         'views/mfg_machining_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'mfg_machining/static/src/js/machining_panel.js',
+            'mfg_machining/static/src/xml/machining_panel.xml',
+        ],
+    },
     'installable': True,
     'auto_install': False,
     'application': False,
