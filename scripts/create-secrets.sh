@@ -167,6 +167,17 @@ echo "── NL2SQL ────────────────────
 append_secret "NL2SQL_USER_PASSWORD"    "NL2SQL_USER_PASSWORD (nl2sql_user DB-Password)" "false"
 
 echo ""
+echo "── aifw-Service ─────────────────────────────────"
+append_secret "AIFW_SECRET_KEY"         "AIFW_SECRET_KEY (mind. 50 Zeichen, z.B. $(python3 -c 'import secrets; print(secrets.token_hex(32))'))"
+append_secret "AIFW_DB_PASSWORD"        "AIFW_DB_PASSWORD (Passwort für aifw PG-User)"
+append_secret "ODOO_NL2SQL_PASSWORD"    "ODOO_NL2SQL_PASSWORD (=NL2SQL_USER_PASSWORD oben)"
+
+echo ""
+echo "── LLM API Keys ─────────────────────────────────"
+append_secret "ANTHROPIC_API_KEY"       "ANTHROPIC_API_KEY (sk-ant-api03-...)"  "false"
+append_secret "OPENAI_API_KEY"          "OPENAI_API_KEY (sk-proj-...)"          "false"
+
+echo ""
 echo "Verschlüssele mit SOPS + age..."
 echo "${SECRETS_CONTENT}" | sops \
     --encrypt \
