@@ -2,9 +2,19 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { NL2SqlQueryBar } from "@mfg_management/js/nl2sql_query_bar";
 
 export class ScmPanel extends Component {
     static template = "scm_manufacturing.ScmPanel";
+    static components = { NL2SqlQueryBar };
+
+    suggestQueries() {
+        return [
+            "Welche Bestellungen sind überfällig?",
+            "Zeige offene Fertigungsaufträge der letzten 30 Tage",
+            "Top-5 Lieferanten nach Bestellvolumen",
+        ];
+    }
 
     setup() {
         this.state = useState({ loading: true, kpis: null, error: null });

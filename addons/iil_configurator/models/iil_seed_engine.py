@@ -28,6 +28,8 @@ class IilSeedEngine(models.AbstractModel):
         'casting':   '_generate_casting_data',
         'machining': '_generate_machining_data',
         'both':      '_generate_casting_and_machining_data',
+        'scm':       '_generate_scm_data',
+        'all':       '_generate_all_data',
         'generic':   '_generate_generic_data',
     }
 
@@ -55,15 +57,28 @@ class IilSeedEngine(models.AbstractModel):
         mit gleichem Prefix anlegen. is_demo_data-Flag ist die einzige
         zuverlässige Unterscheidung.
         """
-        if industry in ('casting', 'both'):
+        if industry in ('casting', 'both', 'all'):
             self.env['casting.order'].sudo().search(
                 [('is_demo_data', '=', True)]
             ).unlink()
             self.env['casting.quality.check'].sudo().search(
                 [('is_demo_data', '=', True)]
             ).unlink()
-        if industry in ('machining', 'both'):
+        if industry in ('machining', 'both', 'all'):
             self.env['machining.order'].sudo().search(
+                [('is_demo_data', '=', True)]
+            ).unlink()
+        if industry in ('scm', 'all'):
+            self.env['scm.purchase.order'].sudo().search(
+                [('is_demo_data', '=', True)]
+            ).unlink()
+            self.env['scm.delivery'].sudo().search(
+                [('is_demo_data', '=', True)]
+            ).unlink()
+            self.env['scm.production.order'].sudo().search(
+                [('is_demo_data', '=', True)]
+            ).unlink()
+            self.env['scm.stock.move'].sudo().search(
                 [('is_demo_data', '=', True)]
             ).unlink()
 
@@ -261,6 +276,171 @@ class IilSeedEngine(models.AbstractModel):
     def _generate_generic_data(self, months, order_count):
         """Generische Demo-Daten — Implementierung Sprint 3."""
         _logger.info("IIL Seed Engine: generic data generator not yet implemented (Sprint 3).")
+
+    # ── SCM / Stock Demo-Daten ────────────────────────────────────────────────
+
+    _SCM_PARTS = [
+        {'part_number': 'RM-001', 'name': 'Stahlrohr 50x3', 'part_type': 'raw', 'make_or_buy': 'buy', 'material': 'Stahl', 'standard_cost': 12.50, 'unit': 'Stk', 'stock_qty': 500.0},
+        {'part_number': 'RM-002', 'name': 'Aluminiumplatte 200x10', 'part_type': 'raw', 'make_or_buy': 'buy', 'material': 'Aluminium', 'standard_cost': 28.00, 'unit': 'Stk', 'stock_qty': 250.0},
+        {'part_number': 'RM-003', 'name': 'Edelstahlblech 1.4301 2mm', 'part_type': 'raw', 'make_or_buy': 'buy', 'material': 'Edelstahl', 'standard_cost': 45.00, 'unit': 'm²', 'stock_qty': 80.0},
+        {'part_number': 'RM-004', 'name': 'Messingronde Ø60', 'part_type': 'raw', 'make_or_buy': 'buy', 'material': 'Messing', 'standard_cost': 8.50, 'unit': 'Stk', 'stock_qty': 1200.0},
+        {'part_number': 'RM-005', 'name': 'Titanstange Ø25 Ti6Al4V', 'part_type': 'raw', 'make_or_buy': 'buy', 'material': 'Titan', 'standard_cost': 185.00, 'unit': 'Stk', 'stock_qty': 40.0},
+        {'part_number': 'SF-001', 'name': 'Gehäuseteil gefräst', 'part_type': 'semi', 'make_or_buy': 'make', 'material': 'Aluminium', 'standard_cost': 95.00, 'unit': 'Stk', 'stock_qty': 60.0},
+        {'part_number': 'SF-002', 'name': 'Welle gedreht Ø30x150', 'part_type': 'semi', 'make_or_buy': 'make', 'material': 'Stahl C45', 'standard_cost': 42.00, 'unit': 'Stk', 'stock_qty': 120.0},
+        {'part_number': 'SF-003', 'name': 'Flansch geschliffen', 'part_type': 'semi', 'make_or_buy': 'make', 'material': 'Stahl 42CrMo4', 'standard_cost': 78.00, 'unit': 'Stk', 'stock_qty': 35.0},
+        {'part_number': 'FT-001', 'name': 'Pumpengehäuse komplett', 'part_type': 'finished', 'make_or_buy': 'make', 'material': 'Aluminium', 'standard_cost': 320.00, 'unit': 'Stk', 'stock_qty': 15.0},
+        {'part_number': 'FT-002', 'name': 'Präzisionswelle Baugruppe', 'part_type': 'finished', 'make_or_buy': 'make', 'material': 'Stahl', 'standard_cost': 185.00, 'unit': 'Stk', 'stock_qty': 28.0},
+        {'part_number': 'VB-001', 'name': 'Kühlschmierstoff Emulsion 5L', 'part_type': 'consumable', 'make_or_buy': 'buy', 'material': '', 'standard_cost': 24.00, 'unit': 'Kan', 'stock_qty': 45.0},
+        {'part_number': 'VB-002', 'name': 'VHM-Fräser Ø10 4-schneidig', 'part_type': 'consumable', 'make_or_buy': 'buy', 'material': 'VHM', 'standard_cost': 68.00, 'unit': 'Stk', 'stock_qty': 18.0},
+    ]
+
+    _SCM_WAREHOUSES = [
+        {'name': 'Rohstofflager Nord', 'code': 'WH-RAW-N', 'warehouse_type': 'raw',      'capacity_pallets': 500},
+        {'name': 'Zwischenlager WIP',  'code': 'WH-WIP-1', 'warehouse_type': 'wip',       'capacity_pallets': 200},
+        {'name': 'Fertigwarenlager',   'code': 'WH-FW-01', 'warehouse_type': 'finished',  'capacity_pallets': 300},
+        {'name': 'Sperrlager QS',      'code': 'WH-QUA-1', 'warehouse_type': 'quarantine','capacity_pallets': 50},
+    ]
+
+    _SCM_SUPPLIERS = ['Böhler Stahl GmbH', 'Aleris Aluminium AG', 'ThyssenKrupp Materials', 'Sandvik Coromant GmbH', 'Walter Tools GmbH']
+
+    @api.model
+    def _generate_scm_data(self, months, order_count):
+        """SCM-Demo-Daten: Teile, Lager, Bestellungen, Fertigungsaufträge, Lieferungen, Lagerbewegungen."""
+        env = self.env
+
+        # ── Lager anlegen (idempotent via code) ───────────────────────────
+        warehouses = []
+        for spec in self._SCM_WAREHOUSES:
+            wh = env['scm.warehouse'].search([('code', '=', spec['code'])], limit=1)
+            if not wh:
+                wh = env['scm.warehouse'].create(spec)
+            warehouses.append(wh)
+
+        raw_wh      = warehouses[0]
+        wip_wh      = warehouses[1]
+        finished_wh = warehouses[2]
+
+        # ── Teile anlegen (idempotent via part_number) ────────────────────
+        parts = []
+        for spec in self._SCM_PARTS:
+            p = env['scm.part'].search([('part_number', '=', spec['part_number'])], limit=1)
+            if not p:
+                p = env['scm.part'].create(spec)
+            else:
+                p.write({'stock_qty': spec['stock_qty']})
+            parts.append(p)
+
+        raw_parts      = [p for p in parts if p.part_type == 'raw']
+        semi_parts     = [p for p in parts if p.part_type == 'semi']
+        finished_parts = [p for p in parts if p.part_type == 'finished']
+        consumables    = [p for p in parts if p.part_type == 'consumable']
+        all_buy_parts  = [p for p in parts if p.make_or_buy == 'buy']
+
+        # Lieferanten-Partner (admin-Company-Kontakte suchen oder Dummy nutzen)
+        suppliers = env['res.partner'].search([('is_company', '=', True)], limit=5)
+        if not suppliers:
+            suppliers = env['res.partner'].search([], limit=3)
+
+        base_date = date.today().replace(day=1)
+        po_per_month  = max(1, order_count // months // 3)
+        prod_per_month = max(1, order_count // months // 2)
+
+        for month_offset in range(months, 0, -1):
+            month_start = base_date - relativedelta(months=month_offset)
+            is_past     = month_offset > 1
+
+            # ── Bestellungen ──────────────────────────────────────────────
+            for i in range(po_per_month):
+                order_date    = month_start + timedelta(days=random.randint(0, 25))
+                expected_date = order_date + timedelta(days=random.randint(14, 45))
+                part          = random.choice(all_buy_parts)
+                supplier      = random.choice(suppliers)
+                qty           = random.choice([50, 100, 200, 500, 1000])
+
+                if is_past:
+                    state = random.choices(['done', 'received'], weights=[0.7, 0.3])[0]
+                elif month_offset == 1:
+                    state = random.choices(['confirmed', 'sent', 'draft'], weights=[0.5, 0.3, 0.2])[0]
+                else:
+                    state = 'confirmed'
+
+                po = env['scm.purchase.order'].create({
+                    'partner_id':    supplier.id,
+                    'state':         state,
+                    'date_order':    order_date,
+                    'date_expected': expected_date,
+                    'is_demo_data':  True,
+                })
+                env['scm.purchase.line'].create({
+                    'order_id':   po.id,
+                    'part_id':    part.id,
+                    'quantity':   qty,
+                    'unit_price': part.standard_cost * random.uniform(0.9, 1.1),
+                })
+
+                # Lagerbewegung Zugang wenn erhalten
+                if state in ('done', 'received') and raw_parts:
+                    env['scm.stock.move'].create({
+                        'part_id':      part.id,
+                        'warehouse_id': raw_wh.id,
+                        'move_type':    'in',
+                        'quantity':     qty,
+                        'date':         expected_date.isoformat() + ' 10:00:00',
+                        'reference':    po.name,
+                        'is_demo_data': True,
+                    })
+
+            # ── Fertigungsaufträge ────────────────────────────────────────
+            for i in range(prod_per_month):
+                prod_date = month_start + timedelta(days=random.randint(0, 27))
+                part      = random.choice(semi_parts + finished_parts) if (semi_parts + finished_parts) else random.choice(parts)
+                qty       = random.choice([10, 25, 50, 100])
+                scrap     = int(qty * random.uniform(0.01, 0.04))
+
+                if is_past:
+                    state = random.choices(['done', 'cancelled'], weights=[0.9, 0.1])[0]
+                else:
+                    state = random.choices(['confirmed', 'in_progress', 'draft'], weights=[0.4, 0.4, 0.2])[0]
+
+                env['scm.production.order'].create({
+                    'part_id':      part.id,
+                    'state':        state,
+                    'date_planned': prod_date,
+                    'planned_qty':  qty,
+                    'produced_qty': qty - scrap if state == 'done' else 0,
+                    'scrap_qty':    scrap if state == 'done' else 0,
+                    'is_demo_data': True,
+                })
+
+                # Lager-Abgang (Rohstoff) + Zugang (Fertigteil)
+                if state == 'done' and raw_parts:
+                    raw = random.choice(raw_parts)
+                    env['scm.stock.move'].create({
+                        'part_id':      raw.id,
+                        'warehouse_id': raw_wh.id,
+                        'move_type':    'out',
+                        'quantity':     qty * random.uniform(0.5, 2.0),
+                        'date':         prod_date.isoformat() + ' 08:00:00',
+                        'is_demo_data': True,
+                    })
+                    env['scm.stock.move'].create({
+                        'part_id':      part.id,
+                        'warehouse_id': wip_wh.id,
+                        'move_type':    'in',
+                        'quantity':     qty - scrap,
+                        'date':         (prod_date + timedelta(days=2)).isoformat() + ' 16:00:00',
+                        'is_demo_data': True,
+                    })
+
+        _logger.info("IIL Seed Engine: SCM Demo-Daten für %d Monate generiert.", months)
+
+    @api.model
+    def _generate_all_data(self, months, order_count):
+        """Alle Branchen — casting + machining + scm."""
+        third = order_count // 3
+        self._generate_casting_data(months=months, order_count=third)
+        self._generate_machining_data(months=months, order_count=third)
+        self._generate_scm_data(months=months, order_count=third)
 
     @api.model
     def _activate_nl2sql_schema(self, industry):

@@ -25,6 +25,8 @@ class IilConfiguratorWizard(models.TransientModel):
         ('casting',   'Gießerei / Druckguss'),
         ('machining', 'Werkzeugmaschinen / CNC-Fertigung'),
         ('both',      'Gießerei + CNC-Nachbearbeitung'),
+        ('scm',       'Supply Chain Management'),
+        ('all',       'Vollständig (Casting + CNC + SCM)'),
         ('generic',   'Sonstige Fertigung'),
     ], required=True, default='casting')
 

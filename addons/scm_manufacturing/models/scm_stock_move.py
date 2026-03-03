@@ -38,3 +38,4 @@ class ScmStockMove(models.Model):
         "scm.delivery", string="Lieferung",
     )
     notes = fields.Text(string="Bemerkungen")
+    is_demo_data = fields.Boolean(string='Demo-Datensatz', default=False, index=True)

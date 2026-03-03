@@ -44,6 +44,7 @@ class ScmDelivery(models.Model):
         "scm.stock.move", "delivery_id", string="Lagerbewegungen",
     )
     notes = fields.Html(string="Bemerkungen")
+    is_demo_data = fields.Boolean(string='Demo-Datensatz', default=False, index=True)
 
     @api.model_create_multi
     def create(self, vals_list):

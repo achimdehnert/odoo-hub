@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="casting_foundry.MachinesPanel">
+    <div class="iil-machines-panel">
+        <t t-if="state.loading">
+            <div class="iil-panel-loading"><i class="fa fa-spinner fa-spin"/> Lade Maschinendaten…</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="iil-panel-error"><i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- KPI-Zeile -->
+            <div class="iil-kpi-row">
+                <div t-att-class="'iil-kpi-card ' + availClass()">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.availability_pct"/>%</div>
+                    <div class="iil-kpi-label">Verfügbarkeit</div>
+                    <div class="iil-kpi-sub"><t t-esc="state.kpis.combined_states.operational"/> / <t t-esc="state.kpis.total"/> Maschinen</div>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.operational"/></div>
+                    <div class="iil-kpi-label">Betriebsbereit</div>
+                </div>
+                <div t-att-class="'iil-kpi-card ' + (state.kpis.combined_states.maintenance > 0 ? '' : '')">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.maintenance"/></div>
+                    <div class="iil-kpi-label">In Wartung</div>
+                </div>
+                <div t-att-class="'iil-kpi-card ' + (state.kpis.combined_states.breakdown > 0 ? 'iil-trend-bad' : '')">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.breakdown"/></div>
+                    <div class="iil-kpi-label">Störung</div>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.decommissioned"/></div>
+                    <div class="iil-kpi-label">Stillgelegt</div>
+                </div>
+            </div>
+
+            <!-- Filter-Buttons -->
+            <div class="iil-machines-filter-row">
+                <t t-foreach="[['all','Alle'],['operational','Betrieb'],['maintenance','Wartung'],['breakdown','Störung']]" t-as="f" t-key="f[0]">
+                    <button t-att-class="'iil-filter-btn' + (state.filter === f[0] ? ' active' : '')"
+                            t-on-click="() => setFilter(f[0])">
+                        <t t-esc="f[1]"/>
+                    </button>
+                </t>
+            </div>
+
+            <!-- Maschinenliste -->
+            <div class="iil-machine-list">
+                <t t-foreach="filteredMachines()" t-as="m" t-key="m.domain + '-' + m.id">
+                    <div class="iil-machine-row">
+                        <span class="iil-machine-state-dot" t-att-style="'background:' + stateColor(m.state)"/>
+                        <i t-att-class="'fa ' + domainIcon(m.domain) + ' iil-machine-domain-icon'"/>
+                        <span class="iil-machine-name"><t t-esc="m.name"/></span>
+                        <span class="iil-machine-hall"><t t-esc="m.hall || ''"/></span>
+                        <span class="iil-machine-orders" t-att-style="'color:' + stateColor(m.state)">
+                            <t t-esc="stateLabel(m.state)"/>
+                        </span>
+                    </div>
+                </t>
+                <t t-if="!filteredMachines().length">
+                    <div class="iil-empty">Keine Maschinen in diesem Status</div>
+                </t>
+            </div>
+
+            <!-- NL2SQL Query-Bar -->
+            <NL2SqlQueryBar sourceCode="'odoo_mfg'" suggestQueries="suggestQueries()" title="'KI-Assistent (Maschinen)'"/>
+        </t>
+    </div>
+</t>
+
+</templates>

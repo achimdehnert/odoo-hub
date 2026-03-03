@@ -1313,3 +1313,239 @@
 .iil-machining-panel {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   IIL NL2SQL Query-Bar — wiederverwendbare Komponente
+════════════════════════════════════════════════════════════════════ */
+
+.iil-nl2sql-bar {
+    margin-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 14px;
+}
+
+.iil-nl2sql-toggle-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: .85rem;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all .15s;
+}
+
+.iil-nl2sql-toggle-btn:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+    border-color: #bfdbfe;
+}
+
+.iil-nl2sql-body {
+    margin-top: 12px;
+}
+
+.iil-nl2sql-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.iil-nl2sql-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: .88rem;
+    outline: none;
+    transition: border-color .15s;
+}
+
+.iil-nl2sql-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+
+.iil-nl2sql-run-btn {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+}
+
+.iil-nl2sql-run-btn:hover:not(:disabled) { background: #2563eb; }
+.iil-nl2sql-run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.iil-nl2sql-clear-btn {
+    padding: 8px 10px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.iil-nl2sql-clear-btn:hover { background: #fee2e2; color: #ef4444; }
+
+.iil-nl2sql-suggests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.iil-nl2sql-suggest-chip {
+    padding: 4px 10px;
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: all .12s;
+}
+
+.iil-nl2sql-suggest-chip:hover { background: #dbeafe; }
+
+.iil-nl2sql-error {
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: .85rem;
+    margin-bottom: 8px;
+}
+
+.iil-nl2sql-sql-box {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .78rem;
+    overflow-x: auto;
+    margin-bottom: 8px;
+}
+
+.iil-nl2sql-sql-box pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.iil-nl2sql-meta {
+    font-size: .8rem;
+    color: #64748b;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.iil-nl2sql-summary {
+    font-style: italic;
+    color: #475569;
+}
+
+.iil-nl2sql-table-wrap {
+    overflow-x: auto;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.iil-nl2sql-table th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.iil-nl2sql-table td {
+    font-size: .82rem;
+    color: #1e293b;
+}
+
+/* ── QualityPanel Trend-Bar ───────────────────────────────────────── */
+
+.iil-trend-bar-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 48px;
+    margin-bottom: 18px;
+    padding: 4px 0;
+}
+
+.iil-trend-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    height: 100%;
+    cursor: default;
+}
+
+.iil-trend-bar-pass {
+    width: 100%;
+    background: #22c55e;
+    border-radius: 2px 2px 0 0;
+    min-height: 1px;
+    transition: height .2s;
+}
+
+.iil-trend-bar-fail {
+    width: 100%;
+    background: #ef4444;
+    border-radius: 0 0 2px 2px;
+    min-height: 0;
+    transition: height .2s;
+}
+
+/* ── MachinesPanel Filter-Buttons ────────────────────────────────── */
+
+.iil-machines-filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.iil-filter-btn {
+    padding: 4px 12px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: .8rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all .12s;
+}
+
+.iil-filter-btn:hover { background: #e2e8f0; }
+.iil-filter-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+.iil-machine-domain-icon {
+    color: #94a3b8;
+    font-size: .8rem;
+    min-width: 16px;
+    text-align: center;
+}

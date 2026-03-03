@@ -40,6 +40,8 @@
             "mfg_management/static/src/js/scm_overview.js",
             "mfg_management/static/src/js/panel_registry.js",
             "mfg_management/static/src/js/dynamic_dashboard.js",
+            "mfg_management/static/src/js/nl2sql_query_bar.js",
+            "mfg_management/static/src/xml/nl2sql_query_bar.xml",
         ],
     },
     "installable": True,

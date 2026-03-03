@@ -42,6 +42,10 @@
         "web.assets_backend": [
             "casting_foundry/static/src/js/casting_panel.js",
             "casting_foundry/static/src/xml/casting_panel.xml",
+            "casting_foundry/static/src/js/quality_panel.js",
+            "casting_foundry/static/src/xml/quality_panel.xml",
+            "casting_foundry/static/src/js/machines_panel.js",
+            "casting_foundry/static/src/xml/machines_panel.xml",
         ],
     },
     "installable": True,

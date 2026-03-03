@@ -59,6 +59,7 @@ class ScmPurchaseOrder(models.Model):
         store=True, digits=(12, 2),
     )
     notes = fields.Html(string="Bemerkungen")
+    is_demo_data = fields.Boolean(string='Demo-Datensatz', default=False, index=True)
 
     @api.model_create_multi
     def create(self, vals_list):
