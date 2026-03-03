@@ -4,16 +4,16 @@
 
         <!-- Tree View -->
         <record id="view_iil_product_feature_tree" model="ir.ui.view">
-            <field name="name">iil.product.feature.tree</field>
+            <field name="name">iil.product.feature.list</field>
             <field name="model">iil.product.feature</field>
             <field name="arch" type="xml">
-                <tree string="Produkt-Features" editable="bottom">
+                <list string="Produkt-Features" editable="bottom">
                     <field name="sequence" widget="handle"/>
                     <field name="code"/>
                     <field name="label"/>
                     <field name="is_active" widget="boolean_toggle"/>
                     <field name="depends_module"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -47,7 +47,7 @@
         <record id="action_iil_product_feature" model="ir.actions.act_window">
             <field name="name">Produkt-Features</field>
             <field name="res_model">iil.product.feature</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
         </record>
 
     </data>

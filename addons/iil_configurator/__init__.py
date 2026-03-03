@@ -43,15 +43,15 @@ def post_init_hook(env):
             convert_file(
                 env,
                 'iil_configurator',
-                os.path.basename(xml_path),
+                os.path.relpath(xml_path, addon_path),
                 {},
                 mode='init',
                 noupdate=True,
                 kind='data',
             )
-            _logger.info("iil_configurator post_init_hook: %s geladen.", os.path.basename(xml_path))
+            _logger.info("iil_configurator post_init_hook: %s geladen.", os.path.relpath(xml_path, addon_path))
         except Exception as e:
             _logger.error(
                 "iil_configurator post_init_hook: Fehler beim Laden von %s: %s",
-                os.path.basename(xml_path), e,
+                os.path.relpath(xml_path, addon_path), e,
             )

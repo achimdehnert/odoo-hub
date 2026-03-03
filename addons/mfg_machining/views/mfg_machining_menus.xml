@@ -6,13 +6,13 @@
         <record id="action_machining_order" model="ir.actions.act_window">
             <field name="name">CNC-Fertigungsaufträge</field>
             <field name="res_model">machining.order</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
         </record>
 
         <record id="action_machining_machine" model="ir.actions.act_window">
             <field name="name">CNC-Maschinen</field>
             <field name="res_model">machining.machine</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
         </record>
 
         <!-- Menüs unter MFG Cockpit -->
