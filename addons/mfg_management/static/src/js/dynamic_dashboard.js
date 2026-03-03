@@ -12,7 +12,7 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { PANEL_REGISTRY } from "./panel_registry";
+import { getPanelComponent } from "./panel_registry";
 import { MfgDashboard } from "./mfg_dashboard";
 
 export class DynamicDashboard extends Component {
@@ -44,13 +44,13 @@ export class DynamicDashboard extends Component {
                 this.state.fallback = true;
             } else {
                 this.state.panels = features
-                    .filter(f => PANEL_REGISTRY[f.code])
                     .map(f => ({
                         code:      f.code,
                         label:     f.label,
                         config:    f.config || {},
-                        component: PANEL_REGISTRY[f.code],
-                    }));
+                        component: getPanelComponent(f.code),
+                    }))
+                    .filter(p => p.component !== null);
 
                 // Keine registrierten Panels gefunden → Fallback
                 if (this.state.panels.length === 0) {

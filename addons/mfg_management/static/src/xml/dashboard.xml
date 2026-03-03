@@ -757,13 +757,13 @@
      Fällt auf statischen MfgDashboard zurück wenn kein Feature aktiv.
 ════════════════════════════════════════════════════════════════════ -->
 <t t-name="mfg_management.DynamicDashboard">
-    <div class="mfg-dynamic-dashboard">
+    <div class="iil-dynamic-dashboard">
 
         <!-- Lade-Spinner -->
         <t t-if="state.loading">
-            <div class="mfg-loading d-flex align-items-center justify-content-center p-5">
-                <i class="fa fa-spinner fa-spin fa-2x text-muted me-2"/>
-                <span class="text-muted">Dashboard wird geladen…</span>
+            <div class="iil-panel-loading">
+                <i class="fa fa-spinner fa-spin fa-2x me-2"/>
+                Dashboard wird geladen…
             </div>
         </t>
 
@@ -774,10 +774,23 @@
 
         <!-- Dynamische Panels aus Feature-Registry -->
         <t t-else="">
-            <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
-                <t t-component="panel.component"
-                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
-            </t>
+            <div class="iil-dynamic-dashboard-header">
+                <h1><i class="fa fa-industry"/> IIL Manufacturing Cockpit</h1>
+            </div>
+            <div class="iil-panels-grid">
+                <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
+                    <div class="iil-panel-card">
+                        <div class="iil-panel-card-header">
+                            <i t-att-class="'fa fa-' + (panel.code === 'machining' ? 'cogs' : panel.code === 'casting' ? 'fire' : 'bar-chart')"/>
+                            <span t-esc="panel.label"/>
+                        </div>
+                        <div class="iil-panel-card-body">
+                            <t t-component="panel.component"
+                               t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
         </t>
 
     </div>

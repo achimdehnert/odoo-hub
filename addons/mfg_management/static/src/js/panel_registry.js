@@ -10,23 +10,31 @@
  */
 
 import { MfgDashboard } from "./mfg_dashboard";
+import { registry } from "@web/core/registry";
 
 /**
  * PANEL_REGISTRY — einzige Quelle der Wahrheit für Feature-Code → Komponente.
  *
- * Hinweis: MfgDashboard ist der bestehende monolithische Dashboard-Container.
- * In Sprint 3 wird er in dedizierte Panel-Komponenten aufgespalten.
- * Bis dahin: casting + nl2sql zeigen den vollen Dashboard-Container.
+ * Casting + NL2SQL → monolithischer MfgDashboard (Sprint 2 Baseline).
+ * Machining → MachiningPanel aus iil_panels-Registry (wenn mfg_machining installiert).
+ * Fallback: MfgDashboard wenn Panel nicht registriert.
+ *
+ * Andere Module registrieren ihre Panels selbst via:
+ *   registry.category("iil_panels").add("code", { component, label, sequence })
  */
-export const PANEL_REGISTRY = {
-    casting:  MfgDashboard,
-    nl2sql:   MfgDashboard,
-    // machining:   MachiningPanel,     // Sprint 4
-    // mrp:         MrpOverviewPanel,   // Sprint 3
-    // stock:       StockOverviewPanel, // Sprint 3
-    // scm:         ScmOverviewPanel,   // Sprint 3
-    // quality:     QualityPanel,       // Sprint 3
-    // maintenance: MaintenancePanel,   // Sprint 4
-    // sales:       SalesPanel,         // Sprint 4
-    // accounting:  AccountingPanel,    // Sprint 4
+export function getPanelComponent(featureCode) {
+    const iilPanels = registry.category("iil_panels");
+    if (iilPanels.contains(featureCode)) {
+        return iilPanels.get(featureCode).component;
+    }
+    return PANEL_REGISTRY_STATIC[featureCode] || null;
+}
+
+const PANEL_REGISTRY_STATIC = {
+    casting:   MfgDashboard,
+    nl2sql:    MfgDashboard,
+    // machining: via iil_panels-Registry (mfg_machining/static/src/js/machining_panel.js)
+    // mrp, stock, scm, quality, maintenance, sales, accounting: Sprint 7
 };
+
+export const PANEL_REGISTRY = PANEL_REGISTRY_STATIC;
