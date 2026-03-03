@@ -19,6 +19,15 @@ class QueryHistory(models.Model):
     _order = 'create_date desc'
     _inherit = ['mail.thread']
 
+    _sql_constraints = [
+        ('error_needs_message',
+         "CHECK(state != 'error' OR error_message IS NOT NULL)",
+         'Fehlerhafte Abfragen müssen eine Fehlermeldung enthalten.'),
+        ('row_count_non_negative',
+         'CHECK(result_row_count IS NULL OR result_row_count >= 0)',
+         'Zeilenanzahl muss >= 0 sein.'),
+    ]
+
     name = fields.Char(
         string='Abfrage',
         required=True,
@@ -57,12 +66,12 @@ class QueryHistory(models.Model):
         tracking=True,
         index=True,
     )
-    result_data = fields.Text(
+    result_data = fields.Json(
         string='Ergebnis (JSON)',
         readonly=True,
         help='Query results as JSON array',
     )
-    result_columns = fields.Text(
+    result_columns = fields.Json(
         string='Spalten (JSON)',
         readonly=True,
         help='Column names and types as JSON',
@@ -85,7 +94,7 @@ class QueryHistory(models.Model):
         default='table',
         help='Auto-detected or manually chosen visualization type',
     )
-    chart_config = fields.Text(
+    chart_config = fields.Json(
         string='Chart Config (JSON)',
         readonly=True,
         help='Chart.js configuration as JSON',

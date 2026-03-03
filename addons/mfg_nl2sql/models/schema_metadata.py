@@ -19,7 +19,7 @@ class SchemaTable(models.Model):
     _name = 'nl2sql.schema.table'
     _description = 'NL2SQL Schema Table'
     _order = 'domain, name'
-    _rec_name = 'display_name'
+    _rec_name = 'name'
 
     name = fields.Char(
         string='Table Name',

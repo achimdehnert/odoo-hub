@@ -357,66 +357,54 @@ WICHTIG:
     def _execute_sql(self, sql, max_rows=1000):
         """Execute sanitized SQL and return structured results.
 
-        Uses a read-only cursor with statement_timeout.
+        Wrapped in a savepoint so a failing SQL statement does not roll back
+        unrelated ORM writes on the shared request cursor (fixes ADR-004 C1).
         """
         config = self._get_llm_config()
         timeout_ms = config['timeout'] * 1000
 
         start = time.time()
+        cr = request.env.cr
         try:
-            cr = request.env.cr
-            # Set statement timeout for safety
-            cr.execute(f"SET LOCAL statement_timeout = '{timeout_ms}'")
-            # Enforce row limit via wrapping
-            limited_sql = f"SELECT * FROM ({sql}) AS _q LIMIT {max_rows}"
-            cr.execute(limited_sql)
+            with cr.savepoint():
+                cr.execute(f"SET LOCAL statement_timeout = '{timeout_ms}'")
+                limited_sql = f"SELECT * FROM ({sql}) AS _q LIMIT {max_rows}"
+                cr.execute(limited_sql)
 
-            # Get column metadata
-            columns = []
-            if cr.description:
-                for desc in cr.description:
-                    pg_type = desc.type_code
-                    # Map PostgreSQL type OIDs to simple types
-                    type_name = 'text'
-                    if pg_type in (20, 21, 23):  # int8, int2, int4
-                        type_name = 'integer'
-                    elif pg_type in (700, 701, 1700):  # float4, float8, numeric
-                        type_name = 'float'
-                    elif pg_type == 16:  # bool
-                        type_name = 'boolean'
-                    elif pg_type == 1082:  # date
-                        type_name = 'date'
-                    elif pg_type in (1114, 1184):  # timestamp, timestamptz
-                        type_name = 'datetime'
+                columns = []
+                if cr.description:
+                    for desc in cr.description:
+                        pg_type = desc.type_code
+                        type_name = 'text'
+                        if pg_type in (20, 21, 23):  # int8, int2, int4
+                            type_name = 'integer'
+                        elif pg_type in (700, 701, 1700):  # float4, float8, numeric
+                            type_name = 'float'
+                        elif pg_type == 16:  # bool
+                            type_name = 'boolean'
+                        elif pg_type == 1082:  # date
+                            type_name = 'date'
+                        elif pg_type in (1114, 1184):  # timestamp, timestamptz
+                            type_name = 'datetime'
+                        columns.append({'name': desc.name, 'type': type_name})
 
-                    columns.append({
-                        'name': desc.name,
-                        'type': type_name,
-                    })
+                rows = cr.fetchall()
+                elapsed = int((time.time() - start) * 1000)
 
-            rows = cr.fetchall()
-            elapsed = int((time.time() - start) * 1000)
-
-            # Convert to serializable format
-            serializable_rows = []
-            for row in rows:
-                serializable_rows.append([
-                    v.isoformat() if hasattr(v, 'isoformat') else v
-                    for v in row
-                ])
-
-            return {
-                'columns': columns,
-                'rows': serializable_rows,
-                'row_count': len(serializable_rows),
-                'execution_time_ms': elapsed,
-            }
+                serializable_rows = [
+                    [v.isoformat() if hasattr(v, 'isoformat') else v for v in row]
+                    for row in rows
+                ]
+                return {
+                    'columns': columns,
+                    'rows': serializable_rows,
+                    'row_count': len(serializable_rows),
+                    'execution_time_ms': elapsed,
+                }
 
         except Exception as exc:
             elapsed = int((time.time() - start) * 1000)
             _logger.error("SQL execution error: %s\nSQL: %s", exc, sql)
-            # Rollback the failed transaction
-            cr.rollback()
             return {
                 'columns': [],
                 'rows': [],

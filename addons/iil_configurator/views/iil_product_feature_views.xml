@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Tree View -->
+        <record id="view_iil_product_feature_tree" model="ir.ui.view">
+            <field name="name">iil.product.feature.tree</field>
+            <field name="model">iil.product.feature</field>
+            <field name="arch" type="xml">
+                <tree string="Produkt-Features" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="label"/>
+                    <field name="is_active" widget="boolean_toggle"/>
+                    <field name="depends_module"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_iil_product_feature_form" model="ir.ui.view">
+            <field name="name">iil.product.feature.form</field>
+            <field name="model">iil.product.feature</field>
+            <field name="arch" type="xml">
+                <form string="Produkt-Feature">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="label" placeholder="Bezeichnung…"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="code"/>
+                                <field name="is_active"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group>
+                                <field name="depends_module"/>
+                                <field name="config" widget="json"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_iil_product_feature" model="ir.actions.act_window">
+            <field name="name">Produkt-Features</field>
+            <field name="res_model">iil.product.feature</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+    </data>
+</odoo>

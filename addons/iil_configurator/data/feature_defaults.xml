@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Standard-Feature-Codes — werden beim Modulupdate nicht überschrieben -->
+
+        <record id="feature_casting" model="iil.product.feature">
+            <field name="code">casting</field>
+            <field name="label">Gießerei</field>
+            <field name="is_active">False</field>
+            <field name="sequence">10</field>
+            <field name="depends_module">casting_foundry</field>
+            <field name="config">{"color": "orange"}</field>
+        </record>
+
+        <record id="feature_machining" model="iil.product.feature">
+            <field name="code">machining</field>
+            <field name="label">Werkzeugmaschinen</field>
+            <field name="is_active">False</field>
+            <field name="sequence">20</field>
+            <field name="depends_module">mfg_machining</field>
+            <field name="config">{"color": "blue"}</field>
+        </record>
+
+        <record id="feature_machines" model="iil.product.feature">
+            <field name="code">machines</field>
+            <field name="label">Maschinenpark</field>
+            <field name="is_active">False</field>
+            <field name="sequence">25</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_mrp" model="iil.product.feature">
+            <field name="code">mrp</field>
+            <field name="label">Fertigungsplanung</field>
+            <field name="is_active">False</field>
+            <field name="sequence">30</field>
+            <field name="depends_module">iil_mrp</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_stock" model="iil.product.feature">
+            <field name="code">stock</field>
+            <field name="label">Lagerverwaltung</field>
+            <field name="is_active">False</field>
+            <field name="sequence">40</field>
+            <field name="depends_module">iil_stock</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_scm" model="iil.product.feature">
+            <field name="code">scm</field>
+            <field name="label">Einkauf</field>
+            <field name="is_active">False</field>
+            <field name="sequence">50</field>
+            <field name="depends_module">scm_manufacturing</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_quality" model="iil.product.feature">
+            <field name="code">quality</field>
+            <field name="label">Qualitätsmanagement</field>
+            <field name="is_active">False</field>
+            <field name="sequence">60</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_maintenance" model="iil.product.feature">
+            <field name="code">maintenance</field>
+            <field name="label">Instandhaltung</field>
+            <field name="is_active">False</field>
+            <field name="sequence">70</field>
+            <field name="depends_module">maintenance</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_sales" model="iil.product.feature">
+            <field name="code">sales</field>
+            <field name="label">Verkauf</field>
+            <field name="is_active">False</field>
+            <field name="sequence">75</field>
+            <field name="depends_module">sale</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_accounting" model="iil.product.feature">
+            <field name="code">accounting</field>
+            <field name="label">Finanzbuchhaltung</field>
+            <field name="is_active">False</field>
+            <field name="sequence">78</field>
+            <field name="depends_module">account</field>
+            <field name="config">{}</field>
+        </record>
+
+        <record id="feature_nl2sql" model="iil.product.feature">
+            <field name="code">nl2sql</field>
+            <field name="label">KI-Analyse</field>
+            <field name="is_active">False</field>
+            <field name="sequence">80</field>
+            <field name="depends_module">mfg_nl2sql</field>
+            <field name="config">{"provider": "anthropic"}</field>
+        </record>
+
+    </data>
+</odoo>

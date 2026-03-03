@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+            NL2SQL Schema-Metadaten für die Gießerei-Domain (casting_foundry)
+            Wird vom IIL-Seed-Engine via _activate_nl2sql_schema('casting') aktiviert.
+            noupdate="1": Manuelle Änderungen in der DB werden beim Modulupdate nicht überschrieben.
+        -->
+
+        <!-- ── casting.order ─────────────────────────────────────────────────── -->
+        <record id="schema_table_casting_order" model="nl2sql.schema.table">
+            <field name="name">casting_order</field>
+            <field name="model_name">casting.order</field>
+            <field name="domain">casting</field>
+            <field name="is_active">False</field>
+            <field name="description">Gießaufträge — Haupttabelle für alle Fertigungsaufträge der Gießerei. Enthält Status, Datum, Mengen, Ausschuss und Kundenzuordnung.</field>
+            <field name="sample_queries">Wie viele Aufträge sind aktuell in Fertigung?
+Zeige alle offenen Aufträge der letzten 30 Tage
+Welche Aufträge haben den höchsten Ausschussanteil?
+Auftragsvolumen pro Monat im letzten Jahr
+Durchschnittliche Fertigungszeit pro Auftrag</field>
+        </record>
+
+        <record id="schema_col_casting_order_name" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">name</field>
+            <field name="data_type">varchar</field>
+            <field name="description">Auftragsnummer (z.B. CO/2025/001)</field>
+            <field name="is_primary_key">False</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="schema_col_casting_order_state" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">state</field>
+            <field name="data_type">selection</field>
+            <field name="description">Auftragsstatus</field>
+            <field name="selection_values">draft,confirmed,in_production,quality_check,done,cancelled</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="schema_col_casting_order_partner_id" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">partner_id</field>
+            <field name="data_type">many2one</field>
+            <field name="description">Kunden-ID (FK → res_partner.id)</field>
+            <field name="foreign_key_table">res_partner</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="schema_col_casting_order_date_planned" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">date_planned</field>
+            <field name="data_type">date</field>
+            <field name="description">Geplantes Fertigstellungsdatum</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <record id="schema_col_casting_order_date_done" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">date_done</field>
+            <field name="data_type">datetime</field>
+            <field name="description">Tatsächliches Fertigstellungsdatum/-uhrzeit</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="schema_col_casting_order_total_pieces" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">total_pieces</field>
+            <field name="data_type">integer</field>
+            <field name="description">Gesamtstückzahl aller Auftragspositionen</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <record id="schema_col_casting_order_total_weight_kg" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">total_weight_kg</field>
+            <field name="data_type">float</field>
+            <field name="description">Gesamtgewicht in Kilogramm</field>
+            <field name="sequence">7</field>
+        </record>
+
+        <record id="schema_col_casting_order_total_scrap_pct" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">total_scrap_pct</field>
+            <field name="data_type">float</field>
+            <field name="description">Ausschussrate in Prozent (berechnet aus Auftragspositionen)</field>
+            <field name="sequence">8</field>
+        </record>
+
+        <record id="schema_col_casting_order_priority" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">priority</field>
+            <field name="data_type">selection</field>
+            <field name="description">Priorität des Auftrags</field>
+            <field name="selection_values">0,1,2</field>
+            <field name="sequence">9</field>
+        </record>
+
+        <record id="schema_col_casting_order_is_demo_data" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order"/>
+            <field name="name">is_demo_data</field>
+            <field name="data_type">boolean</field>
+            <field name="description">True wenn vom IIL-Seed-Engine generiert — in Produktivabfragen ausschließen: WHERE is_demo_data = false</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- ── casting.order.line ─────────────────────────────────────────────── -->
+        <record id="schema_table_casting_order_line" model="nl2sql.schema.table">
+            <field name="name">casting_order_line</field>
+            <field name="model_name">casting.order.line</field>
+            <field name="domain">casting</field>
+            <field name="is_active">False</field>
+            <field name="description">Auftragspositionen — einzelne Gießteile pro Auftrag mit Legierung, Maschine, Mengen, Ausschuss und Prozessparametern.</field>
+            <field name="sample_queries">Welche Legierungen haben den höchsten Ausschuss?
+Durchschnittliche Zykluszeit pro Gießverfahren
+Top 10 Teile nach Ausschussanzahl
+Stückzahl pro Gießverfahren im letzten Quartal</field>
+        </record>
+
+        <record id="schema_col_col_order_id" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">order_id</field>
+            <field name="data_type">many2one</field>
+            <field name="description">Auftrag (FK → casting_order.id)</field>
+            <field name="foreign_key_table">casting_order</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="schema_col_col_part_name" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">part_name</field>
+            <field name="data_type">varchar</field>
+            <field name="description">Teilebezeichnung / Produktname</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="schema_col_col_alloy_id" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">alloy_id</field>
+            <field name="data_type">many2one</field>
+            <field name="description">Legierung (FK → casting_alloy.id)</field>
+            <field name="foreign_key_table">casting_alloy</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="schema_col_col_machine_id" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">machine_id</field>
+            <field name="data_type">many2one</field>
+            <field name="description">Maschine (FK → casting_machine.id)</field>
+            <field name="foreign_key_table">casting_machine</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <record id="schema_col_col_casting_process" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">casting_process</field>
+            <field name="data_type">selection</field>
+            <field name="description">Gießverfahren</field>
+            <field name="selection_values">gravity,die_cast_hot,die_cast_cold,sand,investment,centrifugal,continuous</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="schema_col_col_quantity" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">quantity</field>
+            <field name="data_type">integer</field>
+            <field name="description">Bestellmenge in Stück</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <record id="schema_col_col_scrap_qty" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">scrap_qty</field>
+            <field name="data_type">integer</field>
+            <field name="description">Ausschussmenge in Stück</field>
+            <field name="sequence">7</field>
+        </record>
+
+        <record id="schema_col_col_good_qty" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">good_qty</field>
+            <field name="data_type">integer</field>
+            <field name="description">Gutteile = quantity - scrap_qty</field>
+            <field name="sequence">8</field>
+        </record>
+
+        <record id="schema_col_col_cycle_time_min" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_order_line"/>
+            <field name="name">cycle_time_min</field>
+            <field name="data_type">float</field>
+            <field name="description">Zykluszeit in Minuten pro Guss</field>
+            <field name="sequence">9</field>
+        </record>
+
+        <!-- ── casting.machine ───────────────────────────────────────────────── -->
+        <record id="schema_table_casting_machine" model="nl2sql.schema.table">
+            <field name="name">casting_machine</field>
+            <field name="model_name">casting.machine</field>
+            <field name="domain">casting</field>
+            <field name="is_active">False</field>
+            <field name="description">Gießmaschinen und Anlagen — Maschinenpark mit Status, Typ, Kapazität und Wartungsintervallen.</field>
+            <field name="sample_queries">Welche Maschinen haben aktuell eine Störung?
+Maschinen die länger als 30 Tage keine Wartung hatten
+Maschinenauslastung nach Typ
+Kapazität aller betriebsbereiten Maschinen</field>
+        </record>
+
+        <record id="schema_col_machine_name" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">name</field>
+            <field name="data_type">varchar</field>
+            <field name="description">Maschinenbezeichnung</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="schema_col_machine_code" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">code</field>
+            <field name="data_type">varchar</field>
+            <field name="description">Maschinen-Nummer (eindeutig)</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="schema_col_machine_state" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">state</field>
+            <field name="data_type">selection</field>
+            <field name="description">Maschinenstatus</field>
+            <field name="selection_values">operational,maintenance,breakdown,decommissioned</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="schema_col_machine_type" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">machine_type</field>
+            <field name="data_type">selection</field>
+            <field name="description">Maschinentyp</field>
+            <field name="selection_values">melting_furnace,holding_furnace,die_casting,gravity_casting,sand_molding,centrifugal,heat_treatment,finishing,xray</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <record id="schema_col_machine_capacity_kg" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">capacity_kg</field>
+            <field name="data_type">float</field>
+            <field name="description">Kapazität in Kilogramm</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="schema_col_machine_last_maintenance" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">last_maintenance</field>
+            <field name="data_type">date</field>
+            <field name="description">Datum der letzten Wartung</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <record id="schema_col_machine_next_maintenance" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_machine"/>
+            <field name="name">next_maintenance</field>
+            <field name="data_type">date</field>
+            <field name="description">Datum der nächsten geplanten Wartung</field>
+            <field name="sequence">7</field>
+        </record>
+
+        <!-- ── casting.alloy ─────────────────────────────────────────────────── -->
+        <record id="schema_table_casting_alloy" model="nl2sql.schema.table">
+            <field name="name">casting_alloy</field>
+            <field name="model_name">casting.alloy</field>
+            <field name="domain">casting</field>
+            <field name="is_active">False</field>
+            <field name="description">Legierungen — Werkstoffkatalog mit mechanischen Eigenschaften, Gießeigenschaften und Preisinformationen.</field>
+            <field name="sample_queries">Welche Legierungen werden am häufigsten verwendet?
+Preisentwicklung der teuersten Legierungen
+Legierungen mit höchstem Ausschuss in Aufträgen
+Aluminium-Legierungen nach Zugfestigkeit sortiert</field>
+        </record>
+
+        <record id="schema_col_alloy_name" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_alloy"/>
+            <field name="name">name</field>
+            <field name="data_type">varchar</field>
+            <field name="description">Legierungsbezeichnung</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="schema_col_alloy_din_number" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_alloy"/>
+            <field name="name">din_number</field>
+            <field name="data_type">varchar</field>
+            <field name="description">DIN/EN Werkstoffnummer (z.B. EN-AC-46000)</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="schema_col_alloy_type" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_alloy"/>
+            <field name="name">alloy_type</field>
+            <field name="data_type">selection</field>
+            <field name="description">Gusstyp / Werkstoffgruppe</field>
+            <field name="selection_values">cast_iron,cast_steel,aluminum,bronze,zinc,magnesium,copper,other</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="schema_col_alloy_cost_per_kg" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_alloy"/>
+            <field name="name">cost_per_kg</field>
+            <field name="data_type">float</field>
+            <field name="description">Legierungspreis in €/kg</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <!-- ── casting.quality.check ─────────────────────────────────────────── -->
+        <record id="schema_table_casting_quality_check" model="nl2sql.schema.table">
+            <field name="name">casting_quality_check</field>
+            <field name="model_name">casting.quality.check</field>
+            <field name="domain">casting</field>
+            <field name="is_active">False</field>
+            <field name="description">Qualitätsprüfungen — Prüfergebnisse zu Gießaufträgen mit Prüftyp, Ergebnis, Messwerten und Fehlerklassifikation.</field>
+            <field name="sample_queries">Qualitätsquote der letzten 3 Monate
+Häufigste Fehlertypen nach Prüfung
+Prüfungen mit Ergebnis 'fail' diese Woche
+Qualitätstrend pro Maschine im letzten Halbjahr</field>
+        </record>
+
+        <record id="schema_col_qc_order_id" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">order_id</field>
+            <field name="data_type">many2one</field>
+            <field name="description">Zugehöriger Gießauftrag (FK → casting_order.id)</field>
+            <field name="foreign_key_table">casting_order</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="schema_col_qc_check_date" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">check_date</field>
+            <field name="data_type">datetime</field>
+            <field name="description">Prüfzeitpunkt</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="schema_col_qc_check_type" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">check_type</field>
+            <field name="data_type">selection</field>
+            <field name="description">Prüfart</field>
+            <field name="selection_values">visual,dimensional,chemical,mechanical,xray,ultrasound,pressure</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="schema_col_qc_result" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">result</field>
+            <field name="data_type">selection</field>
+            <field name="description">Prüfergebnis</field>
+            <field name="selection_values">pass,conditional,fail</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <record id="schema_col_qc_sample_size" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">sample_size</field>
+            <field name="data_type">integer</field>
+            <field name="description">Stichprobengröße</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="schema_col_qc_defect_count" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">defect_count</field>
+            <field name="data_type">integer</field>
+            <field name="description">Anzahl festgestellter Fehler</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <record id="schema_col_qc_is_demo_data" model="nl2sql.schema.column">
+            <field name="table_id" ref="schema_table_casting_quality_check"/>
+            <field name="name">is_demo_data</field>
+            <field name="data_type">boolean</field>
+            <field name="description">True wenn vom IIL-Seed-Engine generiert — in Produktivabfragen ausschließen</field>
+            <field name="sequence">7</field>
+        </record>
+
+    </data>
+</odoo>

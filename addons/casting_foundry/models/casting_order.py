@@ -55,6 +55,12 @@ class CastingOrder(models.Model):
         compute="_compute_quality_count", string="Prüfungen",
     )
     notes = fields.Html(string="Bemerkungen")
+    is_demo_data = fields.Boolean(
+        string='Demo-Datensatz',
+        default=False,
+        index=True,
+        help='Vom IIL-Seed-Engine generierter Demo-Datensatz. Wird bei erneutem Konfigurator-Durchlauf gelöscht.',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

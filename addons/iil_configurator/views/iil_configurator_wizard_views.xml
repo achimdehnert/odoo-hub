@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_iil_configurator_wizard_form" model="ir.ui.view">
+            <field name="name">iil.configurator.wizard.form</field>
+            <field name="model">iil.configurator.wizard</field>
+            <field name="arch" type="xml">
+                <form string="IIL Produktkonfigurator">
+                    <header>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="step1,step2,step3,step4,step5"/>
+                    </header>
+                    <sheet>
+
+                        <!-- Schritt 1: Branche -->
+                        <group invisible="state != 'step1'">
+                            <group string="Branche &amp; Unternehmensgröße">
+                                <field name="industry" widget="radio"/>
+                                <field name="company_size" widget="radio"/>
+                            </group>
+                        </group>
+
+                        <!-- Schritt 2: Prozesse -->
+                        <group invisible="state != 'step2'">
+                            <group string="Welche Prozesse sollen aktiviert werden?">
+                                <field name="has_mrp"/>
+                                <field name="has_stock"/>
+                                <field name="has_procurement"/>
+                                <field name="has_quality"/>
+                                <field name="has_maintenance"/>
+                                <field name="has_sales"/>
+                                <field name="has_accounting"/>
+                            </group>
+                        </group>
+
+                        <!-- Schritt 3: KI-Features -->
+                        <group invisible="state != 'step3'">
+                            <group string="KI-Analyse (NL2SQL)">
+                                <field name="has_nl2sql"/>
+                                <field name="nl2sql_provider"
+                                       invisible="not has_nl2sql"/>
+                            </group>
+                        </group>
+
+                        <!-- Schritt 4: Dashboard-Layout -->
+                        <group invisible="state != 'step4'">
+                            <group string="Dashboard-Layout">
+                                <field name="dashboard_layout" widget="radio"/>
+                            </group>
+                        </group>
+
+                        <!-- Schritt 5: Demo-Daten -->
+                        <group invisible="state != 'step5'">
+                            <group string="Demo-Daten generieren">
+                                <field name="generate_demo_data"/>
+                                <field name="demo_months"
+                                       invisible="not generate_demo_data"/>
+                                <field name="demo_order_count"
+                                       invisible="not generate_demo_data"/>
+                                <field name="demo_clear_existing"
+                                       invisible="not generate_demo_data"/>
+                            </group>
+                        </group>
+
+                    </sheet>
+                    <footer>
+                        <button string="Zurück"
+                                name="action_back"
+                                type="object"
+                                invisible="state == 'step1'"/>
+                        <button string="Weiter →"
+                                name="action_next"
+                                type="object"
+                                class="btn-primary"
+                                invisible="state == 'step5'"/>
+                        <button string="✓ Konfiguration anwenden"
+                                name="action_apply"
+                                type="object"
+                                class="btn-primary"
+                                invisible="state != 'step5'"/>
+                        <button string="Abbrechen"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Wizard öffnen -->
+        <record id="action_iil_configurator_wizard" model="ir.actions.act_window">
+            <field name="name">Produktkonfigurator</field>
+            <field name="res_model">iil.configurator.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

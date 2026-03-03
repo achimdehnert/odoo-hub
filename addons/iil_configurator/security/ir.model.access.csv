@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iil_product_feature_user,iil.product.feature user read,model_iil_product_feature,base.group_user,1,0,0,0
+access_iil_product_feature_admin,iil.product.feature admin,model_iil_product_feature,iil_configurator.group_iil_configurator_admin,1,1,1,1
+access_iil_configurator_wizard_user,iil.configurator.wizard user,model_iil_configurator_wizard,base.group_user,1,1,1,1
+access_iil_seed_engine_admin,iil.seed.engine admin,model_iil_seed_engine,iil_configurator.group_iil_configurator_admin,1,0,0,0

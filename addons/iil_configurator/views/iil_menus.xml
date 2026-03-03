@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Hauptmenü unter Fertigung -->
+        <menuitem id="menu_iil_configurator_root"
+                  name="IIL Konfigurator"
+                  parent="mfg_management.menu_mfg_root"
+                  sequence="90"
+                  groups="iil_configurator.group_iil_configurator_admin"/>
+
+        <menuitem id="menu_iil_configurator_wizard"
+                  name="Einrichtungsassistent"
+                  parent="menu_iil_configurator_root"
+                  action="action_iil_configurator_wizard"
+                  sequence="10"/>
+
+        <menuitem id="menu_iil_product_features"
+                  name="Produkt-Features"
+                  parent="menu_iil_configurator_root"
+                  action="action_iil_product_feature"
+                  sequence="20"/>
+
+    </data>
+</odoo>

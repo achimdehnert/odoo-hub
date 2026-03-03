@@ -47,6 +47,12 @@ class CastingQualityCheck(models.Model):
     tolerance_minus = fields.Float(string="Toleranz - (mm)", digits=(6, 3))
     notes = fields.Text(string="Prüfbericht / Bemerkungen")
     corrective_action = fields.Text(string="Korrekturmaßnahme")
+    is_demo_data = fields.Boolean(
+        string='Demo-Datensatz',
+        default=False,
+        index=True,
+        help='Vom IIL-Seed-Engine generierter Demo-Datensatz. Wird bei erneutem Konfigurator-Durchlauf gelöscht.',
+    )
 
     def create(self, vals_list):
         if isinstance(vals_list, dict):

@@ -98,8 +98,8 @@ BEGIN
     FOREACH tbl IN ARRAY tbls LOOP
         IF EXISTS (
             SELECT 1 FROM information_schema.tables
-            WHERE table_schema = 'current_schema()'
-               OR table_name = tbl
+            WHERE table_schema = current_schema()
+              AND table_name = tbl
         ) THEN
             EXECUTE format('GRANT SELECT ON TABLE %I TO nl2sql_ro', tbl);
             RAISE NOTICE '[init.sql] GRANT SELECT ON % TO nl2sql_ro — OK', tbl;

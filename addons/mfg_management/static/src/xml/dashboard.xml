@@ -752,4 +752,35 @@
     </div>
 </t>
 
+<!-- ═══════════════════════════════════════════════════════════════════
+     DynamicDashboard — Feature-Registry-gesteuert (iil_configurator)
+     Fällt auf statischen MfgDashboard zurück wenn kein Feature aktiv.
+════════════════════════════════════════════════════════════════════ -->
+<t t-name="mfg_management.DynamicDashboard">
+    <div class="mfg-dynamic-dashboard">
+
+        <!-- Lade-Spinner -->
+        <t t-if="state.loading">
+            <div class="mfg-loading d-flex align-items-center justify-content-center p-5">
+                <i class="fa fa-spinner fa-spin fa-2x text-muted me-2"/>
+                <span class="text-muted">Dashboard wird geladen…</span>
+            </div>
+        </t>
+
+        <!-- Fallback: statischer MfgDashboard (iil_configurator nicht installiert) -->
+        <t t-elif="state.fallback">
+            <t t-component="FallbackComponent"/>
+        </t>
+
+        <!-- Dynamische Panels aus Feature-Registry -->
+        <t t-else="">
+            <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
+                <t t-component="panel.component"
+                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+            </t>
+        </t>
+
+    </div>
+</t>
+
 </templates>
