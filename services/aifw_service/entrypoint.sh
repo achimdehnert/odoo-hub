@@ -40,7 +40,9 @@ python manage.py init_aifw_config || \
 
 # ── 4. Seed Odoo schema + nl2sql action (non-fatal) ──────────────────────────
 echo "==> [aifw-service] Seeding Odoo MFG schema + nl2sql action..."
-python manage.py init_odoo_schema || \
+python manage.py init_odoo_schema \
+    --model claude-3-haiku-20240307 \
+    --fallback-model claude-3-haiku-20240307 || \
     echo "WARN: init_odoo_schema failed — service starts anyway, retry via: docker exec aifw_service python manage.py init_odoo_schema"
 
 # ── 5. Start Gunicorn ─────────────────────────────────────────────────────────
