@@ -807,8 +807,7 @@
                             <span t-esc="panel.label"/>
                         </div>
                         <div class="iil-panel-card-body">
-                            <t t-component="panel.component"
-                               t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                            <t t-component="panel.component"/>
                         </div>
                     </div>
                 </t>
