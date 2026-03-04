@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- Defect Types / Fehlerarten - always loaded -->
         <record id="defect_porosity_gas" model="casting.defect.type">
             <field name="name">Gasporosität</field>
@@ -20,7 +20,7 @@
         </record>
         <record id="defect_cold_shut" model="casting.defect.type">
             <field name="name">Kaltlauf / Kaltschweißung</field>
-            <field name="code">MIS-02</field>
+            <field name="code">SRF-01</field>
             <field name="category">cold_shut</field>
             <field name="severity">major</field>
             <field name="description">Zwei Schmelzefronten treffen aufeinander ohne zu verschweißen.</field>
