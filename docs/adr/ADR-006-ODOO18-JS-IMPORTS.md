@@ -135,6 +135,68 @@ und serialisierbare Daten gehören in den reaktiven State.
 
 ---
 
+## OWL 2 `t-on-click` übergibt Event-Objekt als erstes Argument (behoben 2026-03-04)
+
+**Symptom:** Klick auf KPI-Kachel → `TypeError: Cannot read properties of undefined (reading 'toString')` in `SearchModel._getDomain`.
+
+**Root Cause:** In OWL 2 übergibt `t-on-click="methodName"` das Browser-`MouseEvent`-Objekt als **erstes Argument** an die Methode. Methoden die einen optionalen `domain`-Parameter erwarten erhalten so ein `MouseEvent` statt `[]`. Da `MouseEvent` truthy ist, schlägt `domain || []` fehl und ein `MouseEvent` wird als Odoo-Domain interpretiert.
+
+```javascript
+// ❌ PROBLEM: openMachines(domain) erhält MouseEvent wenn direkt als t-on-click Handler
+openMachines(domain) {
+    this.actionService.doAction({ domain: domain || [] }); // MouseEvent statt []!
+}
+// Im Template: t-on-click="openMachines"  → domain = MouseEvent → toString() crash
+```
+
+```javascript
+// ✅ Lösung 1: Guard am Methodenanfang
+openMachines(domain) {
+    if (!Array.isArray(domain)) domain = [];  // MouseEvent → []
+    this.actionService.doAction({ domain });
+}
+
+// ✅ Lösung 2: Separater parameterloser Event-Handler
+openMachinesEv() { this.openMachines([]); }
+// Im Template: t-on-click="openMachinesEv"
+```
+
+**Regel:** Jede Methode mit optionalem `domain`-Parameter muss `if (!Array.isArray(domain)) domain = [];` als erste Zeile haben, wenn sie direkt als `t-on-click` Handler verwendet wird.
+
+---
+
+## OWL 2 Arrow-Funktionen in `t-on-click` verlieren `this`-Binding (behoben 2026-03-04)
+
+**Symptom:** Klick auf Element → `TypeError: Cannot read properties of undefined (reading 'actionService')`.
+
+**Root Cause:** In OWL 2 werden `t-on-click="() => method(arg)"` Arrow-Funktionen im Template-Scope ausgewertet. Das `this` der Component ist im Arrow-Scope **nicht** gebunden.
+
+```xml
+<!-- ❌ VERBOTEN: Arrow-Funktion verliert this -->
+<div t-on-click="() => openMachineOrders(m.id, m.name)"/>
+<!-- this.actionService → undefined → crash -->
+```
+
+```javascript
+// ✅ Korrekt: Event-Handler mit data-* Attributen
+openMachineOrdersEv(ev) {
+    const id = parseInt(ev.currentTarget.dataset.machineId, 10);
+    const name = ev.currentTarget.dataset.machineName;
+    this.openMachineOrders(id, name);  // this ist korrekt gebunden
+}
+```
+
+```xml
+<!-- ✅ Korrekt: Direkter Handler + data-* Attribute -->
+<div t-att-data-machine-id="m.id"
+     t-att-data-machine-name="m.name"
+     t-on-click="openMachineOrdersEv"/>
+```
+
+**Regel:** Niemals Arrow-Funktionen in `t-on-click`. Immer direkte Methoden-Referenz. Parameter über `data-*` Attribute übergeben und im Handler via `ev.currentTarget.dataset` auslesen.
+
+---
+
 ## Bekannte Fehler (behoben 2026-03-04)
 
 | Datei | Verbotener Import | Fix |
