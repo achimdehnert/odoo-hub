@@ -583,6 +583,105 @@ WICHTIG:
             'is_pinned': h.is_pinned,
         } for h in records]
 
+    @http.route('/mfg_nl2sql/schema_meta', type='json', auth='user', methods=['POST'])
+    def schema_meta(self, models=None):
+        """Export enriched schema metadata for aifw_service NL2SQL sync.
+
+        Combines:
+        1. nl2sql.schema.table / nl2sql.schema.column  (curated descriptions)
+        2. ir.model.fields  (Odoo field labels, field_description, ttype)
+
+        The result is used by the aifw_service 'sync_odoo_schema' command to
+        generate a Schema-XML with label attributes so the LLM can produce
+        meaningful German column aliases automatically.
+
+        Returns:
+            list of {
+                table:       str  — DB table name
+                model:       str  — Odoo model name
+                domain:      str
+                description: str
+                columns: [
+                    {
+                        name:        str  — DB column name
+                        label:       str  — Odoo field_description (German)
+                        type:        str  — field type
+                        description: str  — curated description (may be empty)
+                        fk_table:    str  — FK target table name (or "")
+                        selection:   str  — allowed values for selection fields
+                    }
+                ]
+            }
+        """
+        IrModelFields = request.env['ir.model.fields'].sudo()
+        SchemaTable = request.env['nl2sql.schema.table'].sudo()
+
+        domain_filter = [('is_active', '=', True)]
+        tables = SchemaTable.search(domain_filter)
+
+        result = []
+        for table in tables:
+            # Build index of curated column metadata
+            col_index = {
+                col.name: col
+                for col in table.column_ids.filtered(lambda c: c.is_active)
+            }
+
+            # Fetch Odoo field labels if model_name is known
+            odoo_labels = {}
+            if table.model_name:
+                ir_fields = IrModelFields.search([
+                    ('model', '=', table.model_name),
+                    ('store', '=', True),
+                ])
+                for f in ir_fields:
+                    odoo_labels[f.name] = {
+                        'label': f.field_description or f.name,
+                        'type':  f.ttype,
+                        'help':  f.help or '',
+                    }
+
+            # Merge: curated cols enriched with Odoo labels
+            columns = []
+            for col_name, col in col_index.items():
+                odoo = odoo_labels.get(col_name, {})
+                columns.append({
+                    'name':        col_name,
+                    'label':       odoo.get('label', col_name),
+                    'type':        odoo.get('type', col.data_type),
+                    'description': col.description or '',
+                    'fk_table':    col.foreign_key_table or '',
+                    'selection':   col.selection_values or '',
+                })
+
+            # Also add Odoo fields NOT yet in curated list (for discovery)
+            curated_names = set(col_index.keys())
+            extra = []
+            for fname, meta in odoo_labels.items():
+                if fname not in curated_names and meta['type'] not in (
+                    'one2many', 'many2many', 'binary', 'html'
+                ):
+                    extra.append({
+                        'name':        fname,
+                        'label':       meta['label'],
+                        'type':        meta['type'],
+                        'description': meta['help'],
+                        'fk_table':    '',
+                        'selection':   '',
+                        'auto':        True,
+                    })
+
+            result.append({
+                'table':       table.name,
+                'model':       table.model_name or '',
+                'domain':      table.domain or '',
+                'description': table.description or '',
+                'columns':     columns,
+                'extra_fields': extra,
+            })
+
+        return result
+
     @http.route('/mfg_nl2sql/history/<int:history_id>/result', type='json',
                 auth='user', methods=['POST'])
     def get_history_result(self, history_id):

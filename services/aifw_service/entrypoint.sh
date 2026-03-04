@@ -45,7 +45,12 @@ python manage.py init_odoo_schema \
     --fallback-model claude-3-haiku-20240307 || \
     echo "WARN: init_odoo_schema failed — service starts anyway, retry via: docker exec aifw_service python manage.py init_odoo_schema"
 
-# ── 5. Start Gunicorn ─────────────────────────────────────────────────────────
+# ── 5. Sync Odoo field labels into schema XML (non-fatal) ────────────────────
+echo "==> [aifw-service] Syncing Odoo field labels (ir.model.fields → schema XML)..."
+python manage.py sync_odoo_schema || \
+    echo "WARN: sync_odoo_schema failed — falling back to static schema XML from init_odoo_schema"
+
+# ── 6. Start Gunicorn ─────────────────────────────────────────────────────────
 echo "==> [aifw-service] Starting gunicorn..."
 exec gunicorn aifw_service.wsgi:application \
     --bind 0.0.0.0:8001 \
