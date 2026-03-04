@@ -93,6 +93,18 @@ export class ScmPanel extends Component {
         const today = new Date().toISOString().substring(0, 10);
         this.openPurchases([["delivery_date", "<", today], ["state", "in", ["confirmed", "partial"]]]);
     }
+
+    openPurchaseEv(ev) {
+        const purchaseId = parseInt(ev.currentTarget.dataset.purchaseId, 10);
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Bestellung",
+            res_model: "scm.purchase.order",
+            view_mode: "form",
+            views: [[false, "form"]],
+            res_id: purchaseId,
+        });
+    }
 }
 
 registry.category("iil_panels").add("scm", {

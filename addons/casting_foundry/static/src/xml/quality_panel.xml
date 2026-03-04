@@ -74,7 +74,9 @@
                 <div class="iil-section-title">Häufigste Fehlerarten</div>
                 <div class="iil-machine-list">
                     <t t-foreach="state.kpis.top_defects" t-as="d" t-key="d.code">
-                        <div class="iil-machine-row">
+                        <div class="iil-machine-row iil-clickable"
+                             t-att-data-severity="d.severity"
+                             t-on-click="openDefectEv">
                             <span class="iil-machine-state-dot" t-att-style="'background:' + severityColor(d.severity)"/>
                             <span class="iil-machine-name"><t t-esc="d.name"/></span>
                             <span class="iil-machine-hall"><t t-esc="d.severity"/></span>

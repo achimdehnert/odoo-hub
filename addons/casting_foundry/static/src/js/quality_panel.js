@@ -70,6 +70,11 @@ export class QualityPanel extends Component {
             domain,
         });
     }
+
+    openDefectEv(ev) {
+        const severity = ev.currentTarget.dataset.severity || null;
+        this.openDefects(severity);
+    }
 }
 
 registry.category("iil_panels").add("quality", {

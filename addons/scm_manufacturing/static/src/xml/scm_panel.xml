@@ -56,7 +56,9 @@
             <div class="iil-section-title">Dringendste offene Bestellungen</div>
             <div class="iil-machine-list">
                 <t t-foreach="state.kpis.top_purchases" t-as="p" t-key="p.id">
-                    <div class="iil-machine-row">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-purchase-id="p.id"
+                         t-on-click="openPurchaseEv">
                         <span class="iil-machine-name"><t t-esc="p.name"/></span>
                         <span class="iil-machine-hall"><t t-esc="p.partner_name"/></span>
                         <span class="iil-machine-orders">fällig <t t-esc="formatDate(p.date_expected)"/></span>

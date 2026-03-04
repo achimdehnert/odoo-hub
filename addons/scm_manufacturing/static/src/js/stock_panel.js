@@ -73,6 +73,18 @@ export class StockPanel extends Component {
             views: [[false, "list"], [false, "form"]],
         });
     }
+
+    openPartEv(ev) {
+        const partId = parseInt(ev.currentTarget.dataset.partId, 10);
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Teil",
+            res_model: "scm.part",
+            view_mode: "form",
+            views: [[false, "form"]],
+            res_id: partId,
+        });
+    }
 }
 
 registry.category("iil_panels").add("stock", {

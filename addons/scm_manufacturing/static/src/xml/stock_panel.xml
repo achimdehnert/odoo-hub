@@ -62,7 +62,9 @@
             <div class="iil-section-title">Teile mit Nullbestand</div>
             <div class="iil-machine-list">
                 <t t-foreach="state.kpis.critical_parts" t-as="p" t-key="p.id">
-                    <div class="iil-machine-row">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-part-id="p.id"
+                         t-on-click="openPartEv">
                         <span class="iil-machine-state-dot" style="background:#ef4444"/>
                         <span class="iil-machine-name"><t t-esc="p.part_number"/> — <t t-esc="p.name"/></span>
                         <span class="iil-machine-hall"><t t-esc="partTypeLabel(p.part_type)"/></span>
