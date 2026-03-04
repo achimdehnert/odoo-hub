@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "aifw",
+    "aifw.nl2sql",   # optional NL2SQL component — activates NL2SQLConfig + migrations
     "aifw_service",  # required for management command discovery (init_odoo_schema)
 ]
 
