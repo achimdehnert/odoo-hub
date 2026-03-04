@@ -12,14 +12,16 @@
         <t t-else="">
             <!-- KPI-Zeile -->
             <div class="iil-kpi-row">
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openActiveOrders">
                     <div class="iil-kpi-value"><t t-esc="activeOrders()"/></div>
                     <div class="iil-kpi-label">Aktive Aufträge</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openOrders">
                     <div class="iil-kpi-value"><t t-esc="machineAvailabilityPct()"/>%</div>
                     <div class="iil-kpi-label">Maschinenverfügbarkeit</div>
                     <div class="iil-kpi-sub"><t t-esc="state.kpis.machine_states.operational"/> / <t t-esc="totalMachines()"/> Maschinen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
                 <div t-att-class="'iil-kpi-card iil-trend-' + qcTrend()">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.qc_rate"/>%</div>
@@ -37,7 +39,10 @@
             <div class="iil-section-title">Aufträge nach Status</div>
             <div class="iil-status-bar-row">
                 <t t-foreach="orderStates()" t-as="s" t-key="s.key">
-                    <div class="iil-status-chip" t-att-style="'background:' + s.hex">
+                    <div class="iil-status-chip iil-clickable"
+                         t-att-style="'background:' + s.hex"
+                         t-att-data-order-state="s.key"
+                         t-on-click="openOrdersByStateEv">
                         <span class="iil-status-count"><t t-esc="s.count"/></span>
                         <span class="iil-status-label"><t t-esc="s.label"/></span>
                     </div>
@@ -48,7 +53,10 @@
             <div class="iil-section-title">Maschinenauslastung</div>
             <div class="iil-machine-list">
                 <t t-foreach="state.kpis.machine_load" t-as="m" t-key="m.id">
-                    <div class="iil-machine-row">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-machine-id="m.id"
+                         t-att-data-machine-name="m.name"
+                         t-on-click="openMachineOrdersEv">
                         <span class="iil-machine-state-dot" t-att-style="'background:' + machineStateColor(m.state)"/>
                         <span class="iil-machine-name"><t t-esc="m.name"/></span>
                         <span class="iil-machine-hall"><t t-esc="m.hall"/></span>

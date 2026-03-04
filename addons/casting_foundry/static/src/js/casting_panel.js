@@ -2,12 +2,14 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 
 export class CastingPanel extends Component {
     static template = "casting_foundry.CastingPanel";
     static components = {};
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({ loading: true, kpis: null, error: null });
         onWillStart(() => this.loadKpis());
     }
@@ -65,6 +67,41 @@ export class CastingPanel extends Component {
             { key: "quality_check", count: s.quality_check || 0, hex: "#8b5cf6", label: "QS-Prüfung" },
             { key: "done",          count: s.done || 0,          hex: "#22c55e", label: "Abgeschlossen" },
         ].filter(s => s.count > 0);
+    }
+
+    openOrders(domain) {
+        if (!Array.isArray(domain)) domain = [];
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Gießaufträge",
+            res_model: "casting.order",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain,
+        });
+    }
+
+    openActiveOrders() {
+        this.openOrders([["state", "in", ["confirmed", "in_production", "quality_check"]]]);
+    }
+
+    openOrdersByStateEv(ev) {
+        const state = ev.currentTarget.dataset.orderState;
+        if (state) this.openOrders([["state", "=", state]]);
+    }
+
+    openMachineOrdersEv(ev) {
+        const el = ev.currentTarget;
+        const machineId = parseInt(el.dataset.machineId, 10);
+        const machineName = el.dataset.machineName || String(machineId);
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Auftr\u00e4ge: " + machineName,
+            res_model: "casting.order",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: [["machine_id", "=", machineId], ["state", "in", ["confirmed", "in_production", "quality_check"]]],
+        });
     }
 }
 
