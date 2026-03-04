@@ -25,10 +25,12 @@ class StockPanelController(http.Controller):
         parts_semi    = env['scm.part'].search_count([('part_type', '=', 'semi'),       ('active', '=', True)])
         parts_finished = env['scm.part'].search_count([('part_type', '=', 'finished'),  ('active', '=', True)])
 
-        # ── Lagerbewegungen lfd. Monat ─────────────────────────────────────
-        moves_in    = env['scm.stock.move'].search_count([('move_type', '=', 'in'),    ('date', '>=', month_start_str)])
-        moves_out   = env['scm.stock.move'].search_count([('move_type', '=', 'out'),   ('date', '>=', month_start_str)])
-        moves_scrap = env['scm.stock.move'].search_count([('move_type', '=', 'scrap'), ('date', '>=', month_start_str)])
+        # ── Lagerbewegungen lfd. Monat + Gesamtzahl ───────────────────────
+        moves_in      = env['scm.stock.move'].search_count([('move_type', '=', 'in'),    ('date', '>=', month_start_str)])
+        moves_out     = env['scm.stock.move'].search_count([('move_type', '=', 'out'),   ('date', '>=', month_start_str)])
+        moves_scrap   = env['scm.stock.move'].search_count([('move_type', '=', 'scrap'), ('date', '>=', month_start_str)])
+        moves_in_total  = env['scm.stock.move'].search_count([('move_type', '=', 'in')])
+        moves_out_total = env['scm.stock.move'].search_count([('move_type', '=', 'out')])
 
         # ── Lager nach Typ ─────────────────────────────────────────────────
         warehouses = env['scm.warehouse'].search_read(
@@ -55,9 +57,11 @@ class StockPanelController(http.Controller):
             'parts_raw':      parts_raw,
             'parts_semi':     parts_semi,
             'parts_finished': parts_finished,
-            'moves_in':       moves_in,
-            'moves_out':      moves_out,
-            'moves_scrap':    moves_scrap,
+            'moves_in':         moves_in,
+            'moves_out':        moves_out,
+            'moves_scrap':      moves_scrap,
+            'moves_in_total':   moves_in_total,
+            'moves_out_total':  moves_out_total,
             'warehouses':     warehouses,
             'critical_parts': critical_parts,
             'stock_value':    round(stock_value, 2),

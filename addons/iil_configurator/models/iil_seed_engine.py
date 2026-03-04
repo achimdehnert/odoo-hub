@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import random
-from datetime import date, timedelta
+from datetime import date, datetime as _datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -82,9 +82,18 @@ class IilSeedEngine(models.AbstractModel):
                 [('is_demo_data', '=', True)]
             ).unlink()
 
+    _CASTING_PROCESSES = [
+        'gravity', 'die_cast_hot', 'die_cast_cold', 'sand', 'investment',
+    ]
+    _PART_NAMES = [
+        'Gehäusedeckel', 'Lagergehäuse', 'Pumpengehäuse', 'Ventilblock',
+        'Getriebegehäuse', 'Kurbelgehäuse', 'Zylinderkopf', 'Bremskolben',
+        'Flansch', 'Träger', 'Halterung', 'Abdeckung',
+    ]
+
     @api.model
     def _generate_casting_data(self, months, order_count):
-        """Gießerei-Demo-Daten: Aufträge, Qualitätsprüfungen, Maschinenzuweisungen.
+        """Gießerei-Demo-Daten: Aufträge (Header + Lines), Qualitätsprüfungen.
 
         Realistische Trends:
         - Auftragsvolumen: leicht wachsend (+5%/Monat)
@@ -96,17 +105,20 @@ class IilSeedEngine(models.AbstractModel):
         machines = env['casting.machine'].search([])
         molds    = env['casting.mold'].search([])
 
-        if not (alloys and machines and molds):
+        if not alloys:
             raise UserError(
-                'casting_foundry Stammdaten fehlen. '
-                'Bitte zuerst casting_foundry-Modul-Demo-Daten laden.'
+                'casting.alloy Stammdaten fehlen. '
+                'Bitte zuerst casting_foundry Demo-Daten laden.'
             )
 
+        check_types_all = ['visual', 'dimensional', 'xray', 'hardness', 'cmm']
         base_date = date.today().replace(day=1)
         orders_per_month = max(1, order_count // months)
+        partners = env['res.partner'].search([('is_company', '=', True)], limit=10)
+        if not partners:
+            partners = env['res.partner'].search([], limit=5)
 
         for month_offset in range(months, 0, -1):
-            # relativedelta: exakte Monatsberechnung (timedelta(days=30) != 1 Monat)
             month_start = base_date - relativedelta(months=month_offset)
 
             volume_factor = 1.0 + (months - month_offset) * 0.05
@@ -117,32 +129,67 @@ class IilSeedEngine(models.AbstractModel):
             is_winter = month_start.month in (11, 12, 1, 2)
             base_scrap = 0.06 if is_winter else 0.03
 
+            if month_offset > 2:
+                state = 'done'
+            elif month_offset == 2:
+                state = random.choices(['done', 'quality_check'], weights=[0.7, 0.3])[0]
+            else:
+                state = random.choices(
+                    ['confirmed', 'in_production', 'quality_check', 'draft'],
+                    weights=[0.3, 0.4, 0.2, 0.1]
+                )[0]
+
             for i in range(actual_orders):
                 order_date = month_start + timedelta(days=random.randint(0, 28))
-                planned_qty = random.choice([50, 100, 200, 500, 1000])
-                scrap_pct   = max(0.0, random.gauss(base_scrap, 0.01))
-                scrap_qty   = int(planned_qty * scrap_pct)
-                produced    = planned_qty - scrap_qty
+                qty        = random.choice([50, 100, 200, 500])
+                scrap_pct  = max(0.0, random.gauss(base_scrap, 0.01))
+                scrap_qty  = int(qty * scrap_pct)
 
-                order = env['casting.order'].create({
-                    'name':         f"DEMO-{order_date.strftime('%Y%m')}-{i+1:04d}",
-                    'alloy_id':     random.choice(alloys).id,
-                    'machine_id':   random.choice(machines).id,
-                    'mold_id':      random.choice(molds).id,
-                    'state':        'done',
-                    'order_date':   order_date,
-                    'planned_qty':  planned_qty,
-                    'produced_qty': produced,
-                    'scrap_qty':    scrap_qty,
+                order_vals = {
+                    'state':        state,
+                    'date_planned': order_date,
                     'is_demo_data': True,
-                })
+                }
+                if partners:
+                    order_vals['partner_id'] = random.choice(partners).id
 
+                order = env['casting.order'].create(order_vals)
+
+                # ── Order-Line (Pflichtfelder: part_name, alloy_id, casting_process, quantity) ──
+                line_vals = {
+                    'order_id':       order.id,
+                    'part_name':      random.choice(self._PART_NAMES),
+                    'alloy_id':       random.choice(alloys).id,
+                    'casting_process': random.choice(self._CASTING_PROCESSES),
+                    'quantity':       qty,
+                    'scrap_qty':      scrap_qty if state == 'done' else 0,
+                    'piece_weight_kg': round(random.uniform(0.2, 15.0), 3),
+                    'cycle_time_min': round(random.uniform(1.5, 12.0), 1),
+                }
+                if machines:
+                    line_vals['machine_id'] = random.choice(machines).id
+                if molds:
+                    line_vals['mold_id'] = random.choice(molds).id
+                env['casting.order.line'].create(line_vals)
+
+                # ── Qualitätsprüfung ───────────────────────────────────────
+                if scrap_pct < 0.03:
+                    result = 'pass'
+                elif scrap_pct < 0.06:
+                    result = random.choices(['pass', 'conditional'], weights=[0.6, 0.4])[0]
+                else:
+                    result = random.choices(['conditional', 'fail'], weights=[0.4, 0.6])[0]
+                check_dt = _datetime.combine(
+                    order_date + timedelta(days=1), _datetime.min.time()
+                ).replace(hour=10)
                 env['casting.quality.check'].create({
-                    'name':         f"DEMO-QC-{order.name}",
                     'order_id':     order.id,
-                    'state':        'pass' if scrap_pct < 0.05 else 'fail',
-                    'checked_by':   env.ref('base.user_admin').id,
-                    'check_date':   order_date + timedelta(days=1),
+                    'check_type':   random.choice(check_types_all),
+                    'result':       result,
+                    'inspector_id': env.ref('base.user_admin').id,
+                    'check_date':   check_dt,
+                    'sample_size':  random.randint(5, 50),
+                    'defect_count': 0 if result == 'pass' else random.randint(1, 5),
                     'is_demo_data': True,
                 })
 
@@ -380,12 +427,13 @@ class IilSeedEngine(models.AbstractModel):
 
                 # Lagerbewegung Zugang wenn erhalten
                 if state in ('done', 'received') and raw_parts:
+                    move_dt = _datetime.combine(expected_date, _datetime.min.time()).replace(hour=10)
                     env['scm.stock.move'].create({
                         'part_id':      part.id,
                         'warehouse_id': raw_wh.id,
                         'move_type':    'in',
                         'quantity':     qty,
-                        'date':         expected_date.isoformat() + ' 10:00:00',
+                        'date':         move_dt,
                         'reference':    po.name,
                         'is_demo_data': True,
                     })
@@ -415,12 +463,14 @@ class IilSeedEngine(models.AbstractModel):
                 # Lager-Abgang (Rohstoff) + Zugang (Fertigteil)
                 if state == 'done' and raw_parts:
                     raw = random.choice(raw_parts)
+                    out_dt = _datetime.combine(prod_date, _datetime.min.time()).replace(hour=8)
+                    in_dt  = _datetime.combine(prod_date + timedelta(days=2), _datetime.min.time()).replace(hour=16)
                     env['scm.stock.move'].create({
                         'part_id':      raw.id,
                         'warehouse_id': raw_wh.id,
                         'move_type':    'out',
                         'quantity':     qty * random.uniform(0.5, 2.0),
-                        'date':         prod_date.isoformat() + ' 08:00:00',
+                        'date':         out_dt,
                         'is_demo_data': True,
                     })
                     env['scm.stock.move'].create({
@@ -428,7 +478,7 @@ class IilSeedEngine(models.AbstractModel):
                         'warehouse_id': wip_wh.id,
                         'move_type':    'in',
                         'quantity':     qty - scrap,
-                        'date':         (prod_date + timedelta(days=2)).isoformat() + ' 16:00:00',
+                        'date':         in_dt,
                         'is_demo_data': True,
                     })
 

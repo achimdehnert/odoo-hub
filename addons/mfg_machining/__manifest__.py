@@ -6,7 +6,7 @@
     'author': 'IIL',
     'license': 'OPL-1',
     'category': 'Manufacturing',
-    'depends': ['base', 'mail', 'iil_configurator'],
+    'depends': ['base', 'mail', 'iil_configurator', 'mfg_management'],
     'data': [
         'security/ir.model.access.csv',
         'data/sequences.xml',

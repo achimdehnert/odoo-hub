@@ -27,12 +27,14 @@
                     </div>
                 </div>
                 <div class="iil-kpi-card iil-trend-good">
-                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_in"/></div>
-                    <div class="iil-kpi-label">Zugänge (Monat)</div>
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_in_total"/></div>
+                    <div class="iil-kpi-label">Zugänge gesamt</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.moves_in"/></div>
                 </div>
                 <div class="iil-kpi-card">
-                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_out"/></div>
-                    <div class="iil-kpi-label">Abgänge (Monat)</div>
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.moves_out_total"/></div>
+                    <div class="iil-kpi-label">Abgänge gesamt</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.moves_out"/></div>
                 </div>
                 <div class="iil-kpi-card">
                     <div class="iil-kpi-value"><t t-esc="formatValue(state.kpis.stock_value)"/> €</div>

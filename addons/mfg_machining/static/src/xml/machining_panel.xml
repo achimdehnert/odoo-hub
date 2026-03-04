@@ -81,6 +81,9 @@
                 </t>
             </div>
 
+            <!-- NL2SQL Query-Bar -->
+            <NL2SqlQueryBar sourceCode="'odoo_mfg'" suggestQueries="suggestQueries()" title="'KI-Assistent (CNC)'"/>
+
         </t>
     </div>
 </t>

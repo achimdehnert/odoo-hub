@@ -33,8 +33,11 @@ export function getPanelComponent(featureCode) {
 const PANEL_REGISTRY_STATIC = {
     casting:   MfgDashboard,
     nl2sql:    MfgDashboard,
-    // machining: via iil_panels-Registry (mfg_machining/static/src/js/machining_panel.js)
-    // mrp, stock, scm, quality, maintenance, sales, accounting: Sprint 7
+    // machining: via iil_panels-Registry (mfg_machining)
+    // quality:   via iil_panels-Registry (casting_foundry/quality_panel.js)
+    // machines:  via iil_panels-Registry (casting_foundry/machines_panel.js)
+    // stock:     via iil_panels-Registry (scm_manufacturing/stock_panel.js)
+    // scm:       via iil_panels-Registry (scm_manufacturing/scm_panel.js)
 };
 
 export const PANEL_REGISTRY = PANEL_REGISTRY_STATIC;

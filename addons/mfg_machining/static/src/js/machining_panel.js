@@ -2,9 +2,19 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { NL2SqlQueryBar } from "@mfg_management/js/nl2sql_query_bar";
 
 export class MachiningPanel extends Component {
     static template = "mfg_machining.MachiningPanel";
+    static components = { NL2SqlQueryBar };
+
+    suggestQueries() {
+        return [
+            "Wie viele CNC-Aufträge sind aktuell in Fertigung?",
+            "Ausschussrate nach Maschinentyp im letzten Quartal",
+            "Welche Maschine hat die höchste Auslastung diese Woche?",
+        ];
+    }
 
     setup() {
         this.state = useState({
