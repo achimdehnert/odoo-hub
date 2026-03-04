@@ -807,10 +807,8 @@
                             <span t-esc="panel.label"/>
                         </div>
                         <div class="iil-panel-card-body">
-                            <PanelErrorBoundary>
-                                <t t-component="panel.component"
-                                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
-                            </PanelErrorBoundary>
+                            <t t-component="panel.component"
+                               t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
                         </div>
                     </div>
                 </t>

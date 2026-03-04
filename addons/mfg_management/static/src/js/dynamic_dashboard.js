@@ -11,33 +11,14 @@
  * und kann diese dann nicht über Modulgrenzen auflösen.)
  */
 
-import { Component, useState, onWillStart, onError } from "@odoo/owl";
+import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { getPanelComponent } from "./panel_registry";
 
-/**
- * PanelErrorBoundary — fängt Render-Fehler einzelner Panels ab.
- * Ein crashendes Panel zeigt eine Fehlermeldung statt die gesamte
- * OWL-App einzufrieren und Navigation zu blockieren.
- */
-export class PanelErrorBoundary extends Component {
-    static template = "mfg_management.PanelErrorBoundary";
-    static props = ["*"];
-
-    setup() {
-        this.state = useState({ hasError: false, errorMsg: "" });
-        onError((err) => {
-            console.error("[IIL Panel Error]", err);
-            this.state.hasError = true;
-            this.state.errorMsg = err && err.message ? err.message : String(err);
-        });
-    }
-}
-
 export class DynamicDashboard extends Component {
     static template = "mfg_management.DynamicDashboard";
-    static components = { PanelErrorBoundary };
+    static components = {};
 
     static PANEL_ICONS = {
         casting:    "fire",
