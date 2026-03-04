@@ -154,12 +154,37 @@ jobs:
             docker compose -f docker-compose.prod.yml ps
           "
 
+      - name: Odoo module update (odoo -u)
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            cd ${DEPLOY_PATH}
+            echo 'Waiting for Odoo to be ready...'
+            sleep 20
+            MODULES=\"iil_dashboard_core,casting_foundry,scm_manufacturing,mfg_machining,iil_configurator,mfg_management,mfg_nl2sql\"
+            echo \"Running: odoo -u \${MODULES}\"
+            docker compose -f docker-compose.prod.yml run --rm web \\
+              odoo -u \"\${MODULES}\" --stop-after-init -d odoo 2>&1 | tail -20
+            EXIT_CODE=\$?
+            if [ \$EXIT_CODE -ne 0 ]; then
+              echo 'ERROR: odoo -u failed with exit code '\$EXIT_CODE >&2
+              exit \$EXIT_CODE
+            fi
+            echo 'Module update successful.'
+          "
+
+      - name: Restart Odoo web after update
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            docker restart odoo_web
+            sleep 10
+          "
+
       - name: Health check
         run: |
-          sleep 15
+          sleep 10
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
             DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
-            if curl -sf --max-time 10 \"https://\${DOMAIN}/web/health\" > /dev/null; then
+            if curl -sf --max-time 15 \"https://\${DOMAIN}/web/health\" > /dev/null; then
               echo 'Health check passed.'
             else
               echo 'Health check failed — Logs:' >&2
