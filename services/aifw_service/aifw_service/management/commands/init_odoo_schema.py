@@ -18,7 +18,7 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
 <schema name="odoo_mfg" description="Odoo 18 Manufacturing + SCM schema">
 
   <table name="casting_order" domain="casting" row_count_hint="5000">
-    <description>Gießaufträge (Haupttabelle Gießerei). Jeder Auftrag = eine Charge.</description>
+    <description>Gießaufträge (Haupttabelle Gießerei). Jeder Auftrag = eine Charge. KEIN machine_id-Feld — Maschinenverknüpfung erfolgt über casting_order_line.</description>
     <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
     <column name="name" type="varchar" nullable="false"><description>Auftragsnummer z.B. GA-2026-00001</description><example>GA-2026-00001</example></column>
     <column name="state" type="varchar"><description>Status: draft, confirmed, in_production, quality_check, done, cancelled</description><example>confirmed</example></column>
@@ -26,12 +26,28 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <column name="total_pieces" type="integer"><description>Geplante Gesamtstückzahl</description></column>
     <column name="total_scrap_pct" type="numeric"><description>Ausschussquote in Prozent</description></column>
     <column name="customer_reference" type="varchar"><description>Kundenbestellnummer</description></column>
-    <column name="machine_id" type="integer"><description>FK zu casting_machine</description></column>
-    <column name="alloy_id" type="integer"><description>FK zu casting_alloy (Legierung)</description></column>
     <column name="create_date" type="timestamp"><description>Erstellungszeitpunkt</description></column>
+    <column name="is_demo_data" type="boolean"><description>True wenn Demo-Datensatz</description></column>
+    <join_hint>Maschinen-Verknüpfung: JOIN casting_order_line col ON col.order_id = casting_order.id JOIN casting_machine cm ON cm.id = col.machine_id</join_hint>
     <sample_query>Welche Aufträge sind gerade in Produktion?</sample_query>
     <sample_query>Zeige Aufträge mit Ausschussquote über 5% dieser Woche</sample_query>
     <sample_query>Wie viele Aufträge je Status gibt es aktuell?</sample_query>
+  </table>
+
+  <table name="casting_order_line" domain="casting" row_count_hint="15000">
+    <description>Auftragspositionen — Verbindung zwischen Auftrag und Maschine/Form/Legierung. WICHTIG: machine_id ist hier, NICHT in casting_order.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="order_id" type="integer" nullable="false"><description>FK zu casting_order</description></column>
+    <column name="machine_id" type="integer"><description>FK zu casting_machine — Maschine dieser Position</description></column>
+    <column name="alloy_id" type="integer"><description>FK zu casting_alloy (Legierung)</description></column>
+    <column name="mold_id" type="integer"><description>FK zu casting_mold (Form)</description></column>
+    <column name="quantity" type="numeric"><description>Geplante Stückzahl</description></column>
+    <column name="good_qty" type="numeric"><description>Gutteile</description></column>
+    <column name="scrap_qty" type="numeric"><description>Ausschussstücke</description></column>
+    <column name="part_name" type="varchar"><description>Teilename</description></column>
+    <column name="casting_process" type="varchar"><description>Gießverfahren</description></column>
+    <sample_query>Top 5 Maschinen nach Anzahl aktiver Aufträge: SELECT cm.name, COUNT(DISTINCT col.order_id) FROM casting_order_line col JOIN casting_machine cm ON cm.id = col.machine_id JOIN casting_order co ON co.id = col.order_id WHERE co.state = 'in_production' GROUP BY cm.name ORDER BY 2 DESC LIMIT 5</sample_query>
+    <sample_query>Welche Maschine hat die meisten Wartungspositionen</sample_query>
   </table>
 
   <table name="casting_machine" domain="casting" row_count_hint="80">
