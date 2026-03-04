@@ -1,9 +1,16 @@
 # ADR-010: NL2SQL Clarification-Agent und PyPI-Erweiterungsstrategie
 
-**Status:** Entschieden  
+**Status:** Entschieden — Rev. 2 (2026-03-04, Review-Korrekturen)
 **Datum:** 2026-03-04  
 **Autoren:** IIL Engineering  
-**Verwandte ADRs:** ADR-007 (iil-Package-Architektur), ADR-008 (Fehlerlernen), ADR-009 (Evolutionspfad)
+**Verwandte ADRs:** ADR-007 (iil-Package-Architektur), ADR-008 (Fehlerlernen), ADR-009 (Evolutionspfad), ADR-011 (Plugin-Architektur)
+
+### Änderungshistorie
+
+| Rev | Datum | Änderung |
+|---|---|---|
+| 1 | 2026-03-04 | Erstversion |
+| 2 | 2026-03-04 | Review-Korrekturen: falscher Import-Pfad, fehlende `NL2SQLResult`-Felder, `system_override`-Parameter existiert nicht, Token-Kalkulationen, Tag-Pattern-Inkonsistenz, Threshold-Logik konsolidiert, domänenspezifischer Prompt entkoppelt |
 
 ---
 
@@ -46,31 +53,64 @@ Eine Frage gilt als **eindeutig** wenn:
 - Explizite Tabellen-Referenz: „Maschinen", „Einkaufsbestellungen"
 - Zahlenfilter, Datumsbereiche, Namen
 
+### Voraussetzung: `NL2SQLResult` erweitern
+
+Vor der Implementierung muss `aifw/nl2sql/results.py` um Clarification-Felder erweitert
+werden. Das ist eine **non-breaking additive Änderung** (alle neuen Felder haben Defaults):
+
+```python
+# aifw/nl2sql/results.py — NL2SQLResult ergänzen
+@dataclass
+class NL2SQLResult:
+    success: bool
+    sql: str = ""
+    error: str = ""
+    error_type: str = ""
+    warnings: list[str] = field(default_factory=list)
+    generation: GenerationInfo | None = None
+    formatted: FormattedResult = field(default_factory=FormattedResult)
+    # NEU: Clarification-Felder (default=None/False → rückwärtskompatibel)
+    needs_clarification: bool = False
+    clarification_question: str = ""
+    clarification_options: list[dict] = field(default_factory=list)
+```
+
 ### Implementierung
 
 **`aifw/nl2sql/clarification.py`** (neues Modul):
 
 ```python
-from dataclasses import dataclass, field
-from typing import Optional
-import json
+"""
+aifw.nl2sql.clarification — Intent-Disambiguation vor SQL-Generierung.
 
-from aifw.core.completion import sync_completion
+ClarificationDetector analysiert ob eine NL-Frage eindeutig genug ist
+um direkt SQL zu generieren, oder ob zuerst eine Rückfrage nötig ist.
+
+Der domains-Parameter macht den Detector schema-agnostisch:
+  detector = ClarificationDetector(domains=["Maschinen", "Aufträge", ...])
+So bleibt aifw.nl2sql Odoo-unabhängig (ADR-011).
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
+
+from aifw.service import sync_completion   # korrekt: aifw.service, nicht aifw.core
 
 
 @dataclass
 class ClarificationOption:
-    label: str           # "Maschinen"
-    description: str     # "Betriebsstatus, Verfügbarkeit, Störungen"
-    hint: str            # Appended to question: "— bezogen auf Maschinen"
+    label: str        # "Maschinen"
+    description: str  # "Betriebsstatus, Verfügbarkeit, Störungen"
+    hint: str         # Wird an Frage angehängt: "— bezogen auf Maschinen"
 
 
-@dataclass  
+@dataclass
 class ClarificationResult:
     is_ambiguous: bool
-    confidence: float              # 0.0 = sicher eindeutig, 1.0 = sicher ambig
+    confidence: float            # 0.0 = eindeutig, 1.0 = maximal ambig
     reason: str
-    question: str                  # Rückfrage an User
+    question: str                # Rückfrage an User
     options: list[ClarificationOption] = field(default_factory=list)
 
     @classmethod
@@ -79,99 +119,151 @@ class ClarificationResult:
         opts = [ClarificationOption(**o) for o in data.get("options", [])]
         return cls(
             is_ambiguous=data["is_ambiguous"],
-            confidence=data.get("confidence", 0.5),
+            confidence=float(data.get("confidence", 0.5)),
             reason=data.get("reason", ""),
             question=data.get("question", ""),
             options=opts,
         )
 
 
-CLARITY_SYSTEM_PROMPT = """
+_CLARITY_SYSTEM_TEMPLATE = """
 Du analysierst ob eine NL2SQL-Frage eindeutig genug ist um direkt SQL zu generieren.
 
 Antworte NUR mit validem JSON:
-{
+{{
   "is_ambiguous": true/false,
   "confidence": 0.0-1.0,
   "reason": "Kurze Begründung",
-  "question": "Rückfrage an den User (nur wenn ambig)",
+  "question": "Rückfrage an den User (nur wenn ambig, sonst leer)",
   "options": [
-    {
-      "label": "Kurzer Name",
-      "description": "Was dieser Bereich umfasst",
-      "hint": "— bezogen auf [Bereich]"
-    }
+    {{"label": "Kurzer Name", "description": "Was dieser Bereich umfasst", "hint": "— bezogen auf [Bereich]"}}
   ]
-}
+}}
 
-Verfügbare Domänen: Maschinen, Gießaufträge, Qualitätsprüfungen, Einkauf/SCM, Lager, Produkte.
+Verfügbare Domänen: {domains}
 
 EINDEUTIG: konkrete Entität, Zahl, Datum, Name, expliziter Filter
-AMBIG: allgemeine Status-Fragen, fehlende Entität, Pronomen ohne Kontext
+AMBIG: allgemeine Status-Fragen, fehlende Entität, Pronomen ohne Gesprächskontext
 """.strip()
 
 
 class ClarificationDetector:
+    """Erkennt ambige NL2SQL-Anfragen und erzeugt Rückfrage-Optionen.
 
-    AMBIG_THRESHOLD = 0.65  # Ab hier wird nachgefragt
+    Args:
+        domains:   Liste der verfügbaren Domänen — schema-spezifisch, nicht hardcodiert.
+        threshold: Confidence-Schwelle ab der nachgefragt wird (Standard: 0.65).
+        action_code: AIActionType-Code für den Clarity-Check LLM-Call.
+    """
+
+    DEFAULT_THRESHOLD = 0.65
+    HISTORY_THRESHOLD = 0.80  # Mit Gesprächsverlauf: höhere Schwelle nötig
+
+    def __init__(
+        self,
+        domains: list[str],
+        threshold: float = DEFAULT_THRESHOLD,
+        action_code: str = "nl2sql_clarity_check",
+    ) -> None:
+        self.domains = domains
+        self.threshold = threshold
+        self.action_code = action_code
+        self._system_prompt = _CLARITY_SYSTEM_TEMPLATE.format(
+            domains=", ".join(domains)
+        )
 
     def analyze(
         self,
         question: str,
         conversation_history: list[dict] | None = None,
     ) -> ClarificationResult:
-        """Prüft ob die Frage zu ambig für direktes SQL ist."""
-        history = conversation_history or []
+        """Prüft ob die Frage zu ambig für direktes SQL ist.
 
-        # Gesprächsverlauf gibt Kontext → senkt Ambiguität
+        Args:
+            question:             Natürlichsprachliche Nutzer-Frage.
+            conversation_history: Liste von {tables, question} der Vorgänger-Turns.
+
+        Returns:
+            ClarificationResult mit is_ambiguous=True wenn Rückfrage empfohlen.
+            Bei Parse-Fehler oder LLM-Ausfall: is_ambiguous=False (fail-open).
+        """
+        history = conversation_history or []
+        effective_threshold = (
+            self.HISTORY_THRESHOLD if history else self.threshold
+        )
+
         context_note = ""
         if history:
-            last = history[-1]
-            context_note = f"\nVorherige Frage war über: {last.get('tables', '')}"
+            last_tables = history[-1].get("tables", "")
+            if last_tables:
+                context_note = f"\nGesprächskontext: letzte Abfrage betraf {last_tables}."
 
+        # System-Prompt als erste Message — sync_completion hat kein system_override-Param
         result = sync_completion(
-            action_code="nl2sql_clarity_check",
-            messages=[{
-                "role": "user",
-                "content": f"Frage: {question}{context_note}",
-            }],
-            system_override=CLARITY_SYSTEM_PROMPT,
+            action_code=self.action_code,
+            messages=[
+                {"role": "system", "content": self._system_prompt},
+                {"role": "user",   "content": f"Frage: {question}{context_note}"},
+            ],
             response_format={"type": "json_object"},
         )
 
         try:
             cr = ClarificationResult.from_json(result.content)
-            # Mit Kontext: Schwelle höher setzen
-            if history and cr.confidence < self.AMBIG_THRESHOLD + 0.15:
-                cr.is_ambiguous = False
+            # Threshold-Entscheidung an einer einzigen Stelle
+            cr.is_ambiguous = cr.confidence >= effective_threshold
             return cr
         except Exception:
+            # Fail-open: im Fehlerfall lieber falsches SQL als keine Antwort
             return ClarificationResult(
                 is_ambiguous=False,
                 confidence=0.0,
-                reason="Parse-Fehler — direktes SQL",
+                reason="Parse-Fehler — Clarification-Check übersprungen",
                 question="",
             )
 ```
 
-**Integration in `NL2SQLEngine._run()`:**
+**Integration in `NL2SQLEngine.__init__()` und `_run()`:**
 
 ```python
-# aifw/nl2sql/engine.py — in _run() vor SQL-Generierung
-
+# aifw/nl2sql/engine.py
 from aifw.nl2sql.clarification import ClarificationDetector
+from aifw.nl2sql.results import NL2SQLResult
 
-detector = ClarificationDetector()
-clarity = detector.analyze(question, conversation_history=session_history)
+class NL2SQLEngine:
+    def __init__(self, source_code: str, clarification_domains: list[str] | None = None):
+        # ... bestehende Init ...
+        # Einmalig instanziieren — nicht pro _run()-Aufruf
+        self._clarifier = ClarificationDetector(
+            domains=clarification_domains or [],
+            action_code="nl2sql_clarity_check",
+        ) if clarification_domains else None
 
-if clarity.is_ambiguous and clarity.confidence >= ClarificationDetector.AMBIG_THRESHOLD:
-    return NL2SQLResult(
-        success=False,
-        needs_clarification=True,
-        clarification_question=clarity.question,
-        clarification_options=[o.__dict__ for o in clarity.options],
-        error=None,
-    )
+    def _run(self, question: str, session_history: list[dict] | None = None) -> NL2SQLResult:
+        # Clarification-Check nur wenn Detector konfiguriert
+        if self._clarifier and self._clarifier.domains:
+            clarity = self._clarifier.analyze(question, conversation_history=session_history)
+            if clarity.is_ambiguous:
+                return NL2SQLResult(
+                    success=False,
+                    needs_clarification=True,
+                    clarification_question=clarity.question,
+                    clarification_options=[vars(o) for o in clarity.options],
+                )
+        # ... bestehender SQL-Generierungs-Flow ...
+```
+
+**Konfiguration je Schema-Source (Odoo-spezifische Domänen bleiben außerhalb von `aifw`):**
+
+```python
+# aifw_service/management/commands/init_odoo_schema.py
+engine = NL2SQLEngine(
+    source_code="odoo_mfg",
+    clarification_domains=[
+        "Maschinen", "Gießaufträge", "Qualitätsprüfungen",
+        "Einkauf/SCM", "Lager", "Produkte",
+    ],
+)
 ```
 
 **Frontend — OWL-Panel (`nl2sql_panel.js`):**
@@ -212,15 +304,22 @@ async selectClarification(ev) {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Kosten-Abschätzung
+### Kosten-Abschätzung (revidiert)
 
-| Call | Modell | ~Token | ~Kosten/1000 Fragen |
+| Call | Richtung | ~Token | ~Kosten/1000 Fragen |
 |---|---|---|---|
-| Clarity-Check (neu) | claude-3-haiku | ~80 | ~0,024 USD |
-| SQL-Generierung (bestehend) | claude-3-haiku | ~600 | ~0,18 USD |
-| **Gesamt** | | ~680 | **~0,20 USD** |
+| Clarity-Check Input | System-Prompt (~130) + User (~30) + Kontext (~20) | ~180 | ~0,018 USD |
+| Clarity-Check Output | JSON mit 4 Optionen | ~250 | ~0,063 USD |
+| SQL-Generierung Input | Schema + Frage + Beispiele | ~800 | ~0,080 USD |
+| SQL-Generierung Output | SQL + Erklärung | ~300 | ~0,075 USD |
+| **Gesamt pro Frage** | | **~1530** | **~0,24 USD** |
+| **Davon Clarity-Overhead** | +~430 Token | **+18%** | **+~0,08 USD** |
 
-Bei ambigen Fragen (~15%): Clarity-Check verhindert falsche SQL → **Qualitätsgewinn ohne nennenswerte Mehrkosten**.
+Bei ~15% ambigen Fragen verhindert der Clarity-Check falsche SQL-Ergebnisse.
+**Qualitätsgewinn rechtfertigt den Overhead deutlich.**
+
+> **Hinweis Rev. 1→2:** Ursprüngliche Schätzung (~80 Token, ~0,024 USD) unterschätzte
+> den System-Prompt-Anteil (~130 Token) und den JSON-Output (~250 Token) erheblich.
 
 ---
 
@@ -252,6 +351,9 @@ Bei ambigen Fragen (~15%): Clarity-Check verhindert falsche SQL → **Qualitäts
 
 **Entscheidung: NEIN** — zu früh, zu spezifisch, zu viel Wartungsoverhead.
 
+> **Hinweis:** Der Paketname `iil-aifw` sollte auf PyPI vorab reserviert werden
+> (kostenlos, leeres Placeholder-Release), um Squatting zu verhindern.
+
 #### Option B: Private PyPI Registry (empfohlen)
 
 **Optionen:**
@@ -269,12 +371,12 @@ version = "0.8.0"
 ```
 
 ```yaml
-# .github/workflows/publish.yml
+# .github/workflows/publish.yml  ← liegt im aifw-Submodul-Repo, nicht in odoo-hub!
 name: Publish iil-aifw to GitHub Packages
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*"]  # im aifw-Repo: alle v*-Tags gehören zu iil-aifw
 
 jobs:
   publish:
@@ -370,12 +472,25 @@ v1.0 TBD    Plugin-Architektur: iil-aifw-core / iil-aifw-nl2sql / iil-aifw-odoo
 
 ---
 
+## Offene Punkte / Bekannte Einschränkungen
+
+- **Kein User-Bypass**: Erfahrene User die wissen was sie fragen werden bei ambigen
+  Formulierungen gebremst. Empfehlung für v0.9: Query-Prefix `!` oder User-Setting
+  `clarification_enabled=False` in `SchemaSource`.
+- **Clarification-Domains sind manuell zu pflegen**: Neue Odoo-Modelle müssen in
+  `init_odoo_schema.py` ergänzt werden. Automatisierung via `sync_odoo_schema`
+  (ADR-009) ist geplant.
+- **Kein Conversation-State**: `session_history` ist aktuell stateless (kein persistenter
+  Session-Store). Bis Conversation-State implementiert ist (ADR-009 Sprint 17+) wird
+  `session_history=None` übergeben — der Detector arbeitet dann mit `threshold=0.65`.
+
 ## Abgelehnte Alternativen
 
 | Alternative | Grund der Ablehnung |
 |---|---|
-| Öffentliches PyPI sofort | Zu früh, zu Odoo-spezifisch, Wartungsoverhead |
+| Öffentliches PyPI sofort | Zu früh, zu spezifisch, Wartungsoverhead — siehe ADR-011 |
 | Kein Clarification-Agent | Zu viele falsche SQL bei allgemeinen Fragen |
 | Clarification immer aktiv | Overhead bei klaren Fragen, nervt erfahrene User |
-| Single-Package ohne Plugin-Option | Skaliert nicht wenn zweites Projekt iil-aifw nutzt |
+| Hardcodierter Domänen-Prompt in `aifw` | Koppelt `aifw.nl2sql` an Odoo — widerspricht ADR-011 |
+| Separater LLM-Anbieter für Clarity-Check | Zusätzliche Konfiguration, kein Mehrwert |
 | Neo4j für Graph-Schema | Overkill — JSON-Relationships im XML reichen für <50 Tabellen |
