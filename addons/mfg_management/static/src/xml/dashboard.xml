@@ -799,17 +799,27 @@
             <div class="iil-dynamic-dashboard-header">
                 <h1><i class="fa fa-industry me-2"/><t t-esc="dashboardTitle"/></h1>
             </div>
+
+            <!-- NL2SQL Banner — immer oben als Vollbreite wenn nl2sql aktiv -->
+            <t t-if="getNl2sqlComponent()">
+                <div class="iil-nl2sql-banner">
+                    <t t-component="getNl2sqlComponent()"/>
+                </div>
+            </t>
+
             <div class="iil-panels-grid">
                 <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
-                    <div class="iil-panel-card">
-                        <div class="iil-panel-card-header">
-                            <i t-att-class="'fa fa-' + panel.icon"/>
-                            <span t-esc="panel.label"/>
+                    <t t-if="panel.code !== 'nl2sql'">
+                        <div class="iil-panel-card">
+                            <div class="iil-panel-card-header">
+                                <i t-att-class="'fa fa-' + panel.icon"/>
+                                <span t-esc="panel.label"/>
+                            </div>
+                            <div class="iil-panel-card-body">
+                                <t t-component="getPanelComponent(panel.code)"/>
+                            </div>
                         </div>
-                        <div class="iil-panel-card-body">
-                            <t t-component="getPanelComponent(panel.code)"/>
-                        </div>
-                    </div>
+                    </t>
                 </t>
             </div>
         </t>

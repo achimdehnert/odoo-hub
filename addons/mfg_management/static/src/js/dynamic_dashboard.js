@@ -92,6 +92,10 @@ export class DynamicDashboard extends Component {
         return this._panelComponents[code] || null;
     }
 
+    getNl2sqlComponent() {
+        return this._panelComponents["nl2sql"] || null;
+    }
+
     get dashboardTitle() {
         return "IIL Manufacturing Cockpit";
     }

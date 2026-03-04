@@ -1581,3 +1581,183 @@
     min-width: 16px;
     text-align: center;
 }
+
+/* ── NL2SQL Banner (Vollbreite über Panel-Grid) ───────────────────── */
+
+.iil-nl2sql-banner {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.iil-nl2sql-panel {
+    width: 100%;
+}
+
+.iil-nl2sql-panel-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.iil-nl2sql-panel-header .fa-magic {
+    color: #8b5cf6;
+}
+
+.iil-nl2sql-panel-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.iil-nl2sql-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.iil-nl2sql-input {
+    flex: 1;
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .15s;
+}
+
+.iil-nl2sql-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.1); }
+
+.iil-nl2sql-run-btn {
+    padding: 8px 18px;
+    background: #8b5cf6;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+}
+
+.iil-nl2sql-run-btn:hover { background: #7c3aed; }
+.iil-nl2sql-run-btn:disabled { background: #c4b5fd; cursor: not-allowed; }
+
+.iil-nl2sql-clear-btn {
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.iil-nl2sql-suggests {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.iil-nl2sql-suggest-chip {
+    padding: 4px 12px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 20px;
+    font-size: .8rem;
+    color: #6d28d9;
+    cursor: pointer;
+    transition: background .12s;
+}
+
+.iil-nl2sql-suggest-chip:hover { background: #ede9fe; }
+
+.iil-nl2sql-sql-box {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: .8rem;
+    overflow-x: auto;
+}
+
+.iil-sql-label {
+    background: #8b5cf6;
+    color: #fff;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: .7rem;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.iil-nl2sql-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #dc2626;
+    font-size: .85rem;
+    margin: 8px 0;
+}
+
+.iil-nl2sql-meta {
+    font-size: .82rem;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.iil-nl2sql-summary {
+    color: #1e293b;
+    font-style: italic;
+}
+
+.iil-nl2sql-table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.iil-nl2sql-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+}
+
+.iil-nl2sql-table th {
+    background: #f8fafc;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+}
+
+.iil-nl2sql-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.iil-nl2sql-table tr:last-child td { border-bottom: none; }
+.iil-nl2sql-table tr:hover td { background: #f8fafc; }
+
+.iil-nl2sql-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 20px;
+    font-size: .85rem;
+}
