@@ -149,9 +149,9 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
             cd ${DEPLOY_PATH}
-            docker compose -f docker-compose.prod.yml pull --quiet || true
-            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
-            docker compose -f docker-compose.prod.yml ps
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull --quiet || true
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.yml --env-file .env.prod ps
           "
 
       - name: Odoo module update (odoo -u)
@@ -162,7 +162,7 @@ jobs:
             sleep 20
             MODULES=\"iil_dashboard_core,casting_foundry,scm_manufacturing,mfg_machining,iil_configurator,mfg_management,mfg_nl2sql\"
             echo \"Running: odoo -u \${MODULES}\"
-            docker compose -f docker-compose.prod.yml run --rm web \\
+            docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm web \\
               odoo -u \"\${MODULES}\" --stop-after-init -d odoo 2>&1 | tail -20
             EXIT_CODE=\$?
             if [ \$EXIT_CODE -ne 0 ]; then
@@ -176,11 +176,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
             cd ${DEPLOY_PATH}
-            # Use compose up instead of docker restart — Traefik auto-detects
-            # the new container IP via docker socket without needing its own restart.
-            # docker restart causes a timing window where Traefik loses the route.
-            docker compose -f docker-compose.prod.yml up -d --no-deps web
+            # Always use --env-file so ODOO_DOMAIN label is set correctly.
+            # Without it Traefik gets Host(``) and returns 404 for all requests.
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-deps web
             sleep 15
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-deps traefik
+            sleep 5
           "
 
       - name: Health check
