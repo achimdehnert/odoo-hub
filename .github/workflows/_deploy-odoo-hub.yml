@@ -175,12 +175,12 @@ jobs:
       - name: Restart Odoo web after update
         run: |
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
-            docker restart odoo_web
-            sleep 10
-            # Traefik loses routing after docker restart odoo_web — reload required.
-            # Without this, Traefik returns 404 for all requests until manually fixed.
-            docker restart odoo_traefik
-            sleep 5
+            cd ${DEPLOY_PATH}
+            # Use compose up instead of docker restart — Traefik auto-detects
+            # the new container IP via docker socket without needing its own restart.
+            # docker restart causes a timing window where Traefik loses the route.
+            docker compose -f docker-compose.prod.yml up -d --no-deps web
+            sleep 15
           "
 
       - name: Health check
