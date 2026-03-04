@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     IilDynamicDashboard — Feature-Registry-gesteuert, model-agnostisch.
+     Fällt graceful zurück wenn keine Features aktiv oder Loader fehlt.
+════════════════════════════════════════════════════════════════════ -->
+<t t-name="iil_dashboard_core.IilDynamicDashboard">
+    <div class="iil-dynamic-dashboard">
+
+        <!-- Lade-Spinner -->
+        <t t-if="state.loading">
+            <div class="iil-panel-loading">
+                <i class="fa fa-spinner fa-spin fa-2x me-2"/>
+                Dashboard wird geladen…
+            </div>
+        </t>
+
+        <!-- Fallback: von der Subklasse bereitgestellte Komponente -->
+        <t t-elif="state.fallback">
+            <t t-if="fallbackComponent">
+                <t t-component="fallbackComponent"/>
+            </t>
+            <t t-else="">
+                <div class="iil-panel-loading">
+                    <i class="fa fa-info-circle me-2"/>
+                    Keine Panels konfiguriert.
+                </div>
+            </t>
+        </t>
+
+        <!-- Dynamische Panels aus iil_panels-Registry -->
+        <t t-else="">
+            <div class="iil-dynamic-dashboard-header">
+                <h1><i class="fa fa-industry me-2"/><t t-esc="dashboardTitle"/></h1>
+            </div>
+            <div class="iil-panels-grid">
+                <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
+                    <div class="iil-panel-card">
+                        <div class="iil-panel-card-header">
+                            <i t-att-class="'fa fa-' + panel.icon"/>
+                            <span t-esc="panel.label"/>
+                        </div>
+                        <div class="iil-panel-card-body">
+                            <PanelErrorBoundary>
+                                <t t-component="panel.component"
+                                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                            </PanelErrorBoundary>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </t>
+
+    </div>
+</t>
+
+</templates>

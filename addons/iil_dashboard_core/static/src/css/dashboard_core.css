@@ -1,0 +1,95 @@
+/* IIL Dashboard Core — Base Styles
+ * Shared CSS for all iil_dashboard_core-based dashboards.
+ * Consuming modules can override or extend these classes.
+ */
+
+/* ── Grid Layout ──────────────────────────────────────────── */
+.iil-dynamic-dashboard {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.iil-dynamic-dashboard-header {
+    margin-bottom: 24px;
+}
+
+.iil-dynamic-dashboard-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.iil-panels-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1200px) {
+    .iil-panels-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1800px) {
+    .iil-panels-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+/* ── Panel Card ───────────────────────────────────────────── */
+.iil-panel-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04);
+    overflow: hidden;
+}
+
+.iil-panel-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+    font-size: .95rem;
+    color: #1e293b;
+}
+
+.iil-panel-card-header .fa {
+    color: #3b82f6;
+    font-size: 1rem;
+}
+
+.iil-panel-card-body {
+    padding: 20px;
+}
+
+/* ── Loading / Empty States ───────────────────────────────── */
+.iil-panel-loading {
+    padding: 32px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: .9rem;
+}
+
+/* ── Error Boundary ───────────────────────────────────────── */
+.iil-panel-error {
+    padding: 16px 20px;
+    color: #b45309;
+    background: #fffbeb;
+    border-radius: 8px;
+    border: 1px solid #fde68a;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.iil-panel-error-detail {
+    font-family: monospace;
+    font-size: .75rem;
+    word-break: break-all;
+    opacity: .75;
+}

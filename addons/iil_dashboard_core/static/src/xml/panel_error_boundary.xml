@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PanelErrorBoundary — isoliert crashende Panels vom OWL-App-Kontext.
+     Verhindert dass ein Panel-Fehler die gesamte Navigation einfriert.
+     Slot "default" wird transparent gerendert wenn kein Fehler vorliegt.
+════════════════════════════════════════════════════════════════════ -->
+<t t-name="iil_dashboard_core.PanelErrorBoundary">
+    <t t-if="state.hasError">
+        <div class="iil-panel-error">
+            <i class="fa fa-exclamation-triangle text-warning me-2"/>
+            <span>Panel konnte nicht geladen werden</span>
+            <div class="iil-panel-error-detail text-muted small mt-1" t-esc="state.errorMsg"/>
+        </div>
+    </t>
+    <t t-else="">
+        <t t-slot="default"/>
+    </t>
+</t>
+
+</templates>

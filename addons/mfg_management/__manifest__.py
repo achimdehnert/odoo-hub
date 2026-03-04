@@ -20,6 +20,7 @@
         "base",
         "web",
         "mail",
+        "iil_dashboard_core",
         "casting_foundry",
         "scm_manufacturing",
     ],
