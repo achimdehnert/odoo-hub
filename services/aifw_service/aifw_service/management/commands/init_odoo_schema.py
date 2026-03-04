@@ -108,8 +108,8 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <column name="id" type="integer" nullable="false"/>
     <column name="name" type="varchar" nullable="false"/>
     <column name="is_company" type="boolean"/>
-    <column name="supplier_rank" type="integer"><description>Lieferantenrang, &gt;0 = ist Lieferant</description></column>
-    <column name="customer_rank" type="integer"><description>Kundenrang, &gt;0 = ist Kunde</description></column>
+    <column name="email" type="varchar"><description>E-Mail-Adresse</description></column>
+    <column name="phone" type="varchar"><description>Telefonnummer</description></column>
   </table>
 
 </schema>
