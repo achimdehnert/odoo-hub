@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 import random
-from datetime import date, datetime as _datetime, timedelta
+from datetime import date, timedelta
+from datetime import datetime as _datetime
 
 from dateutil.relativedelta import relativedelta
-
 from odoo import api, models
 from odoo.exceptions import UserError
 
@@ -365,7 +365,7 @@ class IilSeedEngine(models.AbstractModel):
 
         raw_wh      = warehouses[0]
         wip_wh      = warehouses[1]
-        finished_wh = warehouses[2]
+        warehouses[2]
 
         # ── Teile anlegen (idempotent via part_number) ────────────────────
         parts = []
@@ -380,7 +380,7 @@ class IilSeedEngine(models.AbstractModel):
         raw_parts      = [p for p in parts if p.part_type == 'raw']
         semi_parts     = [p for p in parts if p.part_type == 'semi']
         finished_parts = [p for p in parts if p.part_type == 'finished']
-        consumables    = [p for p in parts if p.part_type == 'consumable']
+        [p for p in parts if p.part_type == 'consumable']
         all_buy_parts  = [p for p in parts if p.make_or_buy == 'buy']
 
         # Lieferanten-Partner (admin-Company-Kontakte suchen oder Dummy nutzen)

@@ -7,7 +7,6 @@ available for natural language queries. This model serves as:
 2. Context for the LLM to generate accurate SQL
 3. Human-readable descriptions for schema documentation
 """
-import json
 import logging
 
 from odoo import api, fields, models

@@ -4,7 +4,6 @@ import logging
 from datetime import datetime
 
 import requests
-
 from odoo import fields, models
 
 _logger = logging.getLogger(__name__)

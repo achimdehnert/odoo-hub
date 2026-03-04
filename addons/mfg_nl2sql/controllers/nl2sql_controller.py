@@ -11,13 +11,10 @@ import json
 import logging
 import re
 import time
-import traceback
 
 import requests
-
 from odoo import http
 from odoo.http import request
-from odoo.exceptions import AccessDenied
 
 _logger = logging.getLogger(__name__)
 

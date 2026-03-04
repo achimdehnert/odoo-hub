@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Configuration settings for NL2SQL module."""
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class ResConfigSettings(models.TransientModel):

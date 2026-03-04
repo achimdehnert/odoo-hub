@@ -66,13 +66,17 @@ class TestChartDetection(TransactionCase):
     """Test chart type auto-detection."""
 
     def test_single_value_kpi(self):
-        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import detect_chart_type
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+            detect_chart_type,
+        )
         cols = [{'name': 'count', 'type': 'integer'}]
         rows = [[42]]
         self.assertEqual(detect_chart_type(cols, rows), 'kpi')
 
     def test_label_numeric_pie(self):
-        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import detect_chart_type
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+            detect_chart_type,
+        )
         cols = [
             {'name': 'status', 'type': 'varchar'},
             {'name': 'count', 'type': 'integer'},
@@ -81,7 +85,9 @@ class TestChartDetection(TransactionCase):
         self.assertEqual(detect_chart_type(cols, rows), 'pie')
 
     def test_date_numeric_line(self):
-        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import detect_chart_type
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+            detect_chart_type,
+        )
         cols = [
             {'name': 'monat', 'type': 'date'},
             {'name': 'umsatz', 'type': 'float'},
@@ -90,7 +96,9 @@ class TestChartDetection(TransactionCase):
         self.assertEqual(detect_chart_type(cols, rows), 'line')
 
     def test_many_rows_bar(self):
-        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import detect_chart_type
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+            detect_chart_type,
+        )
         cols = [
             {'name': 'supplier', 'type': 'varchar'},
             {'name': 'total', 'type': 'float'},
@@ -99,7 +107,9 @@ class TestChartDetection(TransactionCase):
         self.assertEqual(detect_chart_type(cols, rows), 'bar')
 
     def test_empty_returns_table(self):
-        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import detect_chart_type
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import (
+            detect_chart_type,
+        )
         self.assertEqual(detect_chart_type([], []), 'table')
 
 

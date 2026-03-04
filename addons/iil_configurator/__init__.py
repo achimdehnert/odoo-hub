@@ -2,10 +2,9 @@
 import logging
 import os
 
-from odoo import api, SUPERUSER_ID
+from odoo import SUPERUSER_ID, api
 
-from . import models
-from . import wizard
+from . import models, wizard
 
 _logger = logging.getLogger(__name__)
 

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from . import query_history
-from . import saved_query
-from . import schema_metadata
-from . import dashboard_config
-from . import res_config_settings
+from . import (
+    dashboard_config,
+    query_history,
+    res_config_settings,
+    saved_query,
+    schema_metadata,
+)

@@ -38,7 +38,7 @@ class CastingPanelController(http.Controller):
         last_month_str  = last_month_start.isoformat()
 
         qc_pass  = env['casting.quality.check'].search_count([('result', '=', 'pass'),  ('check_date', '>=', month_start_str)])
-        qc_fail  = env['casting.quality.check'].search_count([('result', '=', 'fail'),  ('check_date', '>=', month_start_str)])
+        env['casting.quality.check'].search_count([('result', '=', 'fail'),  ('check_date', '>=', month_start_str)])
         qc_total = env['casting.quality.check'].search_count([('check_date', '>=', month_start_str)])
         qc_rate  = round(qc_pass / qc_total * 100, 1) if qc_total else 0.0
 

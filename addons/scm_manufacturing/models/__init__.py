@@ -1,9 +1,11 @@
-from . import scm_part
-from . import scm_bom
-from . import scm_supplier_info
-from . import scm_purchase
-from . import scm_production
-from . import scm_warehouse
-from . import scm_stock_move
-from . import scm_delivery
-from . import scm_incoming_inspection
+from . import (
+    scm_bom,
+    scm_delivery,
+    scm_incoming_inspection,
+    scm_part,
+    scm_production,
+    scm_purchase,
+    scm_stock_move,
+    scm_supplier_info,
+    scm_warehouse,
+)

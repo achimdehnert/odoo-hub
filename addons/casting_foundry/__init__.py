@@ -1,3 +1,1 @@
-from . import models
-from . import populate
-from . import controllers
+from . import controllers, models, populate

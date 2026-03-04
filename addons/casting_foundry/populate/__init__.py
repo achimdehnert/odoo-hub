@@ -1,5 +1,7 @@
-from . import populate_material
-from . import populate_alloy
-from . import populate_mold
-from . import populate_machine
-from . import populate_order
+from . import (
+    populate_alloy,
+    populate_machine,
+    populate_material,
+    populate_mold,
+    populate_order,
+)

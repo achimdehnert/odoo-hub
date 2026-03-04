@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from datetime import date, timedelta
+from datetime import date
 
 from odoo import http
 from odoo.http import request

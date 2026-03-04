@@ -257,8 +257,8 @@ class MfgDashboardController(http.Controller):
     @http.route("/mfg_management/nl2sql", type="json", auth="user")
     def nl2sql_query(self, query, source_code="odoo_mfg", conversation_history=None):
         """HTTP proxy to aifw_service NL2SQL microservice."""
-        import urllib.request
         import urllib.error
+        import urllib.request
 
         if not query or not query.strip():
             return {"error": "Leere Anfrage"}

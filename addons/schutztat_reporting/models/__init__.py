@@ -1,4 +1,1 @@
-from . import assessment
-from . import hazard
-from . import action_item
-from . import sync_log
+from . import action_item, assessment, hazard, sync_log

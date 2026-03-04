@@ -4,7 +4,6 @@
 Stores every natural language query, the generated SQL,
 execution results, and visualization metadata.
 """
-import json
 import logging
 
 from odoo import api, fields, models
