@@ -413,12 +413,99 @@ WICHTIG:
     # -------------------------------------------------------------------
     # HTTP Endpoints
     # -------------------------------------------------------------------
+    def _call_aifw_service(self, query_text, conversation_history=None):
+        """Call aifw_service NL2SQL endpoint (preferred pipeline with Clarification-Agent).
+
+        Falls back gracefully if aifw_service is unavailable.
+        Returns (result_dict, used_aifw) — result_dict is None on error.
+        """
+        ICP = request.env['ir.config_parameter'].sudo()
+        aifw_url = ICP.get_param('mfg_nl2sql.aifw_service_url', 'http://aifw_service:8001')
+        if not aifw_url:
+            return None, False
+        try:
+            resp = requests.post(
+                f"{aifw_url}/nl2sql/query",
+                json={
+                    'query': query_text,
+                    'source_code': 'odoo_mfg',
+                    'conversation_history': conversation_history or [],
+                },
+                timeout=45,
+            )
+            resp.raise_for_status()
+            return resp.json(), True
+        except Exception as exc:
+            _logger.warning("aifw_service unavailable, falling back to direct LLM: %s", exc)
+            return None, False
+
     @http.route('/mfg_nl2sql/query', type='json', auth='user', methods=['POST'])
     def execute_query(self, query_text, domain_filter='all', chart_type=None,
-                      saved_query_id=None):
-        """Main NL2SQL endpoint: translate + execute + visualize."""
+                      saved_query_id=None, conversation_history=None):
+        """Main NL2SQL endpoint: translate + execute + visualize.
+
+        Preferred path: aifw_service (Clarification-Agent + few-shot + self-healing).
+        Fallback: direct LLM call (legacy pipeline).
+        """
         config = self._get_llm_config()
 
+        # ── Try aifw_service first (v0.8.0+ pipeline) ───────────────────────
+        aifw_result, used_aifw = self._call_aifw_service(
+            query_text, conversation_history=conversation_history
+        )
+        if used_aifw and aifw_result is not None:
+            # Clarification needed?
+            if aifw_result.get('needs_clarification'):
+                return {
+                    'needs_clarification': True,
+                    'clarification_question': aifw_result.get('clarification_question', ''),
+                    'clarification_options': aifw_result.get('clarification_options', []),
+                }
+            # SQL error from aifw_service?
+            if not aifw_result.get('success'):
+                request.env['nl2sql.query.history'].sudo().create({
+                    'name': query_text,
+                    'domain_filter': domain_filter,
+                    'state': 'error',
+                    'error_message': aifw_result.get('error', 'aifw_service Fehler'),
+                    'llm_tokens_used': 0,
+                })
+                return {'error': aifw_result.get('error', 'Unbekannter Fehler')}
+            # Success — reuse aifw_service result
+            columns = aifw_result.get('columns', [])
+            rows = aifw_result.get('rows', [])
+            sanitized = aifw_result.get('sql', '')
+            tokens = (aifw_result.get('tokens', {}) or {}).get('input', 0)
+            detected_chart = chart_type or aifw_result.get('chart_type') or detect_chart_type(columns, rows)
+            chart_config = build_chart_config(detected_chart, columns, rows)
+            history = request.env['nl2sql.query.history'].sudo().create({
+                'name': query_text,
+                'generated_sql': sanitized,
+                'sanitized_sql': sanitized,
+                'domain_filter': domain_filter,
+                'state': 'success',
+                'result_data': json.dumps(rows),
+                'result_columns': json.dumps(columns),
+                'result_row_count': aifw_result.get('row_count', len(rows)),
+                'chart_type': detected_chart,
+                'chart_config': json.dumps(chart_config),
+                'execution_time_ms': int(aifw_result.get('execution_time_ms', 0)),
+                'llm_tokens_used': tokens,
+                'saved_query_id': saved_query_id,
+            })
+            return {
+                'history_id': history.id,
+                'sql': sanitized,
+                'columns': columns,
+                'rows': rows,
+                'row_count': aifw_result.get('row_count', len(rows)),
+                'chart_type': detected_chart,
+                'chart_config': chart_config,
+                'execution_time_ms': int(aifw_result.get('execution_time_ms', 0)),
+                'tokens_used': tokens,
+            }
+
+        # ── Fallback: legacy direct LLM pipeline ────────────────────────────
         # 1. Translate NL → SQL
         generated_sql, tokens, error = self._translate_nl_to_sql(
             query_text, domain_filter

@@ -28,12 +28,19 @@ export class NL2SQLDashboard extends Component {
             currentResult: null,
             currentError: null,
             currentSql: null,
+            // Clarification state
+            needsClarification: false,
+            clarificationQuestion: "",
+            clarificationOptions: [],
+            pendingQuery: "",
             // UI state
             showHistory: false,
             showSchema: false,
             selectedDomain: "all",
             userName: "",
         });
+
+        this._conversationHistory = [];
 
         onWillStart(async () => {
             await this._loadDashboardData();
@@ -64,19 +71,33 @@ export class NL2SQLDashboard extends Component {
         this.state.currentError = null;
         this.state.currentResult = null;
         this.state.currentSql = null;
+        this.state.needsClarification = false;
+        this.state.clarificationOptions = [];
+        this.state.pendingQuery = queryText;
 
         try {
             const result = await rpc("/mfg_nl2sql/query", {
                 query_text: queryText,
                 domain_filter: this.state.selectedDomain,
+                conversation_history: this._conversationHistory,
             });
 
-            if (result.error) {
+            if (result.needs_clarification) {
+                this.state.needsClarification = true;
+                this.state.clarificationQuestion = result.clarification_question || "Bitte präzisiere deine Frage:";
+                this.state.clarificationOptions = result.clarification_options || [];
+            } else if (result.error) {
                 this.state.currentError = result.error;
                 this.state.currentSql = result.sql || null;
+                this._conversationHistory = [];
             } else {
                 this.state.currentResult = result;
                 this.state.currentSql = result.sql;
+                // Track conversation for follow-up questions
+                this._conversationHistory = [
+                    { role: "user", content: queryText },
+                    { role: "assistant", content: result.sql || "" },
+                ];
                 // Prepend to local history
                 this.state.history.unshift({
                     id: result.history_id,
@@ -87,7 +108,6 @@ export class NL2SQLDashboard extends Component {
                     create_date: new Date().toISOString(),
                     is_pinned: false,
                 });
-                // Trim local history to 20 entries
                 if (this.state.history.length > 20) {
                     this.state.history = this.state.history.slice(0, 20);
                 }
@@ -98,6 +118,20 @@ export class NL2SQLDashboard extends Component {
         } finally {
             this.state.isLoading = false;
         }
+    }
+
+    async onClarificationSelect(ev) {
+        const hint = ev.currentTarget.dataset.hint || "";
+        const label = ev.currentTarget.dataset.label || "";
+        const refinedQuery = this.state.pendingQuery + " " + hint;
+        this.state.needsClarification = false;
+        await this.onQuerySubmit(refinedQuery);
+    }
+
+    onClarificationDismiss() {
+        this.state.needsClarification = false;
+        this.state.pendingQuery = "";
+        this.state.clarificationOptions = [];
     }
 
     async onHistorySelect(historyId) {

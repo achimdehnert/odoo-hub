@@ -58,6 +58,32 @@
                     <span>SQL wird generiert und ausgeführt...</span>
                 </div>
 
+                <!-- Clarification Panel -->
+                <div class="nl2sql-clarification" t-if="state.needsClarification and !state.isLoading">
+                    <div class="nl2sql-clarification__header">
+                        <i class="fa fa-question-circle me-2 text-primary"/>
+                        <strong t-esc="state.clarificationQuestion"/>
+                        <button class="btn btn-sm btn-link ms-auto nl2sql-clarification__dismiss"
+                                t-on-click="onClarificationDismiss"
+                                title="Abbrechen">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+                    <div class="nl2sql-clarification__options">
+                        <t t-foreach="state.clarificationOptions" t-as="opt" t-key="opt_index">
+                            <button class="nl2sql-clarification__option"
+                                    t-on-click="onClarificationSelect"
+                                    t-att-data-hint="opt.hint"
+                                    t-att-data-label="opt.label">
+                                <span class="nl2sql-clarification__option-label" t-esc="opt.label"/>
+                                <span class="nl2sql-clarification__option-desc text-muted small"
+                                      t-if="opt.description"
+                                      t-esc="opt.description"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
                 <!-- Error Display -->
                 <div class="nl2sql-error alert alert-danger" t-if="state.currentError and !state.isLoading">
                     <h4><i class="fa fa-exclamation-triangle"/> Fehler</h4>

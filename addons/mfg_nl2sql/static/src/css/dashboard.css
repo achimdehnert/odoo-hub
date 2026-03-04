@@ -468,3 +468,67 @@
 .nl2sql-dashboard--dark .nl2sql-example-chip:hover {
     background: #1e3a5f;
 }
+
+/* ── Clarification Panel ─────────────────────────────────── */
+
+.nl2sql-clarification {
+    background: var(--nl2sql-surface);
+    border: 1.5px solid var(--nl2sql-primary);
+    border-radius: var(--nl2sql-radius);
+    padding: 20px 24px;
+    margin: 16px 0;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+}
+
+.nl2sql-clarification__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    color: var(--nl2sql-text);
+}
+
+.nl2sql-clarification__dismiss {
+    color: var(--nl2sql-text-muted);
+    padding: 2px 6px;
+    line-height: 1;
+}
+
+.nl2sql-clarification__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.nl2sql-clarification__option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: var(--nl2sql-bg);
+    border: 1px solid var(--nl2sql-border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    min-width: 140px;
+    text-align: left;
+}
+
+.nl2sql-clarification__option:hover {
+    border-color: var(--nl2sql-primary);
+    background: #eff6ff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+}
+
+.nl2sql-clarification__option-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--nl2sql-text);
+}
+
+.nl2sql-clarification__option-desc {
+    margin-top: 3px;
+    font-size: 0.78rem;
+    color: var(--nl2sql-text-muted);
+    line-height: 1.3;
+}
