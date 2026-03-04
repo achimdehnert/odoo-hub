@@ -67,6 +67,31 @@ export class MachinesPanel extends Component {
     openMachinesByState(state) {
         this.openMachines([["state", "=", state]]);
     }
+
+    openMachinesByStateEv(ev) {
+        const state = ev.currentTarget.dataset.machineState;
+        if (state) this.openMachinesByState(state);
+    }
+
+    setFilterEv(ev) {
+        const f = ev.currentTarget.dataset.filter;
+        if (f) this.setFilter(f);
+    }
+
+    openMachineDetailEv(ev) {
+        const el = ev.currentTarget;
+        const domain = el.dataset.domain;
+        const model = domain === "machining" ? "machining.machine" : "casting.machine";
+        const machineId = parseInt(el.dataset.machineId, 10);
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: el.dataset.machineName || "Maschine",
+            res_model: model,
+            view_mode: "form",
+            views: [[false, "form"]],
+            res_id: machineId,
+        });
+    }
 }
 
 registry.category("iil_panels").add("machines", {

@@ -18,17 +18,23 @@
                     <div class="iil-kpi-sub"><t t-esc="state.kpis.combined_states.operational"/> / <t t-esc="state.kpis.total"/> Maschinen</div>
                     <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card iil-clickable" t-on-click="() => openMachinesByState('operational')">
+                <div class="iil-kpi-card iil-clickable"
+                     data-machine-state="operational"
+                     t-on-click="openMachinesByStateEv">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.operational"/></div>
                     <div class="iil-kpi-label">Betriebsbereit</div>
                     <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.combined_states.maintenance > 0 ? '' : '')" t-on-click="() => openMachinesByState('maintenance')">
+                <div class="iil-kpi-card iil-clickable"
+                     data-machine-state="maintenance"
+                     t-on-click="openMachinesByStateEv">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.maintenance"/></div>
                     <div class="iil-kpi-label">In Wartung</div>
                     <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.combined_states.breakdown > 0 ? 'iil-trend-bad' : '')" t-on-click="() => openMachinesByState('breakdown')">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.combined_states.breakdown > 0 ? 'iil-trend-bad' : '')"
+                     data-machine-state="breakdown"
+                     t-on-click="openMachinesByStateEv">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.breakdown"/></div>
                     <div class="iil-kpi-label">Störung</div>
                     <i class="fa fa-arrow-right iil-kpi-nav"/>
@@ -43,7 +49,8 @@
             <div class="iil-machines-filter-row">
                 <t t-foreach="[['all','Alle'],['operational','Betrieb'],['maintenance','Wartung'],['breakdown','Störung']]" t-as="f" t-key="f[0]">
                     <button t-att-class="'iil-filter-btn' + (state.filter === f[0] ? ' active' : '')"
-                            t-on-click="() => setFilter(f[0])">
+                            t-att-data-filter="f[0]"
+                            t-on-click="setFilterEv">
                         <t t-esc="f[1]"/>
                     </button>
                 </t>
@@ -52,7 +59,11 @@
             <!-- Maschinenliste -->
             <div class="iil-machine-list">
                 <t t-foreach="filteredMachines()" t-as="m" t-key="m.domain + '-' + m.id">
-                    <div class="iil-machine-row">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-machine-id="m.id"
+                         t-att-data-machine-name="m.name"
+                         t-att-data-domain="m.domain"
+                         t-on-click="openMachineDetailEv">
                         <span class="iil-machine-state-dot" t-att-style="'background:' + stateColor(m.state)"/>
                         <i t-att-class="'fa ' + domainIcon(m.domain) + ' iil-machine-domain-icon'"/>
                         <span class="iil-machine-name"><t t-esc="m.name"/></span>
