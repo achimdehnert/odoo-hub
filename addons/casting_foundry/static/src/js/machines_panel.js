@@ -2,19 +2,10 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
-import { NL2SqlQueryBar } from "@mfg_management/js/nl2sql_query_bar";
 
 export class MachinesPanel extends Component {
     static template = "casting_foundry.MachinesPanel";
-    static components = { NL2SqlQueryBar };
-
-    suggestQueries() {
-        return [
-            "Welche Maschinen sind aktuell in Störung?",
-            "Durchschnittliche Wartungszeit pro Maschinentyp",
-            "Wie viele Maschinen sind pro Halle verfügbar?",
-        ];
-    }
+    static components = {};
 
     setup() {
         this.state = useState({ loading: true, kpis: null, error: null, filter: "all" });

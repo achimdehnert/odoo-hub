@@ -62,9 +62,6 @@
                     <div class="iil-empty">Keine Maschinen in diesem Status</div>
                 </t>
             </div>
-
-            <!-- NL2SQL Query-Bar -->
-            <NL2SqlQueryBar sourceCode="'odoo_mfg'" suggestQueries="suggestQueries()" title="'KI-Assistent (Maschinen)'"/>
         </t>
     </div>
 </t>

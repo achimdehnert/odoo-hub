@@ -63,9 +63,6 @@
                     <div class="iil-empty">Keine offenen Bestellungen</div>
                 </t>
             </div>
-
-            <!-- NL2SQL Query-Bar -->
-            <NL2SqlQueryBar sourceCode="'odoo_mfg'" suggestQueries="suggestQueries()" title="'KI-Assistent (SCM)'"/>
         </t>
     </div>
 </t>

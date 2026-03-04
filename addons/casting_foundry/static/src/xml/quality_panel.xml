@@ -78,9 +78,6 @@
                     </t>
                 </div>
             </t>
-
-            <!-- NL2SQL Query-Bar -->
-            <NL2SqlQueryBar sourceCode="'odoo_mfg'" suggestQueries="suggestQueries()" title="'KI-Assistent (QS)'"/>
         </t>
     </div>
 </t>

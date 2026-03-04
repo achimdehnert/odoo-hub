@@ -2,19 +2,10 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
-import { NL2SqlQueryBar } from "@mfg_management/js/nl2sql_query_bar";
 
 export class QualityPanel extends Component {
     static template = "casting_foundry.QualityPanel";
-    static components = { NL2SqlQueryBar };
-
-    suggestQueries() {
-        return [
-            "Wie viele QS-Prüfungen haben diesen Monat nicht bestanden?",
-            "Zeige häufigste Fehlerarten der letzten 6 Monate",
-            "Bestehensrate nach Prüfart im Vergleich zum Vormonat",
-        ];
-    }
+    static components = {};
 
     setup() {
         this.state = useState({ loading: true, kpis: null, error: null });

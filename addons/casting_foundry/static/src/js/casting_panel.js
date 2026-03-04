@@ -2,19 +2,10 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
-import { NL2SqlQueryBar } from "@mfg_management/js/nl2sql_query_bar";
 
 export class CastingPanel extends Component {
     static template = "casting_foundry.CastingPanel";
-    static components = { NL2SqlQueryBar };
-
-    suggestQueries() {
-        return [
-            "Wie viele Gießerei-Aufträge sind aktuell in Fertigung?",
-            "Zeige Ausschussrate nach Legierung im letzten Quartal",
-            "Welche Maschinen haben heute die meisten Aufträge?",
-        ];
-    }
+    static components = {};
 
     setup() {
         this.state = useState({ loading: true, kpis: null, error: null });
