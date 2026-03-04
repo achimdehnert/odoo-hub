@@ -68,6 +68,36 @@ import { X } from "iil_dashboard_core/static/src/js/panel_error_boundary";
 
 ---
 
+## OWL 2 Error Boundary mit `t-slot` bricht Event-Binding (behoben 2026-03-04)
+
+Ein weiteres OWL-18-spezifisches Problem: Ein Error-Boundary-Wrapper mit `t-slot="default"`
+und `onError()` verhindert das Event-Handler-Binding aller Kind-Komponenten:
+
+```xml
+<!-- ❌ VERBOTEN: PanelErrorBoundary als t-slot-Wrapper in dynamischen Grids -->
+<PanelErrorBoundary>
+    <t t-component="panel.component" t-props="..."/>
+</PanelErrorBoundary>
+```
+
+**Symptom:** Panels rendern visuell korrekt (Daten sichtbar), aber **kein Klick, kein
+Button, keine Interaktion** funktioniert innerhalb der Panels. Die Odoo-Topbar
+(höherer z-index) bleibt klickbar.
+
+**Root Cause:** `onError()` in OWL 2 in Kombination mit `t-slot="default"` und
+dynamischen `t-component`-Aufrufen unterbricht das OWL-Event-Binding für den
+Slot-Content. Die Komponenten werden gerendert aber Event-Handler werden nicht gebunden.
+
+```xml
+<!-- ✅ Korrekt: direkte t-component Aufrufe ohne Wrapper -->
+<t t-component="panel.component" t-props="..."/>
+```
+
+**Regel:** Kein `t-slot`-basierter Error-Boundary-Wrapper um dynamische Komponenten
+in OWL 2. OWL's eigenes Fehler-Handling reicht für Panel-Isolation aus.
+
+---
+
 ## Bekannte Fehler (behoben 2026-03-04)
 
 | Datei | Verbotener Import | Fix |
