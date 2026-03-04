@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import api, fields, models
 
 
 class CastingOrder(models.Model):
@@ -80,7 +80,7 @@ class CastingOrder(models.Model):
             total_qty = sum(lines.mapped("quantity"))
             total_scrap = sum(lines.mapped("scrap_qty"))
             rec.total_pieces = total_qty
-            rec.total_weight_kg = sum(l.quantity * l.piece_weight_kg for l in lines)
+            rec.total_weight_kg = sum(line.quantity * line.piece_weight_kg for line in lines)
             rec.total_scrap_pct = (
                 round(total_scrap / total_qty * 100, 1) if total_qty else 0.0
             )
