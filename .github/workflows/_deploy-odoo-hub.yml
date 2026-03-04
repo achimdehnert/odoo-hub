@@ -177,6 +177,10 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
             docker restart odoo_web
             sleep 10
+            # Traefik loses routing after docker restart odoo_web — reload required.
+            # Without this, Traefik returns 404 for all requests until manually fixed.
+            docker restart odoo_traefik
+            sleep 5
           "
 
       - name: Health check
