@@ -32,16 +32,7 @@
     "license": "LGPL-3",
     "depends": ["base", "web"],
     "data": [],
-    "assets": {
-        "web.assets_backend": [
-            "iil_dashboard_core/static/src/css/dashboard_core.css",
-            "iil_dashboard_core/static/src/js/panel_registry.js",
-            "iil_dashboard_core/static/src/js/panel_error_boundary.js",
-            "iil_dashboard_core/static/src/js/iil_dynamic_dashboard.js",
-            "iil_dashboard_core/static/src/xml/panel_error_boundary.xml",
-            "iil_dashboard_core/static/src/xml/iil_dynamic_dashboard.xml",
-        ],
-    },
+    "assets": {},
     "installable": True,
     "application": False,
     "auto_install": False,

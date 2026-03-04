@@ -753,11 +753,68 @@
 </t>
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     DynamicDashboard — erbt iil_dashboard_core.IilDynamicDashboard.
-     Eigenes Template nicht mehr nötig: wird durch Core-Template bedient.
-     Dieser Alias-Eintrag stellt sicher dass das Template unter dem
-     mfg_management-Namespace auffindbar ist (OWL t-name lookup).
+     PanelErrorBoundary — isoliert crashende Panels.
+     Verhindert OWL-App-Freeze bei einzelnem Panel-Fehler.
 ════════════════════════════════════════════════════════════════════ -->
-<t t-name="mfg_management.DynamicDashboard" t-inherit="iil_dashboard_core.IilDynamicDashboard" t-inherit-mode="primary"/>
+<t t-name="mfg_management.PanelErrorBoundary">
+    <t t-if="state.hasError">
+        <div class="iil-panel-error">
+            <i class="fa fa-exclamation-triangle text-warning me-2"/>
+            <span>Panel konnte nicht geladen werden</span>
+            <div class="iil-panel-error-detail text-muted small mt-1" t-esc="state.errorMsg"/>
+        </div>
+    </t>
+    <t t-else="">
+        <t t-slot="default"/>
+    </t>
+</t>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DynamicDashboard — Feature-Registry-gesteuert (iil_configurator)
+     Fällt auf statischen MfgDashboard zurück wenn kein Feature aktiv.
+     Vollständiges Template — kein t-inherit (Odoo 18 QWeb: leeres primary-
+     inherit erzeugt undefined Template → OWL-App einfrieren).
+════════════════════════════════════════════════════════════════════ -->
+<t t-name="mfg_management.DynamicDashboard">
+    <div class="iil-dynamic-dashboard">
+
+        <!-- Lade-Spinner -->
+        <t t-if="state.loading">
+            <div class="iil-panel-loading">
+                <i class="fa fa-spinner fa-spin fa-2x me-2"/>
+                Dashboard wird geladen…
+            </div>
+        </t>
+
+        <!-- Fallback: statischer MfgDashboard -->
+        <t t-elif="state.fallback">
+            <t t-component="FallbackComponent"/>
+        </t>
+
+        <!-- Dynamische Panels aus Feature-Registry -->
+        <t t-else="">
+            <div class="iil-dynamic-dashboard-header">
+                <h1><i class="fa fa-industry me-2"/><t t-esc="dashboardTitle"/></h1>
+            </div>
+            <div class="iil-panels-grid">
+                <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
+                    <div class="iil-panel-card">
+                        <div class="iil-panel-card-header">
+                            <i t-att-class="'fa fa-' + panel.icon"/>
+                            <span t-esc="panel.label"/>
+                        </div>
+                        <div class="iil-panel-card-body">
+                            <PanelErrorBoundary>
+                                <t t-component="panel.component"
+                                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                            </PanelErrorBoundary>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </t>
+
+    </div>
+</t>
 
 </templates>
