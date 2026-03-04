@@ -46,6 +46,16 @@ def nl2sql_query(request):
             "summary": "15 Zeilen — 42 ms"
         }
 
+    Clarification response (when question is ambiguous):
+        {
+            "success": false,
+            "needs_clarification": true,
+            "clarification_question": "Worüber möchtest du eine Übersicht?",
+            "clarification_options": [
+                {"label": "Maschinen", "description": "...", "hint": "— bezogen auf Maschinen"}
+            ]
+        }
+
     Error response:
         {
             "success": false,
@@ -72,11 +82,17 @@ def nl2sql_query(request):
     source_code = body.get("source_code") or "odoo_mfg"
     conversation_history = body.get("conversation_history") or []
 
-    # ── Run NL2SQL engine ────────────────────────────────────────────────────
+    # ── Run NL2SQL engine ───────────────────────────────────────
     try:
-        from aifw.nl2sql import NL2SQLEngine
+        from aifw.nl2sql.engine import NL2SQLEngine
 
-        engine = NL2SQLEngine(source_code=source_code)
+        engine = NL2SQLEngine(
+            source_code=source_code,
+            clarification_domains=[
+                "Maschinen", "Gießaufträge", "Qualitätsprüfungen",
+                "Einkauf/SCM", "Lager", "Produkte",
+            ],
+        )
         result = engine.ask(
             question=query,
             conversation_history=conversation_history,
@@ -102,6 +118,14 @@ def nl2sql_query(request):
             },
             status=500,
         )
+
+    if result.needs_clarification:
+        return JsonResponse({
+            "success": False,
+            "needs_clarification": True,
+            "clarification_question": result.clarification_question,
+            "clarification_options": result.clarification_options,
+        })
 
     if not result.success:
         return JsonResponse(

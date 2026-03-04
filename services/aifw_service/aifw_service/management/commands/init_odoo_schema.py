@@ -190,7 +190,27 @@ class Command(BaseCommand):
             )
         )
 
-        # ── 3. SchemaSource(code='odoo_mfg') ────────────────────────────────
+        # ── 3. AIActionType(code='nl2sql_clarity_check') ────────────────────
+        clarity_action, created = AIActionType.objects.update_or_create(
+            code="nl2sql_clarity_check",
+            defaults={
+                "name": "NL2SQL Clarity Check",
+                "description": "Ambiguity detection before SQL generation (ClarificationDetector)",
+                "default_model": fallback_model,
+                "fallback_model": fallback_model,
+                "max_tokens": 800,
+                "temperature": 0.0,
+                "is_active": True,
+            },
+        )
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"{'Created' if created else 'Updated'}: AIActionType 'nl2sql_clarity_check' "
+                f"→ {fallback_model.name}"
+            )
+        )
+
+        # ── 4. SchemaSource(code='odoo_mfg') ────────────────────────────────
         source, created = SchemaSource.objects.update_or_create(
             code="odoo_mfg",
             defaults={
