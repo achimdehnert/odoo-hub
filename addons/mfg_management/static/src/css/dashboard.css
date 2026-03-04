@@ -1192,6 +1192,38 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
 
+.iil-clickable {
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s, background .12s;
+}
+
+.iil-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    background: #f0f9ff;
+}
+
+.iil-clickable:active {
+    transform: translateY(0);
+}
+
+.iil-kpi-nav {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: block;
+}
+
+.iil-machine-row.iil-clickable:hover {
+    background: #f0f9ff;
+    border-radius: 6px;
+}
+
+.iil-status-chip.iil-clickable:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
 .iil-kpi-value {
     font-size: 2rem;
     font-weight: 700;

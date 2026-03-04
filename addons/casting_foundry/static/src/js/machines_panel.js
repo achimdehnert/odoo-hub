@@ -2,12 +2,14 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 
 export class MachinesPanel extends Component {
     static template = "casting_foundry.MachinesPanel";
     static components = {};
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({ loading: true, kpis: null, error: null, filter: "all" });
         onWillStart(() => this.loadKpis());
     }
@@ -49,6 +51,21 @@ export class MachinesPanel extends Component {
         if (p >= 90) return "iil-trend-good";
         if (p >= 70) return "";
         return "iil-trend-bad";
+    }
+
+    openMachines(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Maschinenpark",
+            res_model: "maintenance.equipment",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openMachinesByState(state) {
+        this.openMachines([["state", "=", state]]);
     }
 }
 

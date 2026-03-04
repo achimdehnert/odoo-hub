@@ -2,11 +2,13 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 
 export class StockPanel extends Component {
     static template = "scm_manufacturing.StockPanel";
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({ loading: true, kpis: null, error: null });
         onWillStart(() => this.loadKpis());
     }
@@ -45,6 +47,27 @@ export class StockPanel extends Component {
 
     partTypeLabel(t) {
         return { raw: "Rohstoff", semi: "Halbfertig", finished: "Fertigteil", consumable: "Verbr." }[t] || t;
+    }
+
+    openProducts(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Produkte",
+            res_model: "product.product",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openLowStock() {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Lagerbestand",
+            res_model: "stock.quant",
+            view_mode: "list",
+            views: [[false, "list"]],
+        });
     }
 }
 

@@ -2,12 +2,14 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 
 export class ScmPanel extends Component {
     static template = "scm_manufacturing.ScmPanel";
     static components = {};
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({ loading: true, kpis: null, error: null });
         onWillStart(() => this.loadKpis());
     }
@@ -63,6 +65,33 @@ export class ScmPanel extends Component {
     formatDate(d) {
         if (!d) return "–";
         return d.substring(0, 10);
+    }
+
+    openProduction(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Fertigungsaufträge",
+            res_model: "mrp.production",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openPurchases(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Bestellungen",
+            res_model: "purchase.order",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openOverduePurchases() {
+        const today = new Date().toISOString().substring(0, 10);
+        this.openPurchases([["date_planned", "<", today], ["state", "in", ["purchase", "done"]]]);
     }
 }
 

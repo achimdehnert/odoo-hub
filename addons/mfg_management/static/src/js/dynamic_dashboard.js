@@ -34,6 +34,10 @@ export class DynamicDashboard extends Component {
 
     setup() {
         this.orm = useService("orm");
+        // NOTE: Component classes must NOT be stored in useState() — OWL 2 wraps
+        // state in a Proxy which corrupts class objects and breaks event binding.
+        // Only store plain serializable data (codes, labels, icons) in state.
+        this._panelComponents = {};
         this.state = useState({
             panels: [],
             loading: true,
@@ -57,25 +61,35 @@ export class DynamicDashboard extends Component {
                 return;
             }
 
-            this.state.panels = features
-                .map(f => ({
-                    code:      f.code,
-                    label:     f.label,
-                    config:    f.config || {},
-                    component: getPanelComponent(f.code),
-                    icon:      this.constructor.PANEL_ICONS[f.code]
+            const panels = [];
+            for (const f of features) {
+                const component = getPanelComponent(f.code);
+                if (component) {
+                    // Store component class outside of reactive state
+                    this._panelComponents[f.code] = component;
+                    panels.push({
+                        code:  f.code,
+                        label: f.label,
+                        icon:  this.constructor.PANEL_ICONS[f.code]
                                 || this.constructor.PANEL_ICONS.default,
-                }))
-                .filter(p => p.component !== null);
+                    });
+                }
+            }
 
-            if (this.state.panels.length === 0) {
+            if (panels.length === 0) {
                 this.state.fallback = true;
+            } else {
+                this.state.panels = panels;
             }
         } catch (_e) {
             this.state.fallback = true;
         } finally {
             this.state.loading = false;
         }
+    }
+
+    getPanelComponent(code) {
+        return this._panelComponents[code] || null;
     }
 
     get dashboardTitle() {

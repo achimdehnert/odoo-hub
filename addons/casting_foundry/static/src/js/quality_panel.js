@@ -2,12 +2,14 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 
 export class QualityPanel extends Component {
     static template = "casting_foundry.QualityPanel";
     static components = {};
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({ loading: true, kpis: null, error: null });
         onWillStart(() => this.loadKpis());
     }
@@ -40,6 +42,33 @@ export class QualityPanel extends Component {
 
     trendBarHeight(val) {
         return Math.round((val / this.maxTrendCount()) * 40);
+    }
+
+    openQualityChecks(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Qualitätsprüfungen",
+            res_model: "quality.check",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openFailedChecks() {
+        this.openQualityChecks([["quality_state", "=", "fail"]]);
+    }
+
+    openDefects(severity) {
+        const domain = severity ? [["severity", "=", severity]] : [];
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Fehler",
+            res_model: "quality.alert",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain,
+        });
     }
 }
 

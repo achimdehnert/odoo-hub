@@ -2,10 +2,12 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
+import { useService } from "@web/core/utils/hooks";
 export class MachiningPanel extends Component {
     static template = "mfg_machining.MachiningPanel";
 
     setup() {
+        this.actionService = useService("action");
         this.state = useState({
             loading: true,
             kpis: null,
@@ -85,6 +87,35 @@ export class MachiningPanel extends Component {
             { key: "quality_check", count: s.quality_check || 0, hex: "#8b5cf6" },
             { key: "done",          count: s.done || 0,          hex: "#22c55e" },
         ].filter(s => s.count > 0);
+    }
+
+    openOrders(domain) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Fertigungsaufträge",
+            res_model: "mrp.production",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: domain || [],
+        });
+    }
+
+    openOrdersByState(state) {
+        this.openOrders([["state", "=", state]]);
+    }
+
+    openActiveOrders() {
+        this.openOrders([["state", "in", ["confirmed", "progress", "to_close"]]]);
+    }
+
+    openMachines() {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Maschinen",
+            res_model: "maintenance.equipment",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+        });
     }
 }
 
