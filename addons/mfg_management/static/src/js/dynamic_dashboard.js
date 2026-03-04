@@ -15,7 +15,6 @@ import { Component, useState, onWillStart, onError } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { getPanelComponent } from "./panel_registry";
-import { MfgDashboard } from "./mfg_dashboard";
 
 /**
  * PanelErrorBoundary — fängt Render-Fehler einzelner Panels ab.
@@ -103,7 +102,7 @@ export class DynamicDashboard extends Component {
     }
 
     get FallbackComponent() {
-        return MfgDashboard;
+        return null;
     }
 }
 

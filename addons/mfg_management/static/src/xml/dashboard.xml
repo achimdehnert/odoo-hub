@@ -786,9 +786,12 @@
             </div>
         </t>
 
-        <!-- Fallback: statischer MfgDashboard -->
+        <!-- Fallback: Keine Panels konfiguriert -->
         <t t-elif="state.fallback">
-            <t t-component="FallbackComponent"/>
+            <div class="iil-panel-loading">
+                <i class="fa fa-info-circle me-2"/>
+                Keine Panels aktiv. Bitte den IIL Konfigurator aufrufen.
+            </div>
         </t>
 
         <!-- Dynamische Panels aus Feature-Registry -->
