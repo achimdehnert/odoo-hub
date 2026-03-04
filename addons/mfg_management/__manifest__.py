@@ -43,6 +43,8 @@
             "mfg_management/static/src/js/dynamic_dashboard.js",
             "mfg_management/static/src/js/nl2sql_query_bar.js",
             "mfg_management/static/src/xml/nl2sql_query_bar.xml",
+            "mfg_management/static/src/js/nl2sql_panel.js",
+            "mfg_management/static/src/xml/nl2sql_panel.xml",
         ],
     },
     "installable": True,
