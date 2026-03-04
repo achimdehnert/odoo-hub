@@ -807,7 +807,7 @@
                             <span t-esc="panel.label"/>
                         </div>
                         <div class="iil-panel-card-body">
-                            <t t-component="panel.component"/>
+                            <t t-component="getPanelComponent(panel.code)"/>
                         </div>
                     </div>
                 </t>
