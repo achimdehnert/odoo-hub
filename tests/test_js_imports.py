@@ -59,23 +59,28 @@ FORBIDDEN_XML_PATTERNS = [
 ]
 
 
-def _get_addon_js_files() -> list[Path]:
-    files = []
-    for addon_dir in ADDONS_DIR.iterdir():
-        if not addon_dir.is_dir() or not (addon_dir / "__manifest__.py").exists():
-            continue
+def _get_addon_dirs() -> list[Path]:
+    return [
+        d for d in ADDONS_DIR.iterdir()
+        if d.is_dir() and (d / "__manifest__.py").exists()
+    ]
+
+
+def _get_addon_js_files() -> list[tuple[Path, str]]:
+    """Return (js_file_path, addon_name) tuples for all JS files in custom addons."""
+    result = []
+    for addon_dir in _get_addon_dirs():
+        addon_name = addon_dir.name
         for js_file in addon_dir.rglob("*.js"):
             if "node_modules" in js_file.parts or "__pycache__" in js_file.parts:
                 continue
-            files.append(js_file)
-    return files
+            result.append((js_file, addon_name))
+    return result
 
 
 def _get_addon_xml_files() -> list[Path]:
     files = []
-    for addon_dir in ADDONS_DIR.iterdir():
-        if not addon_dir.is_dir() or not (addon_dir / "__manifest__.py").exists():
-            continue
+    for addon_dir in _get_addon_dirs():
         for xml_file in addon_dir.rglob("*.xml"):
             if "node_modules" in xml_file.parts:
                 continue
@@ -83,35 +88,57 @@ def _get_addon_xml_files() -> list[Path]:
     return files
 
 
-JS_FILES = _get_addon_js_files()
-JS_IDS = [f.relative_to(ADDONS_DIR).as_posix() for f in JS_FILES]
+JS_FILE_TUPLES = _get_addon_js_files()
+JS_IDS = [t[0].relative_to(ADDONS_DIR).as_posix() for t in JS_FILE_TUPLES]
 
 XML_FILES = _get_addon_xml_files()
 XML_IDS = [f.relative_to(ADDONS_DIR).as_posix() for f in XML_FILES]
 
 
-@pytest.mark.parametrize("js_file", JS_FILES, ids=JS_IDS)
+@pytest.mark.parametrize("js_tuple", JS_FILE_TUPLES, ids=JS_IDS)
 class TestJsImports:
-    def test_no_forbidden_cross_module_imports(self, js_file: Path) -> None:
-        """Ensure no cross-module JS imports that break the Odoo 18 bundler."""
+    def test_no_forbidden_cross_module_imports(self, js_tuple: tuple) -> None:
+        """Ensure no cross-module JS imports that break the Odoo 18 bundler.
+
+        Odoo 18 transforms relative imports within a module to @modulename/
+        internally. Imports from OTHER modules via @othername/ or full static
+        paths cannot be resolved at runtime and silently freeze the OWL app.
+
+        Intra-module @own_modulename/ is valid (it's how Odoo bundles it).
+        Only inter-module @other_modulename/ is forbidden.
+        """
+        js_file, addon_name = js_tuple
         source = js_file.read_text(encoding="utf-8")
 
         violations = []
-        for pattern in FORBIDDEN_IMPORT_PATTERNS:
-            for match in pattern.finditer(source):
-                line_num = source[: match.start()].count("\n") + 1
-                violations.append(
-                    f"  Line {line_num}: {match.group(0)!r}"
-                )
+
+        # Pattern 1: from "@other_module/..." — cross-module alias import
+        cross_alias = re.compile(r'from\s+["\']@(?!web/|odoo/)([^/"\'\.][^"\']*)["\']\'?')
+        for match in cross_alias.finditer(source):
+            imported_path = match.group(1)
+            # Allow if the alias starts with own module name (intra-module)
+            if imported_path.startswith(addon_name + "/"):
+                continue
+            line_num = source[:match.start()].count("\n") + 1
+            violations.append(f"  Line {line_num}: {match.group(0)!r}")
+
+        # Pattern 2: from "other_module/static/src/..." — full path cross-module
+        full_path = re.compile(
+            r'from\s+["\'](?!@|\.\./|\./|' + re.escape(addon_name) + r'/)'
+            r'([a-zA-Z_][a-zA-Z0-9_]*/static/[^"\']*)["\']\'?'
+        )
+        for match in full_path.finditer(source):
+            line_num = source[:match.start()].count("\n") + 1
+            violations.append(f"  Line {line_num}: {match.group(0)!r}")
 
         assert not violations, (
             f"\n{js_file.relative_to(ADDONS_DIR)}: "
             f"Forbidden cross-module import(s) detected.\n"
             f"Odoo 18 can only resolve @web/, @odoo/, and relative (./) imports.\n"
-            f"Cross-module imports freeze the OWL app (navigation becomes unclickable).\n"
+            f"Imports from OTHER modules (@other_module/...) freeze the OWL app.\n"
             f"Violations:\n" + "\n".join(violations) + "\n\n"
-            f"Fix: duplicate the needed code into this module, or move shared code "
-            f"into @web/ (Odoo core). See docs/adr/ADR-006-ODOO18-JS-IMPORTS.md"
+            f"Fix: duplicate the needed code into this module, or use the OWL "
+            f"registry pattern. See docs/adr/ADR-006-ODOO18-JS-IMPORTS.md"
         )
 
 
