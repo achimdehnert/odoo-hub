@@ -753,6 +753,23 @@
 </t>
 
 <!-- ═══════════════════════════════════════════════════════════════════
+     PanelErrorBoundary — isoliert crashende Panels vom OWL-App-Kontext.
+     Verhindert dass ein Panel-Fehler die gesamte Navigation einfriert.
+════════════════════════════════════════════════════════════════════ -->
+<t t-name="mfg_management.PanelErrorBoundary">
+    <t t-if="state.hasError">
+        <div class="iil-panel-error">
+            <i class="fa fa-exclamation-triangle text-warning me-2"/>
+            <span>Panel konnte nicht geladen werden</span>
+            <div class="iil-panel-error-detail text-muted small mt-1" t-esc="state.errorMsg"/>
+        </div>
+    </t>
+    <t t-else="">
+        <t t-slot="default"/>
+    </t>
+</t>
+
+<!-- ═══════════════════════════════════════════════════════════════════
      DynamicDashboard — Feature-Registry-gesteuert (iil_configurator)
      Fällt auf statischen MfgDashboard zurück wenn kein Feature aktiv.
 ════════════════════════════════════════════════════════════════════ -->
@@ -781,12 +798,14 @@
                 <t t-foreach="state.panels" t-as="panel" t-key="panel.code">
                     <div class="iil-panel-card">
                         <div class="iil-panel-card-header">
-                            <i t-att-class="'fa fa-' + (panel.code === 'machining' ? 'cogs' : panel.code === 'casting' ? 'fire' : 'bar-chart')"/>
+                            <i t-att-class="'fa fa-' + (panel.code === 'machining' ? 'cogs' : panel.code === 'casting' ? 'fire' : panel.code === 'quality' ? 'check-circle' : panel.code === 'machines' ? 'tachometer' : panel.code === 'stock' ? 'cubes' : panel.code === 'scm' ? 'truck' : 'bar-chart')"/>
                             <span t-esc="panel.label"/>
                         </div>
                         <div class="iil-panel-card-body">
-                            <t t-component="panel.component"
-                               t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                            <PanelErrorBoundary>
+                                <t t-component="panel.component"
+                                   t-props="{ featureCode: panel.code, featureConfig: panel.config, featureLabel: panel.label }"/>
+                            </PanelErrorBoundary>
                         </div>
                     </div>
                 </t>

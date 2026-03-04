@@ -9,14 +9,33 @@
  * OWL-18-konform: useService("orm") statt this.env.services.orm.
  */
 
-import { Component, useState, onWillStart } from "@odoo/owl";
+import { Component, useState, onWillStart, onError } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { getPanelComponent } from "./panel_registry";
 import { MfgDashboard } from "./mfg_dashboard";
 
+/**
+ * PanelErrorBoundary — fängt Render-Fehler einzelner Panels ab.
+ * Ein crashendes Panel zeigt eine Fehlermeldung statt die gesamte OWL-App einzufrieren.
+ */
+export class PanelErrorBoundary extends Component {
+    static template = "mfg_management.PanelErrorBoundary";
+    static props = ["*"];
+
+    setup() {
+        this.state = useState({ hasError: false, errorMsg: "" });
+        onError((err) => {
+            console.error("[IIL Panel Error]", err);
+            this.state.hasError = true;
+            this.state.errorMsg = err && err.message ? err.message : String(err);
+        });
+    }
+}
+
 export class DynamicDashboard extends Component {
     static template = "mfg_management.DynamicDashboard";
+    static components = { PanelErrorBoundary };
 
     setup() {
         this.orm = useService("orm");
