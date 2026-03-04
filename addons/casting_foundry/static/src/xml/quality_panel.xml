@@ -12,29 +12,34 @@
         <t t-else="">
             <!-- KPI-Zeile -->
             <div class="iil-kpi-row">
-                <div t-att-class="'iil-kpi-card ' + qcTrendClass()">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + qcTrendClass()" t-on-click="openQualityChecks">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.qc_rate_all"/>%</div>
                     <div class="iil-kpi-label">Bestehensrate (gesamt)</div>
                     <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_rate"/>% · VM: <t t-esc="state.kpis.qc_rate_lm"/>%</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openQualityChecks">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.qc_total_all"/></div>
                     <div class="iil-kpi-label">Prüfungen gesamt</div>
                     <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_total"/> · VM: <t t-esc="state.kpis.qc_total_lm"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card iil-trend-good">
+                <div class="iil-kpi-card iil-trend-good iil-clickable" t-on-click="openQualityChecks">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.qc_pass_all"/></div>
                     <div class="iil-kpi-label">Bestanden (i.O.)</div>
                     <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_pass"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card ' + (state.kpis.qc_fail_all > 0 ? 'iil-trend-bad' : '')">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.qc_fail_all > 0 ? 'iil-trend-bad' : '')" t-on-click="openFailedChecks">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.qc_fail_all"/></div>
                     <div class="iil-kpi-label">Nicht bestanden</div>
                     <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_fail"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card ' + (state.kpis.open_checks > 0 ? 'iil-trend-bad' : '')">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.open_checks > 0 ? 'iil-trend-bad' : '')" t-on-click="openQualityChecks">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.open_checks"/></div>
                     <div class="iil-kpi-label">Offene Prüfungen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
             </div>
 

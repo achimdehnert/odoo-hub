@@ -12,19 +12,22 @@
         <t t-else="">
             <!-- KPI-Zeile -->
             <div class="iil-kpi-row">
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openProduction">
                     <div class="iil-kpi-value"><t t-esc="activeProduction()"/></div>
                     <div class="iil-kpi-label">Aktive Fertigung</div>
                     <div class="iil-kpi-sub">bestätigt + in Arbeit</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openPurchases">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.open_purchases"/></div>
                     <div class="iil-kpi-label">Offene Bestellungen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card ' + overdueClass()">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + overdueClass()" t-on-click="openOverduePurchases">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.overdue_purchases"/></div>
                     <div class="iil-kpi-label">Überfällig</div>
                     <div class="iil-kpi-sub">Bestellungen past due</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
                 <div class="iil-kpi-card">
                     <div class="iil-kpi-value"><t t-esc="stockHealthPct()"/>%</div>

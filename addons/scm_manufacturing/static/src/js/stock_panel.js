@@ -49,11 +49,11 @@ export class StockPanel extends Component {
         return { raw: "Rohstoff", semi: "Halbfertig", finished: "Fertigteil", consumable: "Verbr." }[t] || t;
     }
 
-    openProducts(domain) {
+    openParts(domain) {
         this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: "Produkte",
-            res_model: "product.product",
+            name: "Teile",
+            res_model: "scm.part",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -61,12 +61,16 @@ export class StockPanel extends Component {
     }
 
     openLowStock() {
+        this.openParts([["qty_on_hand", "<=", 10]]);
+    }
+
+    openWarehouses() {
         this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: "Lagerbestand",
-            res_model: "stock.quant",
-            view_mode: "list",
-            views: [[false, "list"]],
+            name: "Lager",
+            res_model: "scm.warehouse",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
         });
     }
 }

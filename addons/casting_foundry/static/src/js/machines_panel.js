@@ -57,7 +57,7 @@ export class MachinesPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Maschinenpark",
-            res_model: "maintenance.equipment",
+            res_model: "casting.machine",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],

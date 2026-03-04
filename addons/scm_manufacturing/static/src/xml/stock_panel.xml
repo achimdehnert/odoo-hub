@@ -12,12 +12,13 @@
         <t t-else="">
             <!-- KPI-Zeile -->
             <div class="iil-kpi-row">
-                <div t-att-class="'iil-kpi-card ' + stockHealthClass()">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + stockHealthClass()" t-on-click="openLowStock">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.stock_health_pct"/>%</div>
                     <div class="iil-kpi-label">Lagergesundheit</div>
                     <div class="iil-kpi-sub"><t t-esc="state.kpis.parts_low"/> von <t t-esc="state.kpis.parts_total"/> Teile kritisch</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openParts">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.parts_total"/></div>
                     <div class="iil-kpi-label">Teile gesamt</div>
                     <div class="iil-kpi-sub">
@@ -25,6 +26,7 @@
                         <t t-esc="state.kpis.parts_semi"/> HF ·
                         <t t-esc="state.kpis.parts_finished"/> FT
                     </div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
                 <div class="iil-kpi-card iil-trend-good">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.moves_in_total"/></div>

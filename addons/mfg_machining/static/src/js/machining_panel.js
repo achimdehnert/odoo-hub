@@ -93,7 +93,7 @@ export class MachiningPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Fertigungsaufträge",
-            res_model: "mrp.production",
+            res_model: "scm.production.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -105,14 +105,14 @@ export class MachiningPanel extends Component {
     }
 
     openActiveOrders() {
-        this.openOrders([["state", "in", ["confirmed", "progress", "to_close"]]]);
+        this.openOrders([["state", "in", ["confirmed", "in_production", "quality_check"]]]);
     }
 
     openMachines() {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Maschinen",
-            res_model: "maintenance.equipment",
+            res_model: "casting.machine",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
         });

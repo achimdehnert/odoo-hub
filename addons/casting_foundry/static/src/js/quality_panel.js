@@ -48,7 +48,7 @@ export class QualityPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Qualitätsprüfungen",
-            res_model: "quality.check",
+            res_model: "casting.quality.check",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -56,15 +56,15 @@ export class QualityPanel extends Component {
     }
 
     openFailedChecks() {
-        this.openQualityChecks([["quality_state", "=", "fail"]]);
+        this.openQualityChecks([["result", "=", "fail"]]);
     }
 
     openDefects(severity) {
         const domain = severity ? [["severity", "=", severity]] : [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: "Fehler",
-            res_model: "quality.alert",
+            name: "Fehlertypen",
+            res_model: "casting.defect.type",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain,

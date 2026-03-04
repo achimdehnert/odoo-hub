@@ -71,7 +71,7 @@ export class ScmPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Fertigungsaufträge",
-            res_model: "mrp.production",
+            res_model: "scm.production.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -82,7 +82,7 @@ export class ScmPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Bestellungen",
-            res_model: "purchase.order",
+            res_model: "scm.purchase.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -91,7 +91,7 @@ export class ScmPanel extends Component {
 
     openOverduePurchases() {
         const today = new Date().toISOString().substring(0, 10);
-        this.openPurchases([["date_planned", "<", today], ["state", "in", ["purchase", "done"]]]);
+        this.openPurchases([["delivery_date", "<", today], ["state", "in", ["confirmed", "partial"]]]);
     }
 }
 

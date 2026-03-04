@@ -12,22 +12,26 @@
         <t t-else="">
             <!-- KPI-Zeile -->
             <div class="iil-kpi-row">
-                <div t-att-class="'iil-kpi-card ' + availClass()">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + availClass()" t-on-click="openMachines">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.availability_pct"/>%</div>
                     <div class="iil-kpi-label">Verfügbarkeit</div>
                     <div class="iil-kpi-sub"><t t-esc="state.kpis.combined_states.operational"/> / <t t-esc="state.kpis.total"/> Maschinen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div class="iil-kpi-card">
+                <div class="iil-kpi-card iil-clickable" t-on-click="() => openMachinesByState('operational')">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.operational"/></div>
                     <div class="iil-kpi-label">Betriebsbereit</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card ' + (state.kpis.combined_states.maintenance > 0 ? '' : '')">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.combined_states.maintenance > 0 ? '' : '')" t-on-click="() => openMachinesByState('maintenance')">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.maintenance"/></div>
                     <div class="iil-kpi-label">In Wartung</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
-                <div t-att-class="'iil-kpi-card ' + (state.kpis.combined_states.breakdown > 0 ? 'iil-trend-bad' : '')">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.combined_states.breakdown > 0 ? 'iil-trend-bad' : '')" t-on-click="() => openMachinesByState('breakdown')">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.breakdown"/></div>
                     <div class="iil-kpi-label">Störung</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
                 </div>
                 <div class="iil-kpi-card">
                     <div class="iil-kpi-value"><t t-esc="state.kpis.combined_states.decommissioned"/></div>
