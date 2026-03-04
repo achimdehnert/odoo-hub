@@ -98,6 +98,43 @@ in OWL 2. OWL's eigenes Fehler-Handling reicht für Panel-Isolation aus.
 
 ---
 
+## OWL 2 `useState` Proxy korrumpiert Component-Klassen (behoben 2026-03-04)
+
+**Symptom:** Panels rendern korrekt, alle Daten sichtbar, aber **kein Event-Handler
+feuert** — kein `t-on-click`, kein Button, keine Interaktion möglich.
+
+**Root Cause:** OWL 2 wraps alle Werte in `useState()` in einen ES6 `Proxy`.
+Wenn eine Component-Klasse in den State gesteckt wird, wird sie durch den Proxy
+korrumpiert. `t-component="state.panels[i].component"` rendert dann ein Proxy-Objekt
+statt der echten Klasse. OWL rendert das HTML korrekt (Fallback-Rendering) aber
+**bindet keine Event-Listener**.
+
+```javascript
+// ❌ VERBOTEN: Component-Klasse in useState speichern
+this.state = useState({
+    panels: [{ code: "machining", component: MachiningPanel }]  // Proxy!
+});
+// Im Template: t-component="panel.component"  → Proxy-Objekt, kein Event-Binding
+```
+
+```javascript
+// ✅ Korrekt: Component-Klassen außerhalb von useState
+this._panelComponents = {};          // Plain object, kein Proxy
+this.state = useState({
+    panels: [{ code: "machining" }]  // Nur serialisierbare Daten im State
+});
+this._panelComponents["machining"] = MachiningPanel;
+
+// Im Template: t-component="getPanelComponent(panel.code)"
+// getPanelComponent() gibt die echte Klasse zurück — Event-Binding funktioniert
+```
+
+**Regel:** Niemals Component-Klassen, Funktionsreferenzen oder andere nicht-serialisierbare
+Objekte in `useState()` speichern. Nur primitive Werte, Arrays von plain objects,
+und serialisierbare Daten gehören in den reaktiven State.
+
+---
+
 ## Bekannte Fehler (behoben 2026-03-04)
 
 | Datei | Verbotener Import | Fix |
