@@ -128,6 +128,13 @@ export class MachiningPanel extends Component {
             domain: [["machine_id", "=", machineId], ["state", "in", ["confirmed", "in_production", "quality_check"]]],
         });
     }
+
+    openMachineOrdersEv(ev) {
+        const el = ev.currentTarget;
+        const machineId = parseInt(el.dataset.machineId, 10);
+        const machineName = el.dataset.machineName || String(machineId);
+        this.openMachineOrders(machineId, machineName);
+    }
 }
 
 // Panel-Registry: wird vom DynamicDashboard geladen wenn Feature 'machining' aktiv

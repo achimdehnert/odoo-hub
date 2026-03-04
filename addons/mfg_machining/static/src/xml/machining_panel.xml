@@ -70,7 +70,10 @@
             <div class="iil-section-title">Maschinenauslastung (aktive Aufträge)</div>
             <div class="iil-machine-list">
                 <t t-foreach="state.kpis.machine_load" t-as="m" t-key="m.id">
-                    <div class="iil-machine-row iil-clickable" t-on-click="() => openMachineOrders(m.id, m.name)">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-machine-id="m.id"
+                         t-att-data-machine-name="m.name"
+                         t-on-click="openMachineOrdersEv">
                         <span class="iil-machine-state-dot"
                               t-att-style="'background:' + machineStateColor(m.state)"/>
                         <span class="iil-machine-name"><t t-esc="m.name"/></span>
