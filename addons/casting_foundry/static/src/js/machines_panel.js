@@ -54,13 +54,14 @@ export class MachinesPanel extends Component {
     }
 
     openMachines(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Maschinenpark",
             res_model: "casting.machine",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 

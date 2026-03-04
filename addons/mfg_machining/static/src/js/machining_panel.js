@@ -90,13 +90,14 @@ export class MachiningPanel extends Component {
     }
 
     openOrders(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Fertigungsaufträge",
             res_model: "machining.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 

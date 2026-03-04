@@ -50,13 +50,14 @@ export class StockPanel extends Component {
     }
 
     openParts(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Teile",
             res_model: "scm.part",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 

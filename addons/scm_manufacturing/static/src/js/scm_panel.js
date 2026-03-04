@@ -68,24 +68,26 @@ export class ScmPanel extends Component {
     }
 
     openProduction(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Fertigungsaufträge",
             res_model: "scm.production.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 
     openPurchases(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Bestellungen",
             res_model: "scm.purchase.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 

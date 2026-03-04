@@ -45,13 +45,14 @@ export class QualityPanel extends Component {
     }
 
     openQualityChecks(domain) {
+        if (!Array.isArray(domain)) domain = [];
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Qualitätsprüfungen",
             res_model: "casting.quality.check",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
-            domain: domain || [],
+            domain,
         });
     }
 
