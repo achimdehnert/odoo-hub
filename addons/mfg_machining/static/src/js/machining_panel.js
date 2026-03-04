@@ -112,9 +112,20 @@ export class MachiningPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Maschinen",
-            res_model: "casting.machine",
+            res_model: "machining.machine",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
+        });
+    }
+
+    openMachineOrders(machineId, machineName) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Auftr\u00e4ge: " + (machineName || machineId),
+            res_model: "machining.order",
+            view_mode: "list,form",
+            views: [[false, "list"], [false, "form"]],
+            domain: [["machine_id", "=", machineId], ["state", "in", ["confirmed", "in_production", "quality_check"]]],
         });
     }
 }
