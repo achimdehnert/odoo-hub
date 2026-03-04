@@ -20,7 +20,14 @@ class QualityPanelController(http.Controller):
         last_month_start = (month_start - timedelta(days=1)).replace(day=1)
         last_month_str   = last_month_start.isoformat()
 
-        # ── QS lfd. Monat ─────────────────────────────────────────────────
+        # ── QS gesamt ───────────────────────────────────────
+        qc_pass_all  = env['casting.quality.check'].search_count([('result', '=', 'pass')])
+        qc_fail_all  = env['casting.quality.check'].search_count([('result', '=', 'fail')])
+        qc_cond_all  = env['casting.quality.check'].search_count([('result', '=', 'conditional')])
+        qc_total_all = qc_pass_all + qc_fail_all + qc_cond_all
+        qc_rate_all  = round(qc_pass_all / qc_total_all * 100, 1) if qc_total_all else 0.0
+
+        # ── QS lfd. Monat ─────────────────────────────────────
         qc_pass  = env['casting.quality.check'].search_count([('result', '=', 'pass'),        ('check_date', '>=', month_start_str)])
         qc_fail  = env['casting.quality.check'].search_count([('result', '=', 'fail'),        ('check_date', '>=', month_start_str)])
         qc_cond  = env['casting.quality.check'].search_count([('result', '=', 'conditional'), ('check_date', '>=', month_start_str)])
@@ -32,7 +39,7 @@ class QualityPanelController(http.Controller):
         qc_total_lm = env['casting.quality.check'].search_count([('check_date', '>=', last_month_str), ('check_date', '<', month_start_str)])
         qc_rate_lm  = round(qc_pass_lm / qc_total_lm * 100, 1) if qc_total_lm else 0.0
 
-        # ── Prüfungen nach Typ (lfd. Monat) ──────────────────────────────
+        # ── Prüfungen nach Typ (gesamt) ─────────────────────────────────
         check_types = ['visual', 'dimensional', 'xray', 'ultrasonic', 'hardness', 'tensile', 'spectrometry', 'leak', 'cmm']
         type_labels = {
             'visual': 'Sicht', 'dimensional': 'Maß', 'xray': 'Röntgen',
@@ -41,9 +48,7 @@ class QualityPanelController(http.Controller):
         }
         by_type = []
         for ct in check_types:
-            cnt = env['casting.quality.check'].search_count([
-                ('check_type', '=', ct), ('check_date', '>=', month_start_str)
-            ])
+            cnt = env['casting.quality.check'].search_count([('check_type', '=', ct)])
             if cnt:
                 by_type.append({'type': ct, 'label': type_labels.get(ct, ct), 'count': cnt})
         by_type.sort(key=lambda x: x['count'], reverse=True)
@@ -79,6 +84,11 @@ class QualityPanelController(http.Controller):
             'qc_cond':        qc_cond,
             'qc_total':       qc_total,
             'qc_rate':        qc_rate,
+            'qc_pass_all':    qc_pass_all,
+            'qc_fail_all':    qc_fail_all,
+            'qc_cond_all':    qc_cond_all,
+            'qc_total_all':   qc_total_all,
+            'qc_rate_all':    qc_rate_all,
             'qc_rate_lm':     qc_rate_lm,
             'qc_total_lm':    qc_total_lm,
             'open_checks':    open_checks,

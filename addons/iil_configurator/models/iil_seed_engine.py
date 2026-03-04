@@ -118,7 +118,7 @@ class IilSeedEngine(models.AbstractModel):
         if not partners:
             partners = env['res.partner'].search([], limit=5)
 
-        for month_offset in range(months, 0, -1):
+        for month_offset in range(months, -1, -1):
             month_start = base_date - relativedelta(months=month_offset)
 
             volume_factor = 1.0 + (months - month_offset) * 0.05
@@ -392,7 +392,7 @@ class IilSeedEngine(models.AbstractModel):
         po_per_month  = max(1, order_count // months // 3)
         prod_per_month = max(1, order_count // months // 2)
 
-        for month_offset in range(months, 0, -1):
+        for month_offset in range(months, -1, -1):
             month_start = base_date - relativedelta(months=month_offset)
             is_past     = month_offset > 1
 
