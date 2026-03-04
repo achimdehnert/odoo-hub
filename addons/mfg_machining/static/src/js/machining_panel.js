@@ -93,7 +93,7 @@ export class MachiningPanel extends Component {
         this.actionService.doAction({
             type: "ir.actions.act_window",
             name: "Fertigungsaufträge",
-            res_model: "scm.production.order",
+            res_model: "machining.order",
             view_mode: "list,form",
             views: [[false, "list"], [false, "form"]],
             domain: domain || [],
@@ -102,6 +102,11 @@ export class MachiningPanel extends Component {
 
     openOrdersByState(state) {
         this.openOrders([["state", "=", state]]);
+    }
+
+    openOrdersByStateEv(ev) {
+        const state = ev.currentTarget.dataset.orderState;
+        if (state) this.openOrdersByState(state);
     }
 
     openActiveOrders() {

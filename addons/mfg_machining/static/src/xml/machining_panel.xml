@@ -59,7 +59,8 @@
                 <t t-foreach="orderStates()" t-as="s" t-key="s.key">
                     <div class="iil-status-chip iil-clickable"
                          t-att-style="'background:' + s.hex"
-                         t-on-click="() => openOrdersByState(s.key)">
+                         t-att-data-order-state="s.key"
+                         t-on-click="openOrdersByStateEv">
                         <span class="iil-status-count"><t t-esc="s.count"/></span>
                         <span class="iil-status-label"><t t-esc="orderStateLabel(s.key)"/></span>
                     </div>
