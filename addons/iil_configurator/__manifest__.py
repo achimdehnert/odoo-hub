@@ -19,6 +19,7 @@
     'post_init_hook': 'post_init_hook',
     'assets': {
         'web.assets_backend': [
+            'iil_configurator/static/src/css/configurator_wizard.css',
             'iil_configurator/static/src/js/configurator_wizard.js',
             'iil_configurator/static/src/xml/configurator_wizard.xml',
         ],

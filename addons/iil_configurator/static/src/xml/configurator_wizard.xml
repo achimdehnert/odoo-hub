@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-    <!-- Placeholder für Sprint 3 OWL-Fortschrittsanzeige -->
-    <!-- Sprint 2: Wizard läuft als Standard-Odoo-Formular, kein OWL-Template nötig -->
+
+    <t t-name="iil_configurator.ConfiguratorProgress">
+        <div class="iil-cfg-progress">
+
+            <!-- Step indicator -->
+            <div class="iil-cfg-steps">
+                <t t-foreach="steps" t-as="step" t-key="step.key">
+                    <div t-att-class="'iil-cfg-step' + (step.done ? ' iil-cfg-step--done' : '') + (step.active ? ' iil-cfg-step--active' : '') + (step.pending ? ' iil-cfg-step--pending' : '')">
+                        <div class="iil-cfg-step__circle">
+                            <i t-if="step.done" class="fa fa-check"/>
+                            <i t-else="" t-att-class="'fa ' + step.icon"/>
+                        </div>
+                        <span class="iil-cfg-step__label" t-esc="step.label"/>
+                    </div>
+                    <div t-if="!step_last" class="iil-cfg-step__connector"/>
+                </t>
+            </div>
+
+            <!-- Industry preview (nur Schritt 1 + 2) -->
+            <div class="iil-cfg-preview"
+                 t-if="state.currentStep === 'step1' or state.currentStep === 'step2'">
+                <i t-att-class="'fa ' + industryPreview.icon + ' iil-cfg-preview__icon'"/>
+                <span class="iil-cfg-preview__label" t-esc="industryPreview.label"/>
+                <div class="iil-cfg-preview__modules">
+                    <t t-foreach="industryPreview.modules" t-as="mod" t-key="mod_index">
+                        <span class="iil-cfg-preview__chip" t-esc="mod"/>
+                    </t>
+                </div>
+            </div>
+
+        </div>
+    </t>
+
 </templates>

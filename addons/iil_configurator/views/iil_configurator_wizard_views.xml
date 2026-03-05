@@ -13,6 +13,9 @@
                     </header>
                     <sheet>
 
+                        <!-- OWL Fortschrittsanzeige -->
+                        <widget name="configurator_progress"/>
+
                         <!-- Schritt 1: Branche -->
                         <group invisible="state != 'step1'">
                             <group string="Branche &amp; Unternehmensgröße">
@@ -60,6 +63,14 @@
                                        invisible="not generate_demo_data"/>
                                 <field name="demo_clear_existing"
                                        invisible="not generate_demo_data"/>
+                            </group>
+                            <group string="Konfigurationsübersicht">
+                                <field name="industry" readonly="1"/>
+                                <field name="company_size" readonly="1"/>
+                                <field name="dashboard_layout" readonly="1"/>
+                                <field name="has_nl2sql" readonly="1"/>
+                                <field name="nl2sql_provider" readonly="1"
+                                       invisible="not has_nl2sql"/>
                             </group>
                         </group>
 
