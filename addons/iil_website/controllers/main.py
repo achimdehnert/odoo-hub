@@ -17,7 +17,7 @@ class IILWebsite(http.Controller):
                     'Qualit\xe4tssicherung, Chargen-Tracking.'
                 ),
                 'color': '#1a56db',
-                'route': '/odoo/menu/107',
+                'route': '/web#action=185',
             },
             {
                 'key': 'scm_manufacturing',
@@ -28,7 +28,7 @@ class IILWebsite(http.Controller):
                     'Lieferanten, Lager und Bestellungen.'
                 ),
                 'color': '#0e9f6e',
-                'route': '/odoo/menu/127',
+                'route': '/web#action=199',
             },
             {
                 'key': 'mfg_management',
@@ -39,7 +39,7 @@ class IILWebsite(http.Controller):
                     'KPIs, Kanban-Board, Maschinen-Status.'
                 ),
                 'color': '#7e3af2',
-                'route': '/odoo/menu/143',
+                'route': '/web#action=204',
             },
             {
                 'key': 'mfg_nl2sql',
@@ -50,7 +50,7 @@ class IILWebsite(http.Controller):
                     'Sprache - direkt auf Ihre Produktionsdaten.'
                 ),
                 'color': '#0891b2',
-                'route': '/odoo/menu/118',
+                'route': '/web#action=193',
             },
             {
                 'key': 'iil_configurator',
@@ -61,7 +61,7 @@ class IILWebsite(http.Controller):
                     'Regelbasierte Artikelkonfiguration.'
                 ),
                 'color': '#d61f69',
-                'route': '/odoo/menu/209',
+                'route': '/web#action=209',
             },
         ]
         values = {
