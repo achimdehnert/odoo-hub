@@ -8,6 +8,8 @@
   --iil-text-muted: #64748b;
   --iil-bg-light: #f8fafc;
   --iil-white: #ffffff;
+  --iil-dark: #1a1a2e;
+  --iil-gray: #475569;
   --iil-radius: 16px;
   --iil-shadow: 0 4px 24px rgba(0,0,0,0.08);
   --iil-shadow-hover: 0 12px 40px rgba(79,70,229,0.18);
@@ -88,19 +90,6 @@ body {
 }
 
 .iil-hero-logo { margin-bottom: 24px; }
-
-.iil-logo-text {
-  font-size: 48px;
-  font-weight: 900;
-  color: var(--iil-white);
-  letter-spacing: -2px;
-}
-
-.iil-logo-dot {
-  font-size: 56px;
-  font-weight: 900;
-  color: var(--iil-accent-light);
-}
 
 .iil-hero-title {
   font-size: clamp(28px, 5vw, 52px);
@@ -371,4 +360,117 @@ body {
 }
 #wrapwrap header .nav-link:hover {
   color: var(--iil-accent-light) !important;
+}
+
+/* Logo img */
+.iil-logo-img {
+  max-height: 90px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  margin-bottom: 16px;
+}
+
+/* iil_website Footer */
+.iil-footer {
+  background: var(--iil-dark);
+  color: rgba(255,255,255,0.75);
+  padding: 40px 0 28px;
+  margin-top: 0;
+}
+
+.iil-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.iil-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.iil-footer-logo {
+  height: 36px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+}
+
+.iil-footer-name {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+}
+
+.iil-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.iil-footer-links a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.iil-footer-links a:hover {
+  color: var(--iil-white);
+}
+
+.iil-footer-sep {
+  color: rgba(255,255,255,0.3);
+  font-size: 14px;
+}
+
+.iil-footer-copy {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Legal Pages */
+.iil-legal-page {
+  background: var(--iil-bg-light);
+  min-height: 70vh;
+}
+
+.iil-legal-page h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  color: var(--iil-dark);
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid var(--iil-primary);
+}
+
+.iil-legal-page h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--iil-primary);
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
+.iil-legal-page p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--iil-gray);
+  margin-bottom: 16px;
+}
+
+.iil-legal-page a {
+  color: var(--iil-primary);
+}
+
+@media (max-width: 768px) {
+  .iil-footer-brand {
+    flex-direction: column;
+  }
 }
