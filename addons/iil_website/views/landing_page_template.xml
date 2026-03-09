@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- LANDING PAGE -->
+  <template id="landing_page" name="IIL Landing Page">
+    <t t-call="website.layout">
+      <t t-set="additional_title">IIL - Intelligente Industrie-Loesungen</t>
+
+      <!-- Hero -->
+      <section class="iil-hero">
+        <div class="iil-hero-bg"/>
+        <div class="container iil-hero-content">
+          <div class="iil-hero-logo">
+            <span class="iil-logo-text">IIL</span>
+            <span class="iil-logo-dot">.</span>
+          </div>
+          <h1 class="iil-hero-title">
+            Intelligente Industrie-Loesungen
+          </h1>
+          <p class="iil-hero-subtitle">
+            Modulares ERP fuer Giesserei, Zerspanung und Supply Chain -
+            KI-gestuetzt, vernetzt, in Echtzeit.
+          </p>
+          <div class="iil-hero-actions">
+            <t t-if="not is_authenticated">
+              <a href="/web/login" class="iil-btn iil-btn-primary">
+                <i class="fa fa-sign-in me-2"/>Anmelden
+              </a>
+              <a href="/web/signup" class="iil-btn iil-btn-outline">
+                <i class="fa fa-user-plus me-2"/>Registrieren
+              </a>
+            </t>
+            <t t-else="">
+              <a href="/web" class="iil-btn iil-btn-primary">
+                <i class="fa fa-tachometer me-2"/>Zum Dashboard
+              </a>
+            </t>
+          </div>
+        </div>
+        <div class="iil-hero-wave">
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z"
+                  fill="#f8fafc"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="iil-stats">
+        <div class="container">
+          <div class="iil-stats-grid">
+            <div class="iil-stat-item">
+              <span class="iil-stat-number">6</span>
+              <span class="iil-stat-label">Module</span>
+            </div>
+            <div class="iil-stat-item">
+              <span class="iil-stat-number">100%</span>
+              <span class="iil-stat-label">Odoo 18 nativ</span>
+            </div>
+            <div class="iil-stat-item">
+              <span class="iil-stat-number">KI</span>
+              <span class="iil-stat-label">NL2SQL Analytics</span>
+            </div>
+            <div class="iil-stat-item">
+              <span class="iil-stat-number">Live</span>
+              <span class="iil-stat-label">Echtzeit-Daten</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Produktuebersicht -->
+      <section class="iil-modules" id="module-uebersicht">
+        <div class="container">
+          <div class="iil-section-header">
+            <h2 class="iil-section-title">Unsere Module</h2>
+            <p class="iil-section-subtitle">
+              Waehlen Sie die Module, die zu Ihrem Betrieb passen.
+              Jedes Modul ist sofort einsatzbereit und nahtlos integriert.
+            </p>
+          </div>
+          <div class="iil-modules-grid">
+            <t t-foreach="modules" t-as="mod">
+              <div class="iil-module-card"
+                   t-attf-style="--accent: #{mod['color']}">
+                <div class="iil-module-icon">
+                  <t t-esc="mod['icon']"/>
+                </div>
+                <h3 class="iil-module-name">
+                  <t t-esc="mod['name']"/>
+                </h3>
+                <p class="iil-module-desc">
+                  <t t-esc="mod['description']"/>
+                </p>
+                <div class="iil-module-actions">
+                  <t t-if="is_authenticated">
+                    <a t-att-href="mod['route']"
+                       class="iil-btn iil-btn-module">
+                      <i class="fa fa-arrow-right me-1"/>Oeffnen
+                    </a>
+                    <a t-attf-href="/module/#{mod['key']}/book"
+                       class="iil-btn iil-btn-book">
+                      <i class="fa fa-calendar-plus-o me-1"/>Buchen
+                    </a>
+                  </t>
+                  <t t-else="">
+                    <a href="/web/login" class="iil-btn iil-btn-module">
+                      <i class="fa fa-lock me-1"/>Anmelden zum Starten
+                    </a>
+                  </t>
+                </div>
+              </div>
+            </t>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="iil-features">
+        <div class="container">
+          <div class="iil-section-header">
+            <h2 class="iil-section-title">Warum IIL?</h2>
+          </div>
+          <div class="iil-features-grid">
+            <div class="iil-feature-item">
+              <div class="iil-feature-icon" style="background:#ede9fe">
+                <i class="fa fa-bolt" style="color:#7e3af2"/>
+              </div>
+              <h4>Echtzeit-Daten</h4>
+              <p>Alle Produktions- und Logistikdaten live -
+                 kein Datenstau, keine Verzoegerungen.</p>
+            </div>
+            <div class="iil-feature-item">
+              <div class="iil-feature-icon" style="background:#dcfce7">
+                <i class="fa fa-puzzle-piece" style="color:#0e9f6e"/>
+              </div>
+              <h4>Modular &amp; Skalierbar</h4>
+              <p>Starten Sie mit einem Modul und erweitern Sie
+                 schrittweise nach Bedarf.</p>
+            </div>
+            <div class="iil-feature-item">
+              <div class="iil-feature-icon" style="background:#dbeafe">
+                <i class="fa fa-rocket" style="color:#1a56db"/>
+              </div>
+              <h4>KI-Integration</h4>
+              <p>NL2SQL: Stellen Sie Fragen in natuerlicher Sprache
+                 und erhalten Sie sofort Antworten.</p>
+            </div>
+            <div class="iil-feature-item">
+              <div class="iil-feature-icon" style="background:#fee2e2">
+                <i class="fa fa-shield" style="color:#e02424"/>
+              </div>
+              <h4>Sicher &amp; DSGVO-konform</h4>
+              <p>Ihre Daten bleiben auf Ihren Servern -
+                 vollstaendige Datensouveraenitaet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="iil-cta">
+        <div class="container">
+          <div class="iil-cta-box">
+            <h2>Bereit loszulegen?</h2>
+            <p>Melden Sie sich an und starten Sie sofort mit
+               Ihren gebuchten Modulen.</p>
+            <div class="iil-cta-actions">
+              <t t-if="not is_authenticated">
+                <a href="/web/login" class="iil-btn iil-btn-primary">
+                  <i class="fa fa-sign-in me-2"/>Jetzt anmelden
+                </a>
+                <a href="/web/signup"
+                   class="iil-btn iil-btn-outline-white">
+                  <i class="fa fa-user-plus me-2"/>Kostenlos registrieren
+                </a>
+              </t>
+              <t t-else="">
+                <a href="/web" class="iil-btn iil-btn-primary">
+                  <i class="fa fa-tachometer me-2"/>Zum Dashboard
+                </a>
+                <a href="#module-uebersicht"
+                   class="iil-btn iil-btn-outline-white">
+                  <i class="fa fa-th-large me-2"/>Module ansehen
+                </a>
+              </t>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </t>
+  </template>
+
+  <!-- MODULE BOOKED -->
+  <template id="module_booked" name="Modul gebucht">
+    <t t-call="website.layout">
+      <section class="iil-booked">
+        <div class="container text-center py-5">
+          <div class="iil-booked-icon">&#x2705;</div>
+          <h2>Modul wurde angefragt!</h2>
+          <p class="lead">
+            Ihr Modul <strong><t t-esc="module_key"/></strong> wurde
+            zur Aktivierung vorgemerkt. Unser Team meldet sich bei Ihnen.
+          </p>
+          <a href="/" class="iil-btn iil-btn-primary mt-3">
+            <i class="fa fa-home me-2"/>Zurueck zur Startseite
+          </a>
+        </div>
+      </section>
+    </t>
+  </template>
+
+</odoo>
