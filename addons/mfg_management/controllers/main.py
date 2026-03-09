@@ -285,6 +285,10 @@ class MfgDashboardController(http.Controller):
             with urllib.request.urlopen(req, timeout=45) as resp:
                 body = resp.read()
                 result = json.loads(body)
+                # aifw_service liefert needs_clarification mit success=false —
+                # das ist kein Fehler, sondern ein Dialog-Schritt.
+                if result.get("needs_clarification"):
+                    result["success"] = True
                 return result
 
         except urllib.error.HTTPError as exc:
@@ -303,7 +307,7 @@ class MfgDashboardController(http.Controller):
             return {
                 "success": False,
                 "error": "KI-Service nicht erreichbar. "
-                         "Bitte aifw_service Container prüfen.",
+                         "Bitte aifw_service Container pruefen.",
                 "error_type": "ServiceUnavailable",
             }
 
