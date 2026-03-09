@@ -10,25 +10,25 @@ class IILWebsite(http.Controller):
         modules = [
             {
                 'key': 'casting_foundry',
-                'name': 'Giesserei',
+                'name': 'Gie\xdferei',
                 'icon': '\U0001f3ed',
                 'description': (
-                    'Komplette Giesserei-Verwaltung: Auftraege, '
-                    'Qualitaetssicherung, Chargen-Tracking.'
+                    'Komplette Gie\xdferei-Verwaltung: Auftr\xe4ge, '
+                    'Qualit\xe4tssicherung, Chargen-Tracking.'
                 ),
                 'color': '#1a56db',
-                'route': '/web#action=casting_foundry',
+                'route': '/odoo/menu/107',
             },
             {
                 'key': 'scm_manufacturing',
                 'name': 'SCM / Fertigung',
                 'icon': '\U0001f527',
                 'description': (
-                    'Supply Chain Management: Stuecklisten, '
+                    'Supply Chain Management: St\xfccklisten, '
                     'Lieferanten, Lager und Bestellungen.'
                 ),
                 'color': '#0e9f6e',
-                'route': '/web#action=scm_manufacturing',
+                'route': '/odoo/menu/127',
             },
             {
                 'key': 'mfg_management',
@@ -39,29 +39,18 @@ class IILWebsite(http.Controller):
                     'KPIs, Kanban-Board, Maschinen-Status.'
                 ),
                 'color': '#7e3af2',
-                'route': '/web#action=mfg_management',
-            },
-            {
-                'key': 'mfg_machining',
-                'name': 'Zerspanung',
-                'icon': '\u2699\ufe0f',
-                'description': (
-                    'Maschinenpark-Verwaltung: '
-                    'Bearbeitungsprogramme, Ruestzeiten, NC-Daten.'
-                ),
-                'color': '#ff5a1f',
-                'route': '/web#action=mfg_machining',
+                'route': '/odoo/menu/143',
             },
             {
                 'key': 'mfg_nl2sql',
                 'name': 'NL2SQL Analytics',
                 'icon': '\U0001f916',
                 'description': (
-                    'KI-gestuetzte Datenabfragen in natuerlicher '
+                    'KI-gest\xfctzte Datenabfragen in nat\xfcrlicher '
                     'Sprache - direkt auf Ihre Produktionsdaten.'
                 ),
                 'color': '#0891b2',
-                'route': '/web#action=mfg_nl2sql',
+                'route': '/odoo/menu/118',
             },
             {
                 'key': 'iil_configurator',
@@ -72,7 +61,7 @@ class IILWebsite(http.Controller):
                     'Regelbasierte Artikelkonfiguration.'
                 ),
                 'color': '#d61f69',
-                'route': '/web#action=iil_configurator',
+                'route': '/odoo/menu/209',
             },
         ]
         values = {
