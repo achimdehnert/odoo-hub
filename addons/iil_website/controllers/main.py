@@ -70,6 +70,14 @@ class IILWebsite(http.Controller):
         }
         return request.render('iil_website.landing_page', values)
 
+    @http.route('/impressum', auth='public', website=True, sitemap=True)
+    def impressum(self, **kwargs):
+        return request.render('iil_website.impressum_page', {})
+
+    @http.route('/datenschutz', auth='public', website=True, sitemap=True)
+    def datenschutz(self, **kwargs):
+        return request.render('iil_website.datenschutz_page', {})
+
     @http.route(
         '/module/<string:module_key>/book',
         auth='user',
