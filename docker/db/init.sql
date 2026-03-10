@@ -135,7 +135,9 @@ DECLARE
         'casting_order', 'casting_order_line',
         'casting_machine', 'casting_alloy',
         'casting_quality_check', 'casting_defect',
-        'casting_mold', 'casting_mold_usage'
+        'casting_mold', 'casting_mold_usage',
+        -- NL2SQL
+        'mfg_nl2sql_example', 'mfg_nl2sql_feedback'
     ];
 BEGIN
     FOREACH tbl IN ARRAY custom_tbls LOOP

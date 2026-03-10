@@ -1,0 +1,187 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Odoo System Alerts
+    folder: Odoo Ops
+    interval: 1m
+    rules:
+      - uid: alert-cpu-high
+        title: "CPU Usage High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: odoo_prometheus
+            model:
+              expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle",instance="odoo-prod"}[5m])) * 100)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params: [85]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "CPU Usage über 85% (Odoo Prod)"
+          description: "CPU ist seit 5min über 85%"
+        labels:
+          severity: warning
+          service: odoo
+
+      - uid: alert-ram-critical
+        title: "RAM Usage Critical"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: odoo_prometheus
+            model:
+              expr: (1 - (node_memory_MemAvailable_bytes{instance="odoo-prod"} / node_memory_MemTotal_bytes{instance="odoo-prod"})) * 100
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params: [90]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "RAM Usage kritisch über 90% (Odoo Prod)"
+          description: "RAM ist seit 2min über 90%"
+        labels:
+          severity: critical
+          service: odoo
+
+      - uid: alert-disk-high
+        title: "Disk Usage High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: odoo_prometheus
+            model:
+              expr: 100 - ((node_filesystem_avail_bytes{instance="odoo-prod",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{instance="odoo-prod",mountpoint="/",fstype!="tmpfs"}) * 100)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params: [85]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Disk Usage über 85% (Odoo Prod)"
+          description: "Disk / ist über 85% belegt"
+        labels:
+          severity: warning
+          service: odoo
+
+      - uid: alert-db-connections
+        title: "DB Connections High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: odoo_prometheus
+            model:
+              expr: pg_stat_activity_count{instance="odoo-db",state="active"}
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              conditions:
+                - evaluator:
+                    params: [40]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Zu viele DB-Verbindungen (>40 aktiv)"
+          description: "PostgreSQL hat mehr als 40 aktive Verbindungen (max_connections=50)"
+        labels:
+          severity: warning
+          service: odoo-db
