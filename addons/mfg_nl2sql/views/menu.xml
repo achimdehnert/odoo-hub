@@ -70,4 +70,20 @@
         parent="menu_nl2sql_config"
         action="action_nl2sql_settings"
         sequence="30"/>
+
+    <menuitem
+        id="menu_nl2sql_examples"
+        name="Few-Shot Beispiele"
+        parent="menu_nl2sql_config"
+        action="action_nl2sql_example"
+        groups="group_nl2sql_manager"
+        sequence="40"/>
+
+    <menuitem
+        id="menu_nl2sql_feedback"
+        name="SQL-Fehler Feedback"
+        parent="menu_nl2sql_config"
+        action="action_nl2sql_feedback"
+        groups="group_nl2sql_manager"
+        sequence="50"/>
 </odoo>

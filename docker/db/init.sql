@@ -151,7 +151,23 @@ BEGIN
     END LOOP;
 END $$;
 
--- ── 6. aifw-Service User ────────────────────────────────────────────────────
+-- ── 6. Grafana Read-Only User ────────────────────────────────────────────────
+-- Login-User für Grafana PostgreSQL Datasource.
+-- Passwort wird via env_manage gesetzt — nicht hardcoded deployen.
+-- SELECT auf alle Tabellen in nl2sql_ro (via DEFAULT PRIVILEGES) + explizite
+-- GRANTs für Core-Odoo-Tabellen die bereits vor diesem Script existieren.
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'grafana_ro') THEN
+        CREATE USER grafana_ro PASSWORD 'changeme_set_via_env_grafana' IN ROLE nl2sql_ro;
+        RAISE NOTICE '[init.sql] User grafana_ro angelegt. Passwort bitte sofort ändern!';
+    ELSE
+        RAISE NOTICE '[init.sql] User grafana_ro existiert bereits — übersprungen.';
+    END IF;
+END $$;
+
+-- ── 7. aifw-Service User ────────────────────────────────────────────────────
 -- Die aifw DB wird von 02_aifw_db.sh angelegt (CREATE DATABASE außerhalb
 -- einer Transaktion). Hier nur den User anlegen + Rechte vergeben.
 

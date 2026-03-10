@@ -40,6 +40,8 @@
         'views/schema_metadata_views.xml',
         'views/dashboard_config_views.xml',
         'views/res_config_settings_views.xml',
+        'views/nl2sql_example_views.xml',
+        'views/nl2sql_feedback_views.xml',
         'views/dashboard_action.xml',
         'views/menu.xml',
         # Wizards

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-  <!-- LANDING PAGE -->
+  <!-- ══════════════════════════════════════════════════════
+       LANDING PAGE
+  ══════════════════════════════════════════════════════ -->
   <template id="landing_page" name="IIL Landing Page">
     <t t-call="website.layout">
-      <t t-set="additional_title">IIL - Intelligente Industrie-Loesungen</t>
+      <t t-set="additional_title">IIL – Intelligente Industrie-Lösungen</t>
 
-      <!-- Hero -->
+      <!-- ── Hero ─────────────────────────────────────────── -->
       <section class="iil-hero">
         <div class="iil-hero-bg"/>
         <div class="container iil-hero-content">
@@ -15,11 +17,11 @@
                  alt="IIL Logo" class="iil-logo-img"/>
           </div>
           <h1 class="iil-hero-title">
-            Intelligente Industrie-Loesungen
+            Intelligente Industrie-Lösungen
           </h1>
           <p class="iil-hero-subtitle">
-            Modulares ERP fuer Giesserei, Zerspanung und Supply Chain -
-            KI-gestuetzt, vernetzt, in Echtzeit.
+            Modulares ERP für Gießerei, Zerspanung und Supply Chain –
+            KI-gestützt, vernetzt, in Echtzeit.
           </p>
           <div class="iil-hero-actions">
             <t t-if="not is_authenticated">
@@ -45,7 +47,7 @@
         </div>
       </section>
 
-      <!-- Stats -->
+      <!-- ── Stats Bar ─────────────────────────────────────── -->
       <section class="iil-stats">
         <div class="container">
           <div class="iil-stats-grid">
@@ -69,13 +71,13 @@
         </div>
       </section>
 
-      <!-- Module -->
+      <!-- ── Produktübersicht ──────────────────────────────── -->
       <section class="iil-modules" id="module-uebersicht">
         <div class="container">
           <div class="iil-section-header">
             <h2 class="iil-section-title">Unsere Module</h2>
             <p class="iil-section-subtitle">
-              Waehlen Sie die Module, die zu Ihrem Betrieb passen.
+              Wählen Sie die Module, die zu Ihrem Betrieb passen.
               Jedes Modul ist sofort einsatzbereit und nahtlos integriert.
             </p>
           </div>
@@ -96,7 +98,7 @@
                   <t t-if="is_authenticated">
                     <a t-att-href="mod['route']"
                        class="iil-btn iil-btn-module">
-                      <i class="fa fa-arrow-right me-1"/>Oeffnen
+                      <i class="fa fa-arrow-right me-1"/>Öffnen
                     </a>
                     <a t-attf-href="/module/#{mod['key']}/book"
                        class="iil-btn iil-btn-book">
@@ -115,7 +117,7 @@
         </div>
       </section>
 
-      <!-- Features -->
+      <!-- ── Features ──────────────────────────────────────── -->
       <section class="iil-features">
         <div class="container">
           <div class="iil-section-header">
@@ -127,8 +129,8 @@
                 <i class="fa fa-bolt" style="color:#7e3af2"/>
               </div>
               <h4>Echtzeit-Daten</h4>
-              <p>Alle Produktions- und Logistikdaten live -
-                 kein Datenstau, keine Verzoegerungen.</p>
+              <p>Alle Produktions- und Logistikdaten live –
+                 kein Datenstau, keine Verzögerungen.</p>
             </div>
             <div class="iil-feature-item">
               <div class="iil-feature-icon" style="background:#dcfce7">
@@ -140,10 +142,10 @@
             </div>
             <div class="iil-feature-item">
               <div class="iil-feature-icon" style="background:#dbeafe">
-                <i class="fa fa-rocket" style="color:#1a56db"/>
+                <i class="fa fa-robot" style="color:#1a56db"/>
               </div>
               <h4>KI-Integration</h4>
-              <p>NL2SQL: Stellen Sie Fragen in natuerlicher Sprache
+              <p>NL2SQL: Stellen Sie Fragen in natürlicher Sprache
                  und erhalten Sie sofort Antworten.</p>
             </div>
             <div class="iil-feature-item">
@@ -151,14 +153,14 @@
                 <i class="fa fa-shield" style="color:#e02424"/>
               </div>
               <h4>Sicher &amp; DSGVO-konform</h4>
-              <p>Ihre Daten bleiben auf Ihren Servern -
-                 vollstaendige Datensouveraenitaet.</p>
+              <p>Ihre Daten bleiben auf Ihren Servern –
+                 vollständige Datensouveränität.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- CTA -->
+      <!-- ── CTA ───────────────────────────────────────────── -->
       <section class="iil-cta">
         <div class="container">
           <div class="iil-cta-box">
@@ -188,25 +190,25 @@
         </div>
       </section>
 
-      <!-- Footer -->
+      <!-- ── Footer ───────────────────────────────────────── -->
       <footer class="iil-footer">
         <div class="container iil-footer-inner">
           <div class="iil-footer-brand">
             <img src="/iil_website/static/src/img/iil_logo.png"
                  alt="IIL" class="iil-footer-logo"/>
             <span class="iil-footer-name">
-              IIL - Privates Institut fuer Informationslogistik GmbH
+              IIL – Privates Institut für Informationslogistik GmbH
             </span>
           </div>
           <div class="iil-footer-links">
             <a href="/impressum">Impressum</a>
-            <span class="iil-footer-sep">&#xB7;</span>
-            <a href="/datenschutz">Datenschutzerklaerung</a>
-            <span class="iil-footer-sep">&#xB7;</span>
+            <span class="iil-footer-sep">·</span>
+            <a href="/datenschutz">Datenschutzerklärung</a>
+            <span class="iil-footer-sep">·</span>
             <a href="mailto:achim.dehnert@iil-institut.de">Kontakt</a>
           </div>
           <div class="iil-footer-copy">
-            &#xA9; 2026 IIL GmbH &#xB7; Edison Allee 5-7 &#xB7; 89231 Neu-Ulm
+            © 2026 IIL GmbH · Edison Allee 5-7 · 89231 Neu-Ulm
           </div>
         </div>
       </footer>
@@ -214,16 +216,18 @@
     </t>
   </template>
 
-  <!-- IMPRESSUM -->
+  <!-- ══════════════════════════════════════════════════════
+       IMPRESSUM
+  ══════════════════════════════════════════════════════ -->
   <template id="impressum_page" name="IIL Impressum">
     <t t-call="website.layout">
-      <t t-set="additional_title">Impressum - IIL GmbH</t>
+      <t t-set="additional_title">Impressum – IIL GmbH</t>
       <section class="iil-legal-page">
         <div class="container py-5">
           <h1>Impressum</h1>
-          <h2>Angaben gem&#xE4;&#xDF; &#xA7; 5 TMG</h2>
+          <h2>Angaben gemäß § 5 TMG</h2>
           <p>
-            IIL - Privates Institut f&#xFC;r Informationslogistik GmbH<br/>
+            IIL – Privates Institut für Informationslogistik GmbH<br/>
             Edison Allee 5-7<br/>
             89231 Neu-Ulm
           </p>
@@ -232,7 +236,7 @@
             Registergericht: Amtsgericht Memmingen
           </p>
           <p>
-            <strong>Vertreten durch die Gesch&#xE4;ftsf&#xFC;hrer:</strong><br/>
+            <strong>Vertreten durch die Geschäftsführer:</strong><br/>
             Sabine Dehnert, Achim Dehnert
           </p>
           <h2>Kontakt</h2>
@@ -243,7 +247,7 @@
           </p>
           <h2>Umsatzsteuer-ID</h2>
           <p>
-            Umsatzsteuer-Identifikationsnummer gem&#xE4;&#xDF; &#xA7; 27 a UStG:<br/>
+            Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG:<br/>
             DE236928454
           </p>
           <h2>Streitschlichtung</h2>
@@ -251,29 +255,40 @@
             Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren
             vor einer Verbraucherschlichtungsstelle teilzunehmen.
           </p>
-          <h2>Haftung f&#xFC;r Inhalte</h2>
+          <h2>Haftung für Inhalte</h2>
           <p>
-            Als Diensteanbieter sind wir gem&#xE4;&#xDF; &#xA7; 7 Abs. 1 TMG f&#xFC;r eigene Inhalte
+            Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte
             auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach
-            &#xA7;&#xA7; 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet,
-            &#xFC;bermittelte oder gespeicherte fremde Informationen zu &#xFC;berwachen oder
-            nach Umst&#xE4;nden zu forschen, die auf eine rechtswidrige T&#xE4;tigkeit hinweisen.
+            §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet,
+            übermittelte oder gespeicherte fremde Informationen zu überwachen oder
+            nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
           </p>
-          <h2>Haftung f&#xFC;r Links</h2>
           <p>
-            Unser Angebot enth&#xE4;lt Links zu externen Websites Dritter, auf deren
-            Inhalte wir keinen Einfluss haben. F&#xFC;r die Inhalte der verlinkten
-            Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.
+            Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen
+            nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche
+            Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten
+            Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden
+            Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.
+          </p>
+          <h2>Haftung für Links</h2>
+          <p>
+            Unser Angebot enthält Links zu externen Websites Dritter, auf deren
+            Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden
+            Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten
+            Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten
+            verantwortlich.
           </p>
           <h2>Urheberrecht</h2>
           <p>
-            Die durch die Seitenbetreiber erstellten Inhalte und Werke unterliegen
-            dem deutschen Urheberrecht. Vervielf&#xE4;ltigung, Bearbeitung und Verbreitung
-            bed&#xFC;rfen der schriftlichen Zustimmung des jeweiligen Autors.
+            Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen
+            Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung,
+            Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der
+            Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des
+            jeweiligen Autors bzw. Erstellers.
           </p>
           <p class="mt-4">
             <a href="/" class="iil-btn iil-btn-primary">
-              <i class="fa fa-home me-2"/>Zur&#xFC;ck zur Startseite
+              <i class="fa fa-home me-2"/>Zurück zur Startseite
             </a>
           </p>
         </div>
@@ -281,16 +296,18 @@
     </t>
   </template>
 
-  <!-- DATENSCHUTZ -->
-  <template id="datenschutz_page" name="IIL Datenschutzerklaerung">
+  <!-- ══════════════════════════════════════════════════════
+       DATENSCHUTZERKLÄRUNG
+  ══════════════════════════════════════════════════════ -->
+  <template id="datenschutz_page" name="IIL Datenschutzerklärung">
     <t t-call="website.layout">
-      <t t-set="additional_title">Datenschutzerklaerung - IIL GmbH</t>
+      <t t-set="additional_title">Datenschutzerklärung – IIL GmbH</t>
       <section class="iil-legal-page">
         <div class="container py-5">
-          <h1>Datenschutzerkl&#xE4;rung</h1>
+          <h1>Datenschutzerklärung</h1>
           <h2>1. Verantwortliche Stelle</h2>
           <p>
-            IIL - Privates Institut f&#xFC;r Informationslogistik GmbH<br/>
+            IIL – Privates Institut für Informationslogistik GmbH<br/>
             Edison Allee 5-7, 89231 Neu-Ulm<br/>
             Telefon: +49-171-5376151<br/>
             E-Mail: <a href="mailto:achim.dehnert@iil-institut.de">achim.dehnert@iil-institut.de</a>
@@ -305,36 +322,40 @@
           <h2>3. Zweck der Datenverarbeitung</h2>
           <p>
             Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der
-            Website zu gew&#xE4;hrleisten. Andere Daten k&#xF6;nnen zur Analyse des
+            Website zu gewährleisten. Andere Daten können zur Analyse des
             Nutzerverhaltens verwendet werden.
           </p>
           <h2>4. Ihre Rechte</h2>
           <p>
-            Sie haben jederzeit das Recht auf unentgeltliche Auskunft &#xFC;ber Herkunft,
-            Empf&#xE4;nger und Zweck Ihrer gespeicherten personenbezogenen Daten sowie das
-            Recht auf Berichtigung, Sperrung oder L&#xF6;schung dieser Daten.
+            Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Herkunft,
+            Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten sowie das
+            Recht auf Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu sowie
+            zu weiteren Fragen zum Thema Datenschutz können Sie sich jederzeit unter
+            der im Impressum angegebenen Adresse an uns wenden.
           </p>
           <h2>5. Einwilligung</h2>
           <p>
-            Viele Datenverarbeitungsvorg&#xE4;nge sind nur mit Ihrer ausdr&#xFC;cklichen
-            Einwilligung m&#xF6;glich. Sie k&#xF6;nnen eine bereits erteilte Einwilligung
-            jederzeit per E-Mail widerrufen.
+            Viele Datenverarbeitungsvorgänge sind nur mit Ihrer ausdrücklichen
+            Einwilligung möglich. Sie können eine bereits erteilte Einwilligung
+            jederzeit per E-Mail widerrufen. Die Rechtmäßigkeit der bis zum Widerruf
+            erfolgten Datenverarbeitung bleibt davon unberührt.
           </p>
           <h2>6. Hosting und Server-Logs</h2>
           <p>
             Diese Website wird auf eigenen Servern in Deutschland betrieben.
             Beim Aufrufen der Seiten werden automatisch Server-Log-Dateien
-            gespeichert (IP-Adresse, Browser, Datum/Uhrzeit).
+            gespeichert (IP-Adresse, Browser, Datum/Uhrzeit). Eine Zusammenführung
+            dieser Daten mit anderen Datenquellen wird nicht vorgenommen.
           </p>
           <h2>7. Cookies</h2>
           <p>
-            Diese Website verwendet funktionale Cookies, die f&#xFC;r den Betrieb der
+            Diese Website verwendet funktionale Cookies, die für den Betrieb der
             Anwendung notwendig sind (Session-Cookie). Es werden keine
             Marketing- oder Tracking-Cookies eingesetzt.
           </p>
           <p class="mt-4">
             <a href="/" class="iil-btn iil-btn-primary">
-              <i class="fa fa-home me-2"/>Zur&#xFC;ck zur Startseite
+              <i class="fa fa-home me-2"/>Zurück zur Startseite
             </a>
             <a href="/impressum" class="iil-btn iil-btn-outline ms-2">
               Impressum
@@ -345,19 +366,21 @@
     </t>
   </template>
 
-  <!-- MODUL GEBUCHT -->
+  <!-- ══════════════════════════════════════════════════════
+       MODUL GEBUCHT BESTÄTIGUNG
+  ══════════════════════════════════════════════════════ -->
   <template id="module_booked" name="Modul gebucht">
     <t t-call="website.layout">
       <section class="iil-booked">
         <div class="container text-center py-5">
-          <div class="iil-booked-icon">&#x2705;</div>
+          <div class="iil-booked-icon">✅</div>
           <h2>Modul wurde angefragt!</h2>
           <p class="lead">
             Ihr Modul <strong><t t-esc="module_key"/></strong> wurde
             zur Aktivierung vorgemerkt. Unser Team meldet sich bei Ihnen.
           </p>
           <a href="/" class="iil-btn iil-btn-primary mt-3">
-            <i class="fa fa-home me-2"/>Zurueck zur Startseite
+            <i class="fa fa-home me-2"/>Zurück zur Startseite
           </a>
         </div>
       </section>

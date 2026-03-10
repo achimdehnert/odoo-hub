@@ -10,11 +10,11 @@ class IILWebsite(http.Controller):
         modules = [
             {
                 'key': 'casting_foundry',
-                'name': 'Gie\xdferei',
+                'name': 'Gießerei',
                 'icon': '\U0001f3ed',
                 'description': (
-                    'Komplette Gie\xdferei-Verwaltung: Auftr\xe4ge, '
-                    'Qualit\xe4tssicherung, Chargen-Tracking.'
+                    'Komplette Gießerei-Verwaltung: Aufträge, '
+                    'Qualitätssicherung, Chargen-Tracking.'
                 ),
                 'color': '#1a56db',
                 'route': '/web#action=185',
@@ -24,7 +24,7 @@ class IILWebsite(http.Controller):
                 'name': 'SCM / Fertigung',
                 'icon': '\U0001f527',
                 'description': (
-                    'Supply Chain Management: St\xfccklisten, '
+                    'Supply Chain Management: Stücklisten, '
                     'Lieferanten, Lager und Bestellungen.'
                 ),
                 'color': '#0e9f6e',
@@ -46,7 +46,7 @@ class IILWebsite(http.Controller):
                 'name': 'NL2SQL Analytics',
                 'icon': '\U0001f916',
                 'description': (
-                    'KI-gest\xfctzte Datenabfragen in nat\xfcrlicher '
+                    'KI-gestützte Datenabfragen in natürlicher '
                     'Sprache - direkt auf Ihre Produktionsdaten.'
                 ),
                 'color': '#0891b2',
@@ -78,11 +78,8 @@ class IILWebsite(http.Controller):
     def datenschutz(self, **kwargs):
         return request.render('iil_website.datenschutz_page', {})
 
-    @http.route(
-        '/module/<string:module_key>/book',
-        auth='user',
-        website=True,
-    )
+    @http.route('/module/<string:module_key>/book',
+                auth='user', website=True)
     def book_module(self, module_key, **kwargs):
         return request.render('iil_website.module_booked', {
             'module_key': module_key,

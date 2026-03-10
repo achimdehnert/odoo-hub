@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "IIL Website - Landing Page",
+    "name": "IIL Website – Landing Page",
     "version": "18.0.1.0.0",
     "category": "Website",
-    "summary": "IIL Landing Page mit Produktuebersicht, Login, Registrierung und Modul-Buchung",
+    "summary": "IIL Landing Page mit Produktübersicht, Login, Registrierung und Modul-Buchung",
     "author": "IIL",
     "website": "https://iil.gmbh",
     "license": "LGPL-3",

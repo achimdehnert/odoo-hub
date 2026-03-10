@@ -289,28 +289,87 @@ class MfgDashboardController(http.Controller):
                 # das ist kein Fehler, sondern ein Dialog-Schritt.
                 if result.get("needs_clarification"):
                     result["success"] = True
+                    return result
+                # History-Eintrag schreiben (success + error)
+                self._log_nl2sql_history(query, result)
                 return result
 
         except urllib.error.HTTPError as exc:
             try:
                 err_body = json.loads(exc.read())
-                return {
-                    "success": False,
-                    "error": err_body.get("error", f"HTTP {exc.code}"),
-                    "error_type": err_body.get("error_type", "HTTPError"),
-                }
+                error_msg = err_body.get("error", f"HTTP {exc.code}")
             except Exception:
-                return {"success": False, "error": f"aifw-service HTTP {exc.code}"}
+                error_msg = f"aifw-service HTTP {exc.code}"
+            self._log_nl2sql_history(query, {"success": False, "error": error_msg})
+            return {"success": False, "error": error_msg}
 
         except urllib.error.URLError as exc:
+            error_msg = "KI-Service nicht erreichbar. aifw_service Container pruefen."
             _logger.warning("aifw_service nicht erreichbar: %s", exc.reason)
+            self._log_nl2sql_history(query, {"success": False, "error": error_msg})
             return {
                 "success": False,
-                "error": "KI-Service nicht erreichbar. "
-                         "Bitte aifw_service Container pruefen.",
+                "error": error_msg,
                 "error_type": "ServiceUnavailable",
             }
 
         except Exception as exc:
             _logger.exception("NL2SQL proxy error")
-            return {"success": False, "error": f"Fehler: {str(exc)}"}
+            error_msg = f"Fehler: {str(exc)}"
+            self._log_nl2sql_history(query, {"success": False, "error": error_msg})
+            return {"success": False, "error": error_msg}
+
+    def _log_nl2sql_history(self, query, result):
+        """Schreibt Query-Ergebnis in nl2sql.query.history für Feedback-Loop."""
+        try:
+            History = request.env["nl2sql.query.history"].sudo()
+            is_success = result.get("success", False) and not result.get("error")
+            vals = {
+                "name": query,
+                "domain_filter": "all",
+                "state": "success" if is_success else "error",
+                "generated_sql": result.get("sql", ""),
+                "sanitized_sql": result.get("sql", ""),
+                "result_row_count": result.get("row_count", 0),
+                "execution_time_ms": int(result.get("execution_time_ms", 0)),
+                "llm_tokens_used": (result.get("tokens") or {}).get("input", 0),
+            }
+            if not is_success:
+                vals["error_message"] = result.get("error", "Unbekannter Fehler")
+            if result.get("columns"):
+                vals["result_columns"] = json.dumps(result["columns"])
+            if result.get("rows"):
+                vals["result_data"] = json.dumps(result["rows"][:200])
+            History.create(vals)
+        except Exception:
+            _logger.debug("nl2sql history logging failed (non-critical)", exc_info=True)
+
+    @http.route("/mfg_management/nl2sql/feedback", type="json", auth="user")
+    def nl2sql_feedback(self, history_id, rating, comment=None):
+        """Feedback zu einem NL2SQL-Ergebnis: rating='good'|'bad'."""
+        try:
+            History = request.env["nl2sql.query.history"].sudo()
+            record = History.browse(history_id)
+            if not record.exists():
+                return {"error": "Eintrag nicht gefunden"}
+            # is_pinned = True bei positivem Feedback (Few-Shot Kandidat)
+            vals = {"is_pinned": rating == "good"}
+            if comment:
+                vals["error_message"] = comment
+            record.write(vals)
+            # Bei positivem Feedback: automatisch als Few-Shot Example vorschlagen
+            if rating == "good" and record.sanitized_sql:
+                try:
+                    request.env["nl2sql.example"].sudo().create({
+                        "name": record.name,
+                        "sql": record.sanitized_sql,
+                        "domain": "all",
+                        "is_active": False,  # Manuell aktivieren nach Review
+                        "source": "feedback",
+                    })
+                except Exception:
+                    pass  # Example-Model optional
+            return {"success": True, "rating": rating}
+        except Exception as exc:
+            _logger.exception("NL2SQL feedback error")
+            return {"error": str(exc)}

@@ -10,3 +10,7 @@ access_saved_query_manager,nl2sql.saved.query.manager,model_nl2sql_saved_query,g
 access_dashboard_config_user,nl2sql.dashboard.config.user,model_nl2sql_dashboard_config,group_nl2sql_user,1,1,1,1
 access_dashboard_config_manager,nl2sql.dashboard.config.manager,model_nl2sql_dashboard_config,group_nl2sql_manager,1,1,1,1
 access_save_query_wizard_user,nl2sql.save.query.wizard.user,model_nl2sql_save_query_wizard,group_nl2sql_user,1,1,1,1
+access_nl2sql_example_user,nl2sql.example.user,model_nl2sql_example,group_nl2sql_user,1,0,0,0
+access_nl2sql_example_manager,nl2sql.example.manager,model_nl2sql_example,group_nl2sql_manager,1,1,1,1
+access_nl2sql_feedback_user,nl2sql.feedback.user,model_nl2sql_feedback,group_nl2sql_user,1,0,0,0
+access_nl2sql_feedback_manager,nl2sql.feedback.manager,model_nl2sql_feedback,group_nl2sql_manager,1,1,1,1

@@ -1,0 +1,22 @@
+apiVersion: 1
+
+providers:
+  - name: odoo-business
+    orgId: 1
+    folder: Odoo Business
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/business
+
+  - name: odoo-ops
+    orgId: 1
+    folder: Odoo Ops
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/ops

@@ -198,6 +198,158 @@ services:
           cpus: "1.5"
           memory: 1G
 
+  # ── Prometheus ───────────────────────────────────────────────────────────────
+  # Layer 2: System metrics scraping. Internal only — no Traefik exposure.
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: odoo_prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./grafana/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    depends_on:
+      - node_exporter
+      - postgres_exporter
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Node Exporter ────────────────────────────────────────────────────────────
+  # Layer 2: Host system metrics (CPU, RAM, Disk, Network).
+  node_exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: odoo_node_exporter
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /:/host:ro,rslave
+    expose:
+      - "9100"
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+
+  # ── postgres_exporter ────────────────────────────────────────────────────────
+  # Layer 2: PostgreSQL metrics for Prometheus (connections, query stats, cache).
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: odoo_postgres_exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://grafana_ro:${GRAFANA_RO_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    expose:
+      - "9187"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+
+  # ── Loki ─────────────────────────────────────────────────────────────────────
+  # Layer 3: Log aggregation backend.
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: odoo_loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./grafana/loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    expose:
+      - "3100"
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  # ── Promtail ─────────────────────────────────────────────────────────────────
+  # Layer 3: Log shipper — tails Odoo + aifw container logs → Loki.
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: odoo_promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./grafana/promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
+
+  # ── Grafana ─────────────────────────────────────────────────────────────────
+  # Read-Only PostgreSQL datasource via grafana_ro user (nl2sql_ro role).
+  # Provisioning: datasources + dashboards aus ./grafana/provisioning/
+  # Passwort via GRAFANA_RO_PASSWORD (aus /run/secrets/).
+  grafana:
+    image: grafana/grafana-oss:11.4.0
+    container_name: odoo_grafana
+    restart: unless-stopped
+    env_file: .env.prod
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=https://${GRAFANA_DOMAIN}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SMTP_ENABLED=false
+      - GRAFANA_RO_PASSWORD=${GRAFANA_RO_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    expose:
+      - "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_proxy"
+      - "traefik.http.routers.odoo-grafana.rule=Host(`${GRAFANA_DOMAIN}`)"
+      - "traefik.http.routers.odoo-grafana.entrypoints=websecure"
+      - "traefik.http.routers.odoo-grafana.tls.certresolver=le"
+      - "traefik.http.services.odoo-grafana.loadbalancer.server.port=3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
 volumes:
   odoo_data:
     name: odoo_hub_data        # Expliziter Name für Backup-Scripts
@@ -207,6 +359,12 @@ volumes:
     name: odoo_hub_traefik_certs
   aifw_pgdata:
     name: odoo_hub_aifw_pgdata # aifw eigene DB (LLMProvider, AIActionType, UsageLogs, SchemaSource)
+  grafana_data:
+    name: odoo_hub_grafana_data
+  prometheus_data:
+    name: odoo_hub_prometheus_data
+  loki_data:
+    name: odoo_hub_loki_data
 
 networks:
   # Internes Netzwerk: DB nicht vom Internet erreichbar.

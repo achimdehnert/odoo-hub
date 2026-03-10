@@ -1,0 +1,193 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_POSTGRESQL",
+      "label": "PostgreSQL (odoo)",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "11.0.0" },
+    { "type": "datasource", "id": "postgres", "name": "PostgreSQL", "version": "1.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "barchart", "name": "Bar chart", "version": "" },
+    { "type": "panel", "id": "piechart", "name": "Pie chart", "version": "" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" }
+  ],
+  "title": "Odoo — Sales, CRM & Accounting",
+  "uid": "odoo-sales-crm-v1",
+  "version": 1,
+  "schemaVersion": 39,
+  "tags": ["odoo", "sales", "crm", "accounting", "kpi"],
+  "timezone": "Europe/Berlin",
+  "refresh": "10m",
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Umsatz MTD",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT SUM(amount_total) AS \"Umsatz (EUR)\" FROM sale_order WHERE state IN ('sale','done') AND date_order >= date_trunc('month', NOW()) AND date_order <= NOW()",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "currencyEUR", "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 2,
+      "title": "Offene Aufträge",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT COUNT(*) AS \"Offene Aufträge\" FROM sale_order WHERE state IN ('sale','sent') AND date_order >= $__timeFrom() AND date_order <= $__timeTo()",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 3,
+      "title": "CRM Conversion Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT ROUND(100.0 * SUM(CASE WHEN type='opportunity' AND active=false AND probability=100 THEN 1 ELSE 0 END) / NULLIF(COUNT(*),0), 2) AS \"Conversion (%)\" FROM crm_lead WHERE create_date >= $__timeFrom() AND create_date <= $__timeTo()",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 5 }, { "color": "green", "value": 15 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
+    },
+    {
+      "id": 4,
+      "title": "Offene Rechnungen (gesamt)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT SUM(amount_residual) AS \"Offene Posten (EUR)\" FROM account_move WHERE move_type='out_invoice' AND state='posted' AND payment_state NOT IN ('paid','reversed')",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "currencyEUR", "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50000 }, { "color": "red", "value": 100000 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
+    },
+    {
+      "id": 5,
+      "title": "Ø Auftragswert",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT ROUND(AVG(amount_total)) AS \"Ø Auftragswert (EUR)\" FROM sale_order WHERE state IN ('sale','done') AND date_order >= $__timeFrom() AND date_order <= $__timeTo()",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "currencyEUR", "decimals": 0 } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 6,
+      "title": "Aktive Opportunities",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT COUNT(*) AS \"Opportunities\" FROM crm_lead WHERE type='opportunity' AND active=true",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 7,
+      "title": "Umsatz vs. Vormonat (monatlich)",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 14, "x": 0, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT date_trunc('month', so.date_order) AS time, SUM(so.amount_total) AS \"Umsatz (EUR)\", COUNT(*) AS \"Anzahl Aufträge\" FROM sale_order so WHERE so.state IN ('sale','done') AND so.date_order >= NOW() - INTERVAL '12 months' GROUP BY 1 ORDER BY 1",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "currencyEUR", "custom": { "lineWidth": 2, "fillOpacity": 15 } },
+        "overrides": [{ "matcher": { "id": "byName", "options": "Anzahl Aufträge" }, "properties": [{ "id": "unit", "value": "short" }, { "id": "custom.axisPlacement", "value": "right" }] }]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 8,
+      "title": "CRM Pipeline nach Stage",
+      "type": "barchart",
+      "gridPos": { "h": 9, "w": 10, "x": 14, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT cs.name AS \"Stage\", COUNT(cl.id) AS \"Leads\", COALESCE(SUM(cl.expected_revenue), 0)::NUMERIC(12,0) AS \"Pipeline (EUR)\" FROM crm_lead cl JOIN crm_stage cs ON cs.id = cl.stage_id WHERE cl.active = true AND cl.type = 'opportunity' GROUP BY cs.name, cs.sequence ORDER BY cs.sequence",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [{ "matcher": { "id": "byName", "options": "Pipeline (EUR)" }, "properties": [{ "id": "unit", "value": "currencyEUR" }, { "id": "custom.axisPlacement", "value": "right" }] }] },
+      "options": { "barWidth": 0.6, "xTickLabelRotation": -30, "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 9,
+      "title": "Top 10 Produkte nach Umsatz",
+      "type": "table",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT pt.name->>'de_DE' AS \"Produkt\", SUM(sol.product_uom_qty) AS \"Menge\", SUM(sol.price_subtotal) AS \"Umsatz (EUR)\", ROUND(AVG(sol.discount), 1) AS \"Ø Rabatt (%)\" FROM sale_order_line sol JOIN product_product pp ON pp.id = sol.product_id JOIN product_template pt ON pt.id = pp.product_tmpl_id JOIN sale_order so ON so.id = sol.order_id WHERE so.state IN ('sale','done') AND so.date_order >= $__timeFrom() AND so.date_order <= $__timeTo() GROUP BY pt.name ORDER BY 3 DESC LIMIT 10",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [{ "matcher": { "id": "byName", "options": "Umsatz (EUR)" }, "properties": [{ "id": "unit", "value": "currencyEUR" }] }] },
+      "options": { "sortBy": [{ "displayName": "Umsatz (EUR)", "desc": true }] }
+    },
+    {
+      "id": 10,
+      "title": "Offene Posten — Aging Buckets",
+      "type": "barchart",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT CASE WHEN NOW() - am.invoice_date_due <= INTERVAL '30 days' THEN '0-30 Tage' WHEN NOW() - am.invoice_date_due <= INTERVAL '60 days' THEN '31-60 Tage' WHEN NOW() - am.invoice_date_due <= INTERVAL '90 days' THEN '61-90 Tage' ELSE '>90 Tage' END AS \"Altersklasse\", SUM(am.amount_residual) AS \"Offener Betrag (EUR)\", COUNT(*) AS \"Rechnungen\" FROM account_move am WHERE am.move_type = 'out_invoice' AND am.state = 'posted' AND am.payment_state NOT IN ('paid','reversed') GROUP BY 1 ORDER BY MIN(am.invoice_date_due)",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "currencyEUR" } },
+      "options": { "barWidth": 0.6, "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 11,
+      "title": "Top 10 Kunden nach Umsatz",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT rp.name AS \"Kunde\", COUNT(so.id) AS \"Aufträge\", SUM(so.amount_total) AS \"Umsatz (EUR)\", MAX(so.date_order) AS \"Letzter Auftrag\" FROM sale_order so JOIN res_partner rp ON rp.id = so.partner_id WHERE so.state IN ('sale','done') AND so.date_order >= $__timeFrom() AND so.date_order <= $__timeTo() GROUP BY rp.name ORDER BY 3 DESC LIMIT 10",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [{ "matcher": { "id": "byName", "options": "Umsatz (EUR)" }, "properties": [{ "id": "unit", "value": "currencyEUR" }] }, { "matcher": { "id": "byName", "options": "Letzter Auftrag" }, "properties": [{ "id": "unit", "value": "dateTimeAsLocal" }] }] },
+      "options": { "sortBy": [{ "displayName": "Umsatz (EUR)", "desc": true }] }
+    },
+    {
+      "id": 12,
+      "title": "Kritischer Lagerbestand (unter Meldebestand)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "datasource": { "type": "postgres", "uid": "odoo_pg" },
+      "targets": [{
+        "rawSql": "SELECT pt.name->>'de_DE' AS \"Produkt\", ROUND(SUM(sq.quantity), 2) AS \"Bestand\", pp.reorder_min_qty AS \"Meldebestand\", ROUND(SUM(sq.quantity) / NULLIF(pp.reorder_min_qty, 0) * 100, 0) AS \"Bestand %\" FROM stock_quant sq JOIN product_product pp ON pp.id = sq.product_id JOIN product_template pt ON pt.id = pp.product_tmpl_id JOIN stock_location sl ON sl.id = sq.location_id WHERE sl.usage = 'internal' AND pp.reorder_min_qty IS NOT NULL AND pp.reorder_min_qty > 0 GROUP BY pt.name, pp.reorder_min_qty HAVING SUM(sq.quantity) <= pp.reorder_min_qty * 1.2 ORDER BY SUM(sq.quantity) / NULLIF(pp.reorder_min_qty, 0) ASC LIMIT 20",
+        "format": "table"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [{ "matcher": { "id": "byName", "options": "Bestand %" }, "properties": [{ "id": "unit", "value": "percent" }, { "id": "custom.displayMode", "value": "color-background" }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 100 }] } }] }] },
+      "options": { "sortBy": [{ "displayName": "Bestand %", "desc": false }] }
+    }
+  ],
+  "annotations": { "list": [{ "name": "Deployments", "type": "dashboard", "enable": true, "hide": false, "iconColor": "blue" }] }
+}

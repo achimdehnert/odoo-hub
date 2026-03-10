@@ -1,0 +1,239 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    },
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "11.0.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" },
+    { "type": "datasource", "id": "loki", "name": "Loki", "version": "1.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "gauge", "name": "Gauge", "version": "" },
+    { "type": "panel", "id": "logs", "name": "Logs", "version": "" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" }
+  ],
+  "title": "Odoo — System Health",
+  "uid": "odoo-system-health-v1",
+  "version": 1,
+  "schemaVersion": 39,
+  "tags": ["odoo", "system", "prometheus", "loki", "ops"],
+  "timezone": "Europe/Berlin",
+  "refresh": "30s",
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"odoo-prod\"}[5m])) * 100)",
+        "legendFormat": "CPU %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 2,
+      "title": "RAM Usage",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "(1 - (node_memory_MemAvailable_bytes{instance=\"odoo-prod\"} / node_memory_MemTotal_bytes{instance=\"odoo-prod\"})) * 100",
+        "legendFormat": "RAM %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 75 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 3,
+      "title": "Disk Usage",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "100 - ((node_filesystem_avail_bytes{instance=\"odoo-prod\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"odoo-prod\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100)",
+        "legendFormat": "Disk %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 4,
+      "title": "DB Verbindungen aktiv",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "pg_stat_activity_count{instance=\"odoo-db\",state=\"active\"}",
+        "legendFormat": "Aktive Verbindungen"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 30 }, { "color": "red", "value": 45 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 5,
+      "title": "DB Cache Hit Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "pg_stat_database_blks_hit{instance=\"odoo-db\"} / (pg_stat_database_blks_hit{instance=\"odoo-db\"} + pg_stat_database_blks_read{instance=\"odoo-db\"}) * 100",
+        "legendFormat": "Cache Hit %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 90 }, { "color": "green", "value": 95 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
+    },
+    {
+      "id": 6,
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [{
+        "expr": "node_time_seconds{instance=\"odoo-prod\"} - node_boot_time_seconds{instance=\"odoo-prod\"}",
+        "legendFormat": "Uptime"
+      }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 7,
+      "title": "CPU / RAM Verlauf",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [
+        {
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"odoo-prod\"}[5m])) * 100)",
+          "legendFormat": "CPU %"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes{instance=\"odoo-prod\"} / node_memory_MemTotal_bytes{instance=\"odoo-prod\"})) * 100",
+          "legendFormat": "RAM %"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 8,
+      "title": "DB Verbindungen Verlauf",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [
+        {
+          "expr": "pg_stat_activity_count{instance=\"odoo-db\",state=\"active\"}",
+          "legendFormat": "Aktiv"
+        },
+        {
+          "expr": "pg_stat_activity_count{instance=\"odoo-db\",state=\"idle\"}",
+          "legendFormat": "Idle"
+        },
+        {
+          "expr": "pg_stat_activity_count{instance=\"odoo-db\",state=\"idle in transaction\"}",
+          "legendFormat": "Idle in TX"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 9,
+      "title": "Disk I/O (read/write bytes/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total{instance=\"odoo-prod\",device!~\"loop.*\"}[5m])",
+          "legendFormat": "Read {{device}}"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total{instance=\"odoo-prod\",device!~\"loop.*\"}[5m])",
+          "legendFormat": "Write {{device}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 10,
+      "title": "Network I/O (bytes/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "odoo_prometheus" },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{instance=\"odoo-prod\",device!~\"lo|docker.*|br-.*\"}[5m])",
+          "legendFormat": "RX {{device}}"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{instance=\"odoo-prod\",device!~\"lo|docker.*|br-.*\"}[5m])",
+          "legendFormat": "TX {{device}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 11,
+      "title": "Odoo Logs (ERROR / WARNING)",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "datasource": { "type": "loki", "uid": "odoo_loki" },
+      "targets": [{
+        "expr": "{container=\"odoo_web\"} |= \"\" | logfmt | level =~ \"ERROR|WARNING|CRITICAL\"",
+        "legendFormat": ""
+      }],
+      "options": { "dedupStrategy": "none", "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true }
+    },
+    {
+      "id": 12,
+      "title": "Log-Volumen nach Level (Rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
+      "datasource": { "type": "loki", "uid": "odoo_loki" },
+      "targets": [
+        {
+          "expr": "sum by (level) (rate({container=\"odoo_web\"}[5m]))",
+          "legendFormat": "{{level}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 13,
+      "title": "aifw_service Logs (ERROR)",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
+      "datasource": { "type": "loki", "uid": "odoo_loki" },
+      "targets": [{
+        "expr": "{container=\"aifw_service\"} |= \"ERROR\"",
+        "legendFormat": ""
+      }],
+      "options": { "dedupStrategy": "none", "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true }
+    }
+  ],
+  "annotations": { "list": [{ "name": "Deployments", "type": "dashboard", "enable": true, "hide": false, "iconColor": "blue" }] }
+}
