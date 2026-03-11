@@ -297,36 +297,9 @@ services:
           cpus: "0.3"
           memory: 256M
 
-  # ══════════════════════════════════════════════════════════════════════════
-  # SHARED TRAEFIK für Staging (eigene Instanz auf Port 8080/8443)
-  # Lauscht auf Port 8080 (HTTP) und 8443 (HTTPS) um nicht mit Prod zu kollidieren
-  # ══════════════════════════════════════════════════════════════════════════
-
-  staging_traefik:
-    profiles: [v18, v19]
-    image: traefik:v3.3
-    container_name: staging_traefik
-    restart: unless-stopped
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=odoo_hub_staging_proxy"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--certificatesresolvers.le.acme.tlschallenge=true"
-      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-      - "--log.level=INFO"
-    ports:
-      - "8080:80"
-      - "8443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - staging_traefik_certs:/letsencrypt
-    networks:
-      - staging_proxy
+  # NOTE: Kein eigener Staging-Traefik.
+  # Der Prod-Traefik (odoo_hub_proxy Netzwerk) routet alle Staging-Domains.
+  # staging_proxy ist ein externer Alias auf odoo_hub_proxy.
 
 volumes:
   staging_v18_pgdata:
@@ -341,9 +314,6 @@ volumes:
     name: odoo_staging_v19_data
   staging_v19_grafana_data:
     name: odoo_staging_v19_grafana_data
-  staging_traefik_certs:
-    name: odoo_staging_traefik_certs
-
 networks:
   staging_internal_v18:
     name: odoo_staging_internal_v18
@@ -352,4 +322,5 @@ networks:
     name: odoo_staging_internal_v19
     internal: true
   staging_proxy:
-    name: odoo_hub_staging_proxy
+    external: true
+    name: odoo_hub_proxy
