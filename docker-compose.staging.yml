@@ -81,7 +81,7 @@ services:
       - staging_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.docker.network=odoo_hub_proxy"
       - "traefik.http.routers.staging-v18.rule=Host(`${STAGING_V18_DOMAIN}`)"
       - "traefik.http.routers.staging-v18.entrypoints=websecure"
       - "traefik.http.routers.staging-v18.tls.certresolver=le"
@@ -144,7 +144,7 @@ services:
       - staging_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.docker.network=odoo_hub_proxy"
       - "traefik.http.routers.staging-v18-grafana.rule=Host(`${STAGING_V18_GRAFANA_DOMAIN}`)"
       - "traefik.http.routers.staging-v18-grafana.entrypoints=websecure"
       - "traefik.http.routers.staging-v18-grafana.tls.certresolver=le"
@@ -223,7 +223,7 @@ services:
       - staging_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.docker.network=odoo_hub_proxy"
       - "traefik.http.routers.staging-v19.rule=Host(`${STAGING_V19_DOMAIN}`)"
       - "traefik.http.routers.staging-v19.entrypoints=websecure"
       - "traefik.http.routers.staging-v19.tls.certresolver=le"
@@ -286,7 +286,7 @@ services:
       - staging_proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.docker.network=odoo_hub_proxy"
       - "traefik.http.routers.staging-v19-grafana.rule=Host(`${STAGING_V19_GRAFANA_DOMAIN}`)"
       - "traefik.http.routers.staging-v19-grafana.entrypoints=websecure"
       - "traefik.http.routers.staging-v19-grafana.tls.certresolver=le"
