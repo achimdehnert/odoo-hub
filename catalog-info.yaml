@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: odoo-hub
+  description: Odoo ERP integration hub — custom modules and deployment for odoo.iil.pet
+  tags: [odoo, erp, python, docker]
+  annotations:
+    github.com/project-slug: achimdehnert/odoo-hub
+    deployment/server: "46.225.127.211"
+    deployment/path: "/opt/odoo-hub"
+    deployment/health-url: "https://odoo.iil.pet/web/login"
+    deployment/image: "ghcr.io/achimdehnert/odoo-hub:latest"
+spec:
+  type: service
+  lifecycle: production
+  owner: achimdehnert
+  system: erp
+  domain: business
+  providesApis: []
+  dependsOn:
+    - resource:postgresql
