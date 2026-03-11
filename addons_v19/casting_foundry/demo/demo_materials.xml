@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Base Materials -->
+        <record id="mat_aluminum" model="casting.material">
+            <field name="name">Aluminium</field>
+            <field name="code">AL</field>
+            <field name="material_type">non_ferrous</field>
+            <field name="density">2.700</field>
+            <field name="melting_point">660.3</field>
+            <field name="cost_per_kg">2.80</field>
+        </record>
+        <record id="mat_cast_iron" model="casting.material">
+            <field name="name">Gusseisen</field>
+            <field name="code">GG</field>
+            <field name="material_type">ferrous</field>
+            <field name="density">7.200</field>
+            <field name="melting_point">1200.0</field>
+            <field name="cost_per_kg">0.85</field>
+        </record>
+        <record id="mat_zinc" model="casting.material">
+            <field name="name">Zink</field>
+            <field name="code">ZN</field>
+            <field name="material_type">non_ferrous</field>
+            <field name="density">7.130</field>
+            <field name="melting_point">419.5</field>
+            <field name="cost_per_kg">3.50</field>
+        </record>
+
+        <!-- Alloys -->
+        <record id="alloy_alsi9cu3" model="casting.alloy">
+            <field name="name">AlSi9Cu3</field>
+            <field name="din_number">3.2163</field>
+            <field name="base_material_id" ref="mat_aluminum"/>
+            <field name="alloy_type">aluminum</field>
+            <field name="tensile_strength">240</field>
+            <field name="yield_strength">140</field>
+            <field name="pouring_temp_min">640</field>
+            <field name="pouring_temp_max">700</field>
+            <field name="shrinkage_rate">0.60</field>
+            <field name="cost_per_kg">3.20</field>
+        </record>
+        <record id="alloy_gjs_400" model="casting.alloy">
+            <field name="name">EN-GJS-400-18</field>
+            <field name="din_number">0.7040</field>
+            <field name="base_material_id" ref="mat_cast_iron"/>
+            <field name="alloy_type">cast_iron</field>
+            <field name="tensile_strength">400</field>
+            <field name="yield_strength">250</field>
+            <field name="pouring_temp_min">1300</field>
+            <field name="pouring_temp_max">1400</field>
+            <field name="shrinkage_rate">1.00</field>
+            <field name="cost_per_kg">1.20</field>
+        </record>
+
+        <!-- Machines -->
+        <record id="machine_dc_01" model="casting.machine">
+            <field name="name">Druckgussmaschine DC-01</field>
+            <field name="code">MCH-0001</field>
+            <field name="machine_type">die_casting</field>
+            <field name="state">operational</field>
+            <field name="manufacturer">Bühler</field>
+            <field name="model">Carat 840</field>
+            <field name="clamping_force_t">840</field>
+            <field name="hall">Halle A</field>
+        </record>
+
+        <!-- Molds -->
+        <record id="mold_motorblock" model="casting.mold">
+            <field name="name">Motorblock V6 Form</field>
+            <field name="code">FRM-00001</field>
+            <field name="mold_type">die_cast</field>
+            <field name="state">active</field>
+            <field name="cavity_count">1</field>
+            <field name="part_weight_kg">28.500</field>
+            <field name="max_shots">100000</field>
+            <field name="current_shots">42000</field>
+            <field name="machine_id" ref="machine_dc_01"/>
+        </record>
+    </data>
+</odoo>

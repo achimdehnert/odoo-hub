@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_query_history_list" model="ir.ui.view">
+        <field name="name">nl2sql.query.history.list</field>
+        <field name="model">nl2sql.query.history</field>
+        <field name="arch" type="xml">
+            <list string="Abfrage-Verlauf" decoration-danger="state=='error'"
+                  decoration-muted="state=='timeout'" default_order="create_date desc">
+                <field name="create_date" string="Zeitpunkt"/>
+                <field name="name" string="Abfrage"/>
+                <field name="domain_filter"/>
+                <field name="state" widget="badge"
+                       decoration-success="state=='success'"
+                       decoration-danger="state=='error'"
+                       decoration-warning="state=='processing'"/>
+                <field name="chart_type"/>
+                <field name="result_row_count"/>
+                <field name="execution_time_ms" string="Zeit (ms)"/>
+                <field name="llm_tokens_used" string="Tokens"/>
+                <field name="is_pinned"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_query_history_form" model="ir.ui.view">
+        <field name="name">nl2sql.query.history.form</field>
+        <field name="model">nl2sql.query.history</field>
+        <field name="arch" type="xml">
+            <form string="Abfrage-Detail">
+                <header>
+                    <button name="action_rerun" type="object"
+                            string="Erneut ausführen" class="btn-primary"
+                            invisible="state != 'success'"/>
+                    <button name="action_save_query" type="object"
+                            string="Speichern" class="btn-secondary"
+                            invisible="state != 'success'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,processing,success,error"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Abfrage">
+                            <field name="name"/>
+                            <field name="domain_filter"/>
+                            <field name="chart_type"/>
+                            <field name="user_id"/>
+                            <field name="is_pinned"/>
+                        </group>
+                        <group string="Ausführung">
+                            <field name="result_row_count"/>
+                            <field name="execution_time_ms"/>
+                            <field name="llm_tokens_used"/>
+                            <field name="create_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="SQL" name="sql">
+                            <group>
+                                <field name="generated_sql" widget="ace"
+                                       options="{'mode': 'sql'}"/>
+                                <field name="sanitized_sql" widget="ace"
+                                       options="{'mode': 'sql'}"/>
+                            </group>
+                        </page>
+                        <page string="Ergebnis" name="result"
+                              invisible="state != 'success'">
+                            <field name="result_columns"/>
+                            <field name="result_data"/>
+                            <field name="chart_config"/>
+                        </page>
+                        <page string="Fehler" name="error"
+                              invisible="state != 'error'">
+                            <field name="error_message"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_query_history_search" model="ir.ui.view">
+        <field name="name">nl2sql.query.history.search</field>
+        <field name="model">nl2sql.query.history</field>
+        <field name="arch" type="xml">
+            <search string="Abfrage-Verlauf">
+                <field name="name"/>
+                <field name="generated_sql"/>
+                <filter name="success" string="Erfolgreich"
+                        domain="[('state','=','success')]"/>
+                <filter name="errors" string="Fehler"
+                        domain="[('state','=','error')]"/>
+                <filter name="pinned" string="Angepinnt"
+                        domain="[('is_pinned','=',True)]"/>
+                <separator/>
+                <filter name="supply_chain" string="Supply Chain"
+                        domain="[('domain_filter','=','supply_chain')]"/>
+                <filter name="production" string="Produktion"
+                        domain="[('domain_filter','=','production')]"/>
+                <filter name="quality" string="Qualität"
+                        domain="[('domain_filter','=','quality')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_domain" string="Domäne"
+                            context="{'group_by': 'domain_filter'}"/>
+                    <filter name="group_chart" string="Diagrammtyp"
+                            context="{'group_by': 'chart_type'}"/>
+                    <filter name="group_date" string="Datum"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_query_history" model="ir.actions.act_window">
+        <field name="name">Abfrage-Verlauf</field>
+        <field name="res_model">nl2sql.query.history</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_query_history_search"/>
+        <field name="context">{'search_default_success': 1}</field>
+    </record>
+</odoo>

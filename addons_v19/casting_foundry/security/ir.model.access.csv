@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_casting_material_user,casting.material.user,model_casting_material,group_casting_user,1,0,0,0
+access_casting_material_manager,casting.material.manager,model_casting_material,group_casting_manager,1,1,1,1
+access_casting_alloy_user,casting.alloy.user,model_casting_alloy,group_casting_user,1,0,0,0
+access_casting_alloy_manager,casting.alloy.manager,model_casting_alloy,group_casting_manager,1,1,1,1
+access_casting_mold_user,casting.mold.user,model_casting_mold,group_casting_user,1,1,0,0
+access_casting_mold_manager,casting.mold.manager,model_casting_mold,group_casting_manager,1,1,1,1
+access_casting_machine_user,casting.machine.user,model_casting_machine,group_casting_user,1,0,0,0
+access_casting_machine_manager,casting.machine.manager,model_casting_machine,group_casting_manager,1,1,1,1
+access_casting_order_user,casting.order.user,model_casting_order,group_casting_user,1,1,1,0
+access_casting_order_manager,casting.order.manager,model_casting_order,group_casting_manager,1,1,1,1
+access_casting_order_line_user,casting.order.line.user,model_casting_order_line,group_casting_user,1,1,1,0
+access_casting_order_line_manager,casting.order.line.manager,model_casting_order_line,group_casting_manager,1,1,1,1
+access_casting_quality_check_user,casting.quality.check.user,model_casting_quality_check,group_casting_user,1,1,1,0
+access_casting_quality_check_manager,casting.quality.check.manager,model_casting_quality_check,group_casting_manager,1,1,1,1
+access_casting_defect_type_user,casting.defect.type.user,model_casting_defect_type,group_casting_user,1,0,0,0
+access_casting_defect_type_manager,casting.defect.type.manager,model_casting_defect_type,group_casting_manager,1,1,1,1

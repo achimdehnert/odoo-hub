@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ================================================================ -->
+    <!-- Main Dashboard                                                     -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.Dashboard">
+        <div class="nl2sql-dashboard" t-att-class="{ 'nl2sql-dashboard--dark': state.config.theme === 'dark' }">
+            <!-- Header -->
+            <div class="nl2sql-header">
+                <div class="nl2sql-header__left">
+                    <h1 class="nl2sql-header__title">
+                        <i class="fa fa-database"/> NL2SQL Dashboard
+                    </h1>
+                    <span class="nl2sql-header__subtitle">
+                        Management-Abfragen mit natürlicher Sprache
+                    </span>
+                </div>
+                <div class="nl2sql-header__right">
+                    <button class="btn btn-outline-secondary btn-sm me-2"
+                            t-on-click="toggleHistory">
+                        <i class="fa fa-history"/> Verlauf
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click="toggleSchema">
+                        <i class="fa fa-sitemap"/> Schema
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tiles (KPIs from saved queries) -->
+            <div class="nl2sql-tiles" t-if="state.tiles.length">
+                <t t-foreach="state.tiles" t-as="tile" t-key="tile.id">
+                    <KpiCard
+                        label="tile.name"
+                        value="tile.last_result_data ? JSON.parse(tile.last_result_data)?.[0]?.[0] : '—'"
+                        icon="tile.tile_icon"
+                        color="tile.tile_color"
+                        onClick="() => this.onTileClick(tile)"/>
+                </t>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="nl2sql-main">
+                <!-- Query Input -->
+                <QueryInput
+                    onSubmit.bind="onQuerySubmit"
+                    isLoading="state.isLoading"
+                    domainOptions="domainOptions"
+                    selectedDomain="state.selectedDomain"
+                    onDomainChange.bind="onDomainChange"/>
+
+                <!-- Loading Indicator -->
+                <div class="nl2sql-loading" t-if="state.isLoading">
+                    <div class="nl2sql-loading__spinner">
+                        <i class="fa fa-cog fa-spin fa-2x"/>
+                    </div>
+                    <span>SQL wird generiert und ausgeführt...</span>
+                </div>
+
+                <!-- Clarification Panel -->
+                <div class="nl2sql-clarification" t-if="state.needsClarification and !state.isLoading">
+                    <div class="nl2sql-clarification__header">
+                        <i class="fa fa-question-circle me-2 text-primary"/>
+                        <strong t-esc="state.clarificationQuestion"/>
+                        <button class="btn btn-sm btn-link ms-auto nl2sql-clarification__dismiss"
+                                t-on-click="onClarificationDismiss"
+                                title="Abbrechen">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+                    <div class="nl2sql-clarification__options">
+                        <t t-foreach="state.clarificationOptions" t-as="opt" t-key="opt_index">
+                            <button class="nl2sql-clarification__option"
+                                    t-on-click="onClarificationSelect"
+                                    t-att-data-hint="opt.hint"
+                                    t-att-data-label="opt.label">
+                                <span class="nl2sql-clarification__option-label" t-esc="opt.label"/>
+                                <span class="nl2sql-clarification__option-desc text-muted small"
+                                      t-if="opt.description"
+                                      t-esc="opt.description"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div class="nl2sql-error alert alert-danger" t-if="state.currentError and !state.isLoading">
+                    <h4><i class="fa fa-exclamation-triangle"/> Fehler</h4>
+                    <p t-esc="state.currentError"/>
+                    <pre t-if="state.currentSql" class="nl2sql-sql-preview">
+                        <code t-esc="state.currentSql"/>
+                    </pre>
+                </div>
+
+                <!-- Results Area -->
+                <div class="nl2sql-results" t-if="state.currentResult and !state.isLoading">
+                    <!-- Result Meta Bar -->
+                    <div class="nl2sql-results__meta" t-if="resultMeta">
+                        <span class="badge bg-secondary me-2">
+                            <i class="fa fa-table"/> <t t-esc="resultMeta.rowCount"/> Zeilen
+                        </span>
+                        <span class="badge bg-secondary me-2">
+                            <i class="fa fa-clock-o"/> <t t-esc="resultMeta.executionTime"/> ms
+                        </span>
+                        <span class="badge bg-secondary me-2" t-if="resultMeta.tokensUsed">
+                            <i class="fa fa-bolt"/> <t t-esc="resultMeta.tokensUsed"/> Tokens
+                        </span>
+                        <span class="badge bg-info">
+                            <i t-att-class="'fa ' + (resultMeta.chartType === 'bar' ? 'fa-bar-chart' : resultMeta.chartType === 'line' ? 'fa-line-chart' : resultMeta.chartType === 'pie' ? 'fa-pie-chart' : 'fa-table')"/>
+                            <t t-esc="resultMeta.chartType"/>
+                        </span>
+                    </div>
+
+                    <!-- SQL Display (toggle) -->
+                    <details class="nl2sql-sql-details" t-if="state.currentSql and state.config.show_sql">
+                        <summary>Generiertes SQL</summary>
+                        <pre class="nl2sql-sql-preview"><code t-esc="state.currentSql"/></pre>
+                    </details>
+
+                    <!-- KPI Cards -->
+                    <div class="nl2sql-kpi-row" t-if="hasKpiResult">
+                        <t t-foreach="state.currentResult.chart_config.values || []" t-as="kpi" t-key="kpi.label">
+                            <KpiCard label="kpi.label" value="kpi.value" color="'blue'"/>
+                        </t>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="nl2sql-chart-container" t-if="hasChartResult">
+                        <ResultChart
+                            chartConfig="state.currentResult.chart_config"
+                            chartType="state.currentResult.chart_type"/>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="nl2sql-table-container" t-if="hasTableResult">
+                        <ResultTable
+                            columns="state.currentResult.columns"
+                            rows="state.currentResult.rows"
+                            rowCount="state.currentResult.row_count"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <div t-att-class="'nl2sql-sidebar ' + (state.showHistory ? 'nl2sql-sidebar--open' : '')">
+                <div class="nl2sql-sidebar__header">
+                    <h3>Verlauf</h3>
+                    <button class="btn btn-sm btn-close" t-on-click="toggleHistory"/>
+                </div>
+                <QueryHistory
+                    history="state.history"
+                    onSelect.bind="onHistorySelect"/>
+            </div>
+
+            <!-- Schema Sidebar -->
+            <div t-att-class="'nl2sql-sidebar nl2sql-sidebar--schema ' + (state.showSchema ? 'nl2sql-sidebar--open' : '')">
+                <div class="nl2sql-sidebar__header">
+                    <h3>Datenbank-Schema</h3>
+                    <button class="btn btn-sm btn-close" t-on-click="toggleSchema"/>
+                </div>
+                <div class="nl2sql-schema-list">
+                    <t t-foreach="state.schema" t-as="table" t-key="table.name">
+                        <details class="nl2sql-schema-table">
+                            <summary>
+                                <span class="badge bg-secondary me-1" t-esc="table.domain"/>
+                                <strong t-esc="table.name"/>
+                            </summary>
+                            <p class="text-muted small" t-if="table.description" t-esc="table.description"/>
+                            <ul class="nl2sql-schema-cols">
+                                <t t-foreach="table.columns" t-as="col" t-key="col.name">
+                                    <li>
+                                        <code t-esc="col.name"/>
+                                        <span class="text-muted ms-1">(<t t-esc="col.type"/>)</span>
+                                        <span class="text-muted ms-1" t-if="col.description">
+                                            – <t t-esc="col.description"/>
+                                        </span>
+                                    </li>
+                                </t>
+                            </ul>
+                        </details>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- ================================================================ -->
+    <!-- Query Input Component                                              -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.QueryInput">
+        <div class="nl2sql-query-input">
+            <div class="nl2sql-query-input__bar">
+                <select class="nl2sql-query-input__domain"
+                        t-on-change="props.onDomainChange"
+                        t-att-value="props.selectedDomain">
+                    <t t-foreach="props.domainOptions" t-as="opt" t-key="opt.value">
+                        <option t-att-value="opt.value"
+                                t-att-selected="opt.value === props.selectedDomain"
+                                t-esc="opt.label"/>
+                    </t>
+                </select>
+                <textarea
+                    t-ref="queryInput"
+                    class="nl2sql-query-input__textarea"
+                    placeholder="Stelle eine Frage an deine Daten... z.B. 'Wie viele offene Fertigungsaufträge gibt es?'"
+                    t-model="state.queryText"
+                    t-on-keydown="onKeyDown"
+                    rows="1"
+                    t-att-disabled="props.isLoading"/>
+                <button class="nl2sql-query-input__submit btn btn-primary"
+                        t-on-click="submitQuery"
+                        t-att-disabled="props.isLoading or !state.queryText.trim()">
+                    <i t-att-class="props.isLoading ? 'fa fa-spinner fa-spin' : 'fa fa-paper-plane'"/>
+                </button>
+            </div>
+            <div class="nl2sql-query-input__examples">
+                <span class="text-muted small me-2">Beispiele:</span>
+                <t t-foreach="exampleQueries" t-as="q" t-key="q_index">
+                    <button class="nl2sql-example-chip"
+                            t-on-click="() => this.setExample(q)"
+                            t-esc="q"/>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- ================================================================ -->
+    <!-- Result Chart                                                       -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.ResultChart">
+        <div class="nl2sql-chart">
+            <canvas t-ref="chartCanvas" height="320"/>
+        </div>
+    </t>
+
+    <!-- ================================================================ -->
+    <!-- Result Table                                                       -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.ResultTable">
+        <div class="nl2sql-table">
+            <div class="nl2sql-table__toolbar">
+                <span class="text-muted small" t-esc="pageInfo"/>
+                <div class="btn-group btn-group-sm ms-2">
+                    <button class="btn btn-outline-secondary"
+                            t-on-click="prevPage"
+                            t-att-disabled="state.page === 0">
+                        <i class="fa fa-chevron-left"/>
+                    </button>
+                    <button class="btn btn-outline-secondary"
+                            t-on-click="nextPage"
+                            t-att-disabled="state.page >= totalPages - 1">
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover nl2sql-table__data">
+                    <thead>
+                        <tr>
+                            <t t-foreach="props.columns" t-as="col" t-key="col_index">
+                                <th t-on-click="() => this.sortBy(col_index)"
+                                    class="nl2sql-table__th">
+                                    <t t-esc="col.name"/>
+                                    <i t-if="state.sortCol === col_index"
+                                       t-att-class="'fa fa-sort-' + (state.sortDir === 'asc' ? 'up' : 'down') + ' ms-1'"/>
+                                </th>
+                            </t>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="paginatedRows" t-as="row" t-key="row_index">
+                            <tr>
+                                <t t-foreach="row" t-as="cell" t-key="cell_index">
+                                    <td t-att-class="props.columns[cell_index]?.type === 'float' || props.columns[cell_index]?.type === 'integer' ? 'text-end' : ''"
+                                        t-esc="formatCell(cell, props.columns[cell_index]?.type)"/>
+                                </t>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <!-- ================================================================ -->
+    <!-- KPI Card                                                           -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.KpiCard">
+        <div t-att-class="'nl2sql-kpi ' + colorClass"
+             t-on-click="onClick">
+            <div class="nl2sql-kpi__icon">
+                <i t-att-class="'fa ' + (props.icon || 'fa-bar-chart')"/>
+            </div>
+            <div class="nl2sql-kpi__content">
+                <div class="nl2sql-kpi__value" t-esc="formattedValue"/>
+                <div class="nl2sql-kpi__label" t-esc="props.label"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- ================================================================ -->
+    <!-- Query History Sidebar                                              -->
+    <!-- ================================================================ -->
+    <t t-name="mfg_nl2sql.QueryHistory">
+        <div class="nl2sql-history">
+            <t t-if="!props.history.length">
+                <div class="text-muted text-center p-3">
+                    <i class="fa fa-inbox fa-2x mb-2 d-block"/>
+                    Noch keine Abfragen
+                </div>
+            </t>
+            <t t-foreach="props.history" t-as="item" t-key="item.id">
+                <div class="nl2sql-history__item"
+                     t-on-click="() => this.onSelect(item.id)">
+                    <div class="nl2sql-history__icon">
+                        <i t-att-class="'fa ' + chartIcon(item.chart_type)"/>
+                    </div>
+                    <div class="nl2sql-history__content">
+                        <div class="nl2sql-history__query" t-esc="item.name"/>
+                        <div class="nl2sql-history__meta text-muted small">
+                            <span t-esc="formatDate(item.create_date)"/>
+                            <span class="ms-2">
+                                <t t-esc="item.row_count"/> Zeilen
+                            </span>
+                            <span class="ms-2">
+                                <t t-esc="item.execution_time_ms"/>ms
+                            </span>
+                        </div>
+                    </div>
+                    <div class="nl2sql-history__pin" t-if="item.is_pinned">
+                        <i class="fa fa-thumb-tack"/>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

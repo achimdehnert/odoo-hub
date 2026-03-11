@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- NL2SQL Feedback — Tree + Form                                  -->
+    <!-- ============================================================ -->
+    <record id="view_nl2sql_feedback_tree" model="ir.ui.view">
+        <field name="name">nl2sql.feedback.tree</field>
+        <field name="model">nl2sql.feedback</field>
+        <field name="arch" type="xml">
+            <list string="SQL-Fehler Feedback"
+                  decoration-success="promoted == True"
+                  decoration-muted="promoted == True">
+                <field name="created_at" string="Datum"/>
+                <field name="error_type" widget="badge"
+                       decoration-danger="error_type in ('schema_error','table_error')"
+                       decoration-warning="error_type == 'join_error'"
+                       decoration-info="error_type == 'syntax_error'"/>
+                <field name="question"/>
+                <field name="source_code"/>
+                <field name="promoted" widget="boolean"/>
+                <button name="action_promote_to_example" type="object"
+                        string="Promote" icon="fa-arrow-up"
+                        class="btn-sm btn-success"
+                        invisible="promoted == True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_nl2sql_feedback_form" model="ir.ui.view">
+        <field name="name">nl2sql.feedback.form</field>
+        <field name="model">nl2sql.feedback</field>
+        <field name="arch" type="xml">
+            <form string="SQL-Fehler Feedback">
+                <header>
+                    <button name="action_promote_to_example" type="object"
+                            string="Als Few-Shot Example promoten"
+                            class="btn-primary" icon="fa-arrow-up"
+                            invisible="promoted == True"/>
+                    <button name="action_sync_from_aifw" type="object"
+                            string="Von aifw aktualisieren"
+                            class="btn-secondary" icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Promoted"
+                            bg_color="bg-success"
+                            invisible="promoted == False"/>
+                    <group>
+                        <group string="Fehlerdetails">
+                            <field name="source_code"/>
+                            <field name="error_type"/>
+                            <field name="promoted"/>
+                            <field name="created_at"/>
+                            <field name="aifw_id"/>
+                        </group>
+                    </group>
+                    <group string="Original-Frage">
+                        <field name="question" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Fehlerhaftes SQL" class="o_field_code">
+                        <field name="bad_sql" nolabel="1" widget="code" readonly="1"/>
+                    </group>
+                    <group string="Fehlermeldung">
+                        <field name="error_message" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Korrigiertes SQL (ausfüllen + Promote)">
+                        <field name="corrected_sql" nolabel="1" widget="code"
+                               placeholder="Korrekte SELECT-Abfrage hier eintragen…"
+                               readonly="promoted == True"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_nl2sql_feedback_search" model="ir.ui.view">
+        <field name="name">nl2sql.feedback.search</field>
+        <field name="model">nl2sql.feedback</field>
+        <field name="arch" type="xml">
+            <search string="SQL-Fehler Feedback">
+                <field name="question" string="Frage"/>
+                <field name="error_type"/>
+                <filter name="not_promoted" string="Noch nicht promoted"
+                        domain="[('promoted','=',False)]"/>
+                <filter name="promoted" string="Bereits promoted"
+                        domain="[('promoted','=',True)]"/>
+                <separator/>
+                <filter name="schema_errors" string="Schema-Fehler"
+                        domain="[('error_type','=','schema_error')]"/>
+                <filter name="join_errors" string="Join-Fehler"
+                        domain="[('error_type','=','join_error')]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter name="group_error_type" string="Fehlertyp"
+                            context="{'group_by': 'error_type'}"/>
+                    <filter name="group_date" string="Datum"
+                            context="{'group_by': 'created_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_nl2sql_feedback" model="ir.actions.act_window">
+        <field name="name">SQL-Fehler Feedback</field>
+        <field name="res_model">nl2sql.feedback</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_not_promoted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Noch kein SQL-Fehler Feedback vorhanden.
+            </p>
+            <p>
+                SQL-Fehler werden automatisch von der NL2SQL Engine erfasst.
+                Klicke auf <b>Von aifw aktualisieren</b> um die neuesten Fehler zu laden.
+            </p>
+        </field>
+    </record>
+</odoo>

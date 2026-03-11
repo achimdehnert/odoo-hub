@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="scm_manufacturing.ScmPanel">
+    <div class="iil-scm-panel">
+        <t t-if="state.loading">
+            <div class="iil-panel-loading"><i class="fa fa-spinner fa-spin"/> Lade SCM-Daten…</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="iil-panel-error"><i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- KPI-Zeile -->
+            <div class="iil-kpi-row">
+                <div class="iil-kpi-card iil-clickable" t-on-click="openProduction">
+                    <div class="iil-kpi-value"><t t-esc="activeProduction()"/></div>
+                    <div class="iil-kpi-label">Aktive Fertigung</div>
+                    <div class="iil-kpi-sub">bestätigt + in Arbeit</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div class="iil-kpi-card iil-clickable" t-on-click="openPurchases">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.open_purchases"/></div>
+                    <div class="iil-kpi-label">Offene Bestellungen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div t-att-class="'iil-kpi-card iil-clickable ' + overdueClass()" t-on-click="openOverduePurchases">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.overdue_purchases"/></div>
+                    <div class="iil-kpi-label">Überfällig</div>
+                    <div class="iil-kpi-sub">Bestellungen past due</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div class="iil-kpi-card">
+                    <div class="iil-kpi-value"><t t-esc="stockHealthPct()"/>%</div>
+                    <div class="iil-kpi-label">Lagergesundheit</div>
+                    <div class="iil-kpi-sub"><t t-esc="state.kpis.parts_low_stock"/> / <t t-esc="state.kpis.parts_total"/> Teile kritisch</div>
+                </div>
+                <div t-att-class="'iil-kpi-card iil-trend-' + throughputTrend()">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.done_this_month"/></div>
+                    <div class="iil-kpi-label">Fertig (lfd. Monat)</div>
+                    <div class="iil-kpi-sub">VM: <t t-esc="state.kpis.done_last_month"/></div>
+                </div>
+            </div>
+
+            <!-- Fertigungs-Status -->
+            <div class="iil-section-title">Fertigungsaufträge nach Status</div>
+            <div class="iil-status-bar-row">
+                <t t-foreach="prodStates()" t-as="s" t-key="s.key">
+                    <div class="iil-status-chip" t-att-style="'background:' + s.hex">
+                        <span class="iil-status-count"><t t-esc="s.count"/></span>
+                        <span class="iil-status-label"><t t-esc="s.label"/></span>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Top offene Bestellungen -->
+            <div class="iil-section-title">Dringendste offene Bestellungen</div>
+            <div class="iil-machine-list">
+                <t t-foreach="state.kpis.top_purchases" t-as="p" t-key="p.id">
+                    <div class="iil-machine-row iil-clickable"
+                         t-att-data-purchase-id="p.id"
+                         t-on-click="openPurchaseEv">
+                        <span class="iil-machine-name"><t t-esc="p.name"/></span>
+                        <span class="iil-machine-hall"><t t-esc="p.partner_name"/></span>
+                        <span class="iil-machine-orders">fällig <t t-esc="formatDate(p.date_expected)"/></span>
+                    </div>
+                </t>
+                <t t-if="!state.kpis.top_purchases.length">
+                    <div class="iil-empty">Keine offenen Bestellungen</div>
+                </t>
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>

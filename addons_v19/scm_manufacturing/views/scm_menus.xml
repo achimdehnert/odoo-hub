@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top-Level App Menu -->
+    <menuitem id="scm_menu_root"
+              name="SCM / Fertigung"
+              sequence="55"/>
+
+    <!-- Einkauf -->
+    <menuitem id="scm_menu_purchase"
+              name="Einkauf"
+              parent="scm_menu_root"
+              sequence="10"/>
+    <menuitem id="scm_menu_purchase_orders"
+              name="Bestellungen"
+              parent="scm_menu_purchase"
+              action="scm_purchase_action"
+              sequence="10"/>
+    <menuitem id="scm_menu_supplier_info"
+              name="Lieferanteninformationen"
+              parent="scm_menu_purchase"
+              action="scm_supplier_info_action"
+              sequence="20"/>
+    <menuitem id="scm_menu_inspections"
+              name="Wareneingangsprüfungen"
+              parent="scm_menu_purchase"
+              action="scm_inspection_action"
+              sequence="30"/>
+
+    <!-- Fertigung -->
+    <menuitem id="scm_menu_production"
+              name="Fertigung"
+              parent="scm_menu_root"
+              sequence="20"/>
+    <menuitem id="scm_menu_production_orders"
+              name="Fertigungsaufträge"
+              parent="scm_menu_production"
+              action="scm_production_action"
+              sequence="10"/>
+    <menuitem id="scm_menu_bom"
+              name="Stücklisten"
+              parent="scm_menu_production"
+              action="scm_bom_action"
+              sequence="20"/>
+
+    <!-- Lager -->
+    <menuitem id="scm_menu_warehouse"
+              name="Lager"
+              parent="scm_menu_root"
+              sequence="30"/>
+    <menuitem id="scm_menu_warehouses"
+              name="Lagerorte"
+              parent="scm_menu_warehouse"
+              action="scm_warehouse_action"
+              sequence="10"/>
+    <menuitem id="scm_menu_stock_moves"
+              name="Lagerbewegungen"
+              parent="scm_menu_warehouse"
+              action="scm_stock_move_action"
+              sequence="20"/>
+
+    <!-- Versand -->
+    <menuitem id="scm_menu_shipping"
+              name="Versand"
+              parent="scm_menu_root"
+              sequence="40"/>
+    <menuitem id="scm_menu_deliveries"
+              name="Lieferungen"
+              parent="scm_menu_shipping"
+              action="scm_delivery_action"
+              sequence="10"/>
+
+    <!-- Stammdaten -->
+    <menuitem id="scm_menu_master"
+              name="Stammdaten"
+              parent="scm_menu_root"
+              sequence="50"/>
+    <menuitem id="scm_menu_parts"
+              name="Teile"
+              parent="scm_menu_master"
+              action="scm_part_action"
+              sequence="10"/>
+    <menuitem id="scm_menu_categories"
+              name="Teilekategorien"
+              parent="scm_menu_master"
+              action="scm_part_category_action"
+              sequence="20"/>
+</odoo>

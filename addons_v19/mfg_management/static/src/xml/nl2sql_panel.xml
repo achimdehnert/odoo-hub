@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="mfg_management.Nl2sqlPanel">
+    <div class="iil-nl2sql-panel">
+
+        <!-- Header -->
+        <div class="iil-nl2sql-panel-header">
+            <i class="fa fa-magic me-2"/>
+            <span class="iil-nl2sql-panel-title">KI-Assistent (NL2SQL)</span>
+        </div>
+
+        <!-- Vorschläge -->
+        <div class="iil-nl2sql-suggests">
+            <t t-foreach="suggestQueries()" t-as="s" t-key="s">
+                <button class="iil-nl2sql-suggest-chip"
+                        t-att-data-query="s"
+                        t-on-click="applySuggestEv">
+                    <i class="fa fa-lightbulb-o me-1"/>
+                    <t t-esc="s"/>
+                </button>
+            </t>
+        </div>
+
+        <!-- Eingabe -->
+        <div class="iil-nl2sql-input-row">
+            <input type="text"
+                   class="iil-nl2sql-input"
+                   placeholder="Frage in natürlicher Sprache, z.B. Welche Maschinen sind in Störung?"
+                   t-att-value="state.query"
+                   t-on-input="onInput"
+                   t-on-keydown="onKeydown"/>
+            <button class="iil-nl2sql-run-btn"
+                    t-att-disabled="state.loading || !state.query.trim()"
+                    t-on-click="runQuery">
+                <t t-if="state.loading">
+                    <i class="fa fa-spinner fa-spin me-1"/> Läuft…
+                </t>
+                <t t-else="">
+                    <i class="fa fa-search me-1"/> Abfragen
+                </t>
+            </button>
+            <t t-if="state.result or state.error">
+                <button class="iil-nl2sql-clear-btn" t-on-click="clearResult" title="Zurücksetzen">
+                    <i class="fa fa-times"/>
+                </button>
+            </t>
+        </div>
+
+        <!-- Generiertes SQL -->
+        <t t-if="state.sql">
+            <div class="iil-nl2sql-sql-box">
+                <span class="iil-sql-label">SQL</span>
+                <pre><t t-esc="state.sql"/></pre>
+            </div>
+        </t>
+
+        <!-- Fehler -->
+        <t t-if="state.error">
+            <div class="iil-nl2sql-error">
+                <i class="fa fa-exclamation-circle me-1"/>
+                <t t-esc="state.error"/>
+            </div>
+        </t>
+
+        <!-- Ergebnis -->
+        <t t-if="state.result">
+            <div class="iil-nl2sql-meta">
+                <i class="fa fa-table me-1"/>
+                <strong><t t-esc="state.result.row_count"/></strong> Zeilen
+                <span class="ms-2 text-muted">· <t t-esc="state.result.execution_time_ms"/> ms</span>
+                <t t-if="state.result.truncated">
+                    <span class="ms-1 text-warning">(gekürzt)</span>
+                </t>
+                <t t-if="state.result.summary">
+                    <span class="ms-2 iil-nl2sql-summary"><t t-esc="state.result.summary"/></span>
+                </t>
+            </div>
+
+            <t t-if="hasRows()">
+                <div class="iil-nl2sql-table-wrap">
+                    <table class="iil-nl2sql-table table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <t t-foreach="state.result.columns" t-as="col" t-key="col.name">
+                                    <th><t t-esc="col.name"/></th>
+                                </t>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.result.rows" t-as="row" t-key="row_index">
+                                <tr>
+                                    <t t-foreach="row" t-as="cell" t-key="cell_index">
+                                        <td><t t-esc="cell ?? ''"/></td>
+                                    </t>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+            <t t-elif="state.result">
+                <div class="iil-nl2sql-empty">
+                    <i class="fa fa-inbox me-1"/> Keine Ergebnisse
+                </div>
+            </t>
+        </t>
+
+    </div>
+</t>
+
+</templates>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="128" height="128">
+  <rect width="100" height="100" rx="15" fill="#E8590C"/>
+  <text x="50" y="38" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="white">CASTING</text>
+  <!-- Crucible/ladle icon -->
+  <path d="M30 50 L35 45 L65 45 L70 50 L68 75 Q50 82 32 75 Z" fill="#FFD43B" opacity="0.9"/>
+  <path d="M35 48 L65 48 L63 72 Q50 78 37 72 Z" fill="#FF922B" opacity="0.8"/>
+  <!-- Pour stream -->
+  <path d="M65 45 Q72 42 75 50 L73 65 Q72 68 70 65 L72 52 Q70 46 65 48" fill="#FFD43B" opacity="0.7"/>
+</svg>

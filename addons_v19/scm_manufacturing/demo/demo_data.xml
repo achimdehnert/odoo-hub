@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Warehouses -->
+        <record id="wh_raw" model="scm.warehouse">
+            <field name="name">Rohstofflager</field>
+            <field name="code">WH-RAW</field>
+            <field name="warehouse_type">raw</field>
+            <field name="capacity_pallets">500</field>
+        </record>
+        <record id="wh_wip" model="scm.warehouse">
+            <field name="name">Zwischenlager Fertigung</field>
+            <field name="code">WH-WIP</field>
+            <field name="warehouse_type">wip</field>
+            <field name="capacity_pallets">200</field>
+        </record>
+        <record id="wh_finished" model="scm.warehouse">
+            <field name="name">Fertigwarenlager</field>
+            <field name="code">WH-FIN</field>
+            <field name="warehouse_type">finished</field>
+            <field name="capacity_pallets">800</field>
+        </record>
+        <record id="wh_shipping" model="scm.warehouse">
+            <field name="name">Versandlager</field>
+            <field name="code">WH-SHP</field>
+            <field name="warehouse_type">shipping</field>
+            <field name="capacity_pallets">150</field>
+        </record>
+
+        <!-- Part Categories -->
+        <record id="cat_raw" model="scm.part.category">
+            <field name="name">Rohmaterial</field>
+            <field name="code">RAW</field>
+        </record>
+        <record id="cat_semi" model="scm.part.category">
+            <field name="name">Halbfertigteile</field>
+            <field name="code">SEMI</field>
+        </record>
+        <record id="cat_finished" model="scm.part.category">
+            <field name="name">Fertigteile</field>
+            <field name="code">FIN</field>
+        </record>
+
+        <!-- Parts -->
+        <record id="part_alu_ingot" model="scm.part">
+            <field name="part_number">RAW-AL-001</field>
+            <field name="name">Aluminium Masseln AlSi9Cu3</field>
+            <field name="category_id" ref="cat_raw"/>
+            <field name="part_type">raw</field>
+            <field name="material">AlSi9Cu3</field>
+            <field name="make_or_buy">buy</field>
+            <field name="standard_cost">3.20</field>
+            <field name="stock_qty">5000</field>
+            <field name="weight_kg">25.000</field>
+        </record>
+        <record id="part_gjs_ingot" model="scm.part">
+            <field name="part_number">RAW-GJ-001</field>
+            <field name="name">Gusseisen EN-GJS-400-18</field>
+            <field name="category_id" ref="cat_raw"/>
+            <field name="part_type">raw</field>
+            <field name="material">EN-GJS-400-18</field>
+            <field name="make_or_buy">buy</field>
+            <field name="standard_cost">1.20</field>
+            <field name="stock_qty">8000</field>
+            <field name="weight_kg">50.000</field>
+        </record>
+        <record id="part_motorblock" model="scm.part">
+            <field name="part_number">FIN-MB-001</field>
+            <field name="name">Motorblock V6 Druckguss</field>
+            <field name="category_id" ref="cat_finished"/>
+            <field name="part_type">finished</field>
+            <field name="material">AlSi9Cu3</field>
+            <field name="make_or_buy">make</field>
+            <field name="standard_cost">285.00</field>
+            <field name="stock_qty">120</field>
+            <field name="weight_kg">28.500</field>
+        </record>
+        <record id="part_brake_disc" model="scm.part">
+            <field name="part_number">FIN-BD-001</field>
+            <field name="name">Bremsscheibe VA Sandguss</field>
+            <field name="category_id" ref="cat_finished"/>
+            <field name="part_type">finished</field>
+            <field name="material">EN-GJL-250</field>
+            <field name="make_or_buy">make</field>
+            <field name="standard_cost">42.50</field>
+            <field name="stock_qty">350</field>
+            <field name="weight_kg">8.500</field>
+        </record>
+
+        <!-- BOM -->
+        <record id="bom_motorblock" model="scm.bom">
+            <field name="part_id" ref="part_motorblock"/>
+            <field name="revision">A</field>
+            <field name="bom_type">standard</field>
+            <field name="state">active</field>
+        </record>
+        <record id="bom_line_alu" model="scm.bom.line">
+            <field name="bom_id" ref="bom_motorblock"/>
+            <field name="component_id" ref="part_alu_ingot"/>
+            <field name="quantity">32.0</field>
+            <field name="notes">inkl. Kreislaufmaterial</field>
+        </record>
+    </data>
+</odoo>

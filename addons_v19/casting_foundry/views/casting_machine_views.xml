@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="casting_machine_tree" model="ir.ui.view">
+        <field name="name">casting.machine.tree</field>
+        <field name="model">casting.machine</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state=='breakdown'" decoration-warning="state=='maintenance'">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="machine_type"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'operational'"
+                       decoration-warning="state == 'maintenance'"
+                       decoration-danger="state == 'breakdown'"/>
+                <field name="manufacturer"/>
+                <field name="clamping_force_t"/>
+                <field name="capacity_kg"/>
+                <field name="hall"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="casting_machine_form" model="ir.ui.view">
+        <field name="name">casting.machine.form</field>
+        <field name="model">casting.machine</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Stammdaten">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="machine_type"/>
+                            <field name="manufacturer"/>
+                            <field name="model"/>
+                            <field name="year_built"/>
+                        </group>
+                        <group string="Leistungsdaten">
+                            <field name="capacity_kg"/>
+                            <field name="clamping_force_t"/>
+                            <field name="max_temp_c"/>
+                            <field name="power_kw"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Standort">
+                            <field name="hall"/>
+                            <field name="position"/>
+                        </group>
+                        <group string="Wartung">
+                            <field name="last_maintenance"/>
+                            <field name="next_maintenance"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Formen">
+                            <field name="mold_ids">
+                                <list>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bemerkungen">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="casting_machine_action" model="ir.actions.act_window">
+        <field name="name">Maschinen</field>
+        <field name="res_model">casting.machine</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

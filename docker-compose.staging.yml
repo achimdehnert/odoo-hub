@@ -1,0 +1,355 @@
+# docker-compose.staging.yml — odoo-hub Staging Stack
+# Zwei isolierte Stacks auf demselben Host:
+#   profile=v18 → stagingv18-odoo.iil.pet  (Odoo 18, Klon von Prod-Konfiguration)
+#   profile=v19 → stagingv19-odoo.iil.pet  (Odoo 19, Custom-Addons auf v19)
+#
+# Start:
+#   docker compose -f docker-compose.staging.yml --profile v18 --env-file .env.staging up -d
+#   docker compose -f docker-compose.staging.yml --profile v19 --env-file .env.staging up -d
+#
+# Ports: alle intern, nur via Traefik (gemeinsamer Traefik aus prod)
+# Netzwerk: staging_proxy (extern, verbunden mit odoo_hub_proxy)
+# Ressourcen: reduziert gegenüber Prod (Staging teilt sich CPX32)
+
+services:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # STAGING V18 — Odoo 18 (identisch mit Prod-Konfiguration)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  staging_v18_db:
+    profiles: [v18]
+    image: postgres:16-alpine
+    container_name: staging_v18_db
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      - POSTGRES_USER=${STAGING_V18_DB_USER:-odoo}
+      - POSTGRES_PASSWORD=${STAGING_V18_DB_PASSWORD}
+      - POSTGRES_DB=${STAGING_V18_DB_NAME:-odoo_staging_v18}
+    volumes:
+      - staging_v18_pgdata:/var/lib/postgresql/data
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./docker/db/02_aifw_db.sh:/docker-entrypoint-initdb.d/02_aifw_db.sh:ro
+    command: >
+      postgres
+        -c max_connections=30
+        -c shared_buffers=256MB
+        -c work_mem=8MB
+        -c effective_cache_size=512MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_V18_DB_USER:-odoo} -d ${STAGING_V18_DB_NAME:-odoo_staging_v18}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - staging_internal_v18
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  staging_v18_web:
+    profiles: [v18]
+    image: odoo:18.0
+    container_name: staging_v18_web
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      - HOST=staging_v18_db
+      - PORT=5432
+      - USER=${STAGING_V18_DB_USER:-odoo}
+      - PASSWORD=${STAGING_V18_DB_PASSWORD}
+      - POSTGRES_DB=${STAGING_V18_DB_NAME:-odoo_staging_v18}
+    expose:
+      - "8069"
+    volumes:
+      - staging_v18_data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      staging_v18_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v18
+      - staging_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.http.routers.staging-v18.rule=Host(`${STAGING_V18_DOMAIN}`)"
+      - "traefik.http.routers.staging-v18.entrypoints=websecure"
+      - "traefik.http.routers.staging-v18.tls.certresolver=le"
+      - "traefik.http.services.staging-v18.loadbalancer.server.port=8069"
+      - "traefik.http.routers.staging-v18-lp.rule=Host(`${STAGING_V18_DOMAIN}`) && PathPrefix(`/longpolling`)"
+      - "traefik.http.routers.staging-v18-lp.entrypoints=websecure"
+      - "traefik.http.routers.staging-v18-lp.tls.certresolver=le"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  staging_v18_grafana_db_exporter:
+    profiles: [v18]
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: staging_v18_pg_exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${STAGING_GRAFANA_RO_USER:-grafana_ro}:${STAGING_GRAFANA_RO_PASSWORD}@staging_v18_db:5432/${STAGING_V18_DB_NAME:-odoo_staging_v18}?sslmode=disable
+    expose:
+      - "9187"
+    depends_on:
+      staging_v18_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v18
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+
+  staging_v18_grafana:
+    profiles: [v18]
+    image: grafana/grafana-oss:11.4.0
+    container_name: staging_v18_grafana
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${STAGING_GRAFANA_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=https://${STAGING_V18_GRAFANA_DOMAIN}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SMTP_ENABLED=false
+      - GRAFANA_RO_PASSWORD=${STAGING_GRAFANA_RO_PASSWORD}
+      - POSTGRES_DB=${STAGING_V18_DB_NAME:-odoo_staging_v18}
+    volumes:
+      - staging_v18_grafana_data:/var/lib/grafana
+      - ./grafana/staging/v18/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+    expose:
+      - "3000"
+    depends_on:
+      staging_v18_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v18
+      - staging_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.http.routers.staging-v18-grafana.rule=Host(`${STAGING_V18_GRAFANA_DOMAIN}`)"
+      - "traefik.http.routers.staging-v18-grafana.entrypoints=websecure"
+      - "traefik.http.routers.staging-v18-grafana.tls.certresolver=le"
+      - "traefik.http.services.staging-v18-grafana.loadbalancer.server.port=3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # STAGING V19 — Odoo 19 (Custom-Addons Migration-Test)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  staging_v19_db:
+    profiles: [v19]
+    image: postgres:16-alpine
+    container_name: staging_v19_db
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      - POSTGRES_USER=${STAGING_V19_DB_USER:-odoo}
+      - POSTGRES_PASSWORD=${STAGING_V19_DB_PASSWORD}
+      - POSTGRES_DB=${STAGING_V19_DB_NAME:-odoo_staging_v19}
+    volumes:
+      - staging_v19_pgdata:/var/lib/postgresql/data
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    command: >
+      postgres
+        -c max_connections=30
+        -c shared_buffers=256MB
+        -c work_mem=8MB
+        -c effective_cache_size=512MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_V19_DB_USER:-odoo} -d ${STAGING_V19_DB_NAME:-odoo_staging_v19}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - staging_internal_v19
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  staging_v19_web:
+    profiles: [v19]
+    image: odoo:19.0
+    container_name: staging_v19_web
+    restart: unless-stopped
+    command: odoo --addons-path=/mnt/extra-addons-v19,/usr/lib/python3/dist-packages/odoo/addons
+    env_file: .env.staging
+    environment:
+      - HOST=staging_v19_db
+      - PORT=5432
+      - USER=${STAGING_V19_DB_USER:-odoo}
+      - PASSWORD=${STAGING_V19_DB_PASSWORD}
+      - POSTGRES_DB=${STAGING_V19_DB_NAME:-odoo_staging_v19}
+    expose:
+      - "8069"
+    volumes:
+      - staging_v19_data:/var/lib/odoo
+      - ./addons_v19:/mnt/extra-addons-v19:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    depends_on:
+      staging_v19_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v19
+      - staging_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.http.routers.staging-v19.rule=Host(`${STAGING_V19_DOMAIN}`)"
+      - "traefik.http.routers.staging-v19.entrypoints=websecure"
+      - "traefik.http.routers.staging-v19.tls.certresolver=le"
+      - "traefik.http.services.staging-v19.loadbalancer.server.port=8069"
+      - "traefik.http.routers.staging-v19-lp.rule=Host(`${STAGING_V19_DOMAIN}`) && PathPrefix(`/longpolling`)"
+      - "traefik.http.routers.staging-v19-lp.entrypoints=websecure"
+      - "traefik.http.routers.staging-v19-lp.tls.certresolver=le"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  staging_v19_grafana_db_exporter:
+    profiles: [v19]
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: staging_v19_pg_exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${STAGING_GRAFANA_RO_USER:-grafana_ro}:${STAGING_GRAFANA_RO_PASSWORD}@staging_v19_db:5432/${STAGING_V19_DB_NAME:-odoo_staging_v19}?sslmode=disable
+    expose:
+      - "9187"
+    depends_on:
+      staging_v19_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v19
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+
+  staging_v19_grafana:
+    profiles: [v19]
+    image: grafana/grafana-oss:11.4.0
+    container_name: staging_v19_grafana
+    restart: unless-stopped
+    env_file: .env.staging
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${STAGING_GRAFANA_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=https://${STAGING_V19_GRAFANA_DOMAIN}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SMTP_ENABLED=false
+      - GRAFANA_RO_PASSWORD=${STAGING_GRAFANA_RO_PASSWORD}
+      - POSTGRES_DB=${STAGING_V19_DB_NAME:-odoo_staging_v19}
+    volumes:
+      - staging_v19_grafana_data:/var/lib/grafana
+      - ./grafana/staging/v19/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+    expose:
+      - "3000"
+    depends_on:
+      staging_v19_db:
+        condition: service_healthy
+    networks:
+      - staging_internal_v19
+      - staging_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo_hub_staging_proxy"
+      - "traefik.http.routers.staging-v19-grafana.rule=Host(`${STAGING_V19_GRAFANA_DOMAIN}`)"
+      - "traefik.http.routers.staging-v19-grafana.entrypoints=websecure"
+      - "traefik.http.routers.staging-v19-grafana.tls.certresolver=le"
+      - "traefik.http.services.staging-v19-grafana.loadbalancer.server.port=3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # SHARED TRAEFIK für Staging (eigene Instanz auf Port 8080/8443)
+  # Lauscht auf Port 8080 (HTTP) und 8443 (HTTPS) um nicht mit Prod zu kollidieren
+  # ══════════════════════════════════════════════════════════════════════════
+
+  staging_traefik:
+    profiles: [v18, v19]
+    image: traefik:v3.3
+    container_name: staging_traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=odoo_hub_staging_proxy"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - staging_traefik_certs:/letsencrypt
+    networks:
+      - staging_proxy
+
+volumes:
+  staging_v18_pgdata:
+    name: odoo_staging_v18_pgdata
+  staging_v18_data:
+    name: odoo_staging_v18_data
+  staging_v18_grafana_data:
+    name: odoo_staging_v18_grafana_data
+  staging_v19_pgdata:
+    name: odoo_staging_v19_pgdata
+  staging_v19_data:
+    name: odoo_staging_v19_data
+  staging_v19_grafana_data:
+    name: odoo_staging_v19_grafana_data
+  staging_traefik_certs:
+    name: odoo_staging_traefik_certs
+
+networks:
+  staging_internal_v18:
+    name: odoo_staging_internal_v18
+    internal: true
+  staging_internal_v19:
+    name: odoo_staging_internal_v19
+    internal: true
+  staging_proxy:
+    name: odoo_hub_staging_proxy

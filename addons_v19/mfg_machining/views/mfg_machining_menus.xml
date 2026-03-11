@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Actions -->
+        <record id="action_machining_order" model="ir.actions.act_window">
+            <field name="name">CNC-Fertigungsaufträge</field>
+            <field name="res_model">machining.order</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_machining_machine" model="ir.actions.act_window">
+            <field name="name">CNC-Maschinen</field>
+            <field name="res_model">machining.machine</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Menüs unter MFG Cockpit -->
+        <menuitem id="menu_mfg_machining_root"
+                  name="CNC-Fertigung"
+                  parent="mfg_management.menu_mfg_root"
+                  sequence="30"/>
+
+        <menuitem id="menu_mfg_machining_orders"
+                  name="Fertigungsaufträge"
+                  parent="menu_mfg_machining_root"
+                  action="action_machining_order"
+                  sequence="10"/>
+
+        <menuitem id="menu_mfg_machining_machines"
+                  name="Maschinenpark"
+                  parent="menu_mfg_machining_root"
+                  action="action_machining_machine"
+                  sequence="20"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top-Level App Menu -->
+    <menuitem id="casting_menu_root"
+              name="Gießerei"
+              web_icon="casting_foundry,static/description/icon.png"
+              sequence="60"/>
+
+    <!-- Aufträge -->
+    <menuitem id="casting_menu_orders"
+              name="Aufträge"
+              parent="casting_menu_root"
+              sequence="10"/>
+    <menuitem id="casting_menu_order_list"
+              name="Gießaufträge"
+              parent="casting_menu_orders"
+              action="casting_order_action"
+              sequence="10"/>
+
+    <!-- Qualität -->
+    <menuitem id="casting_menu_quality"
+              name="Qualität"
+              parent="casting_menu_root"
+              sequence="20"/>
+    <menuitem id="casting_menu_quality_checks"
+              name="Prüfungen"
+              parent="casting_menu_quality"
+              action="casting_quality_action"
+              sequence="10"/>
+    <menuitem id="casting_menu_defect_types"
+              name="Fehlerarten"
+              parent="casting_menu_quality"
+              action="casting_defect_action"
+              sequence="20"/>
+
+    <!-- Stammdaten -->
+    <menuitem id="casting_menu_master"
+              name="Stammdaten"
+              parent="casting_menu_root"
+              sequence="30"/>
+    <menuitem id="casting_menu_materials"
+              name="Werkstoffe"
+              parent="casting_menu_master"
+              action="casting_material_action"
+              sequence="10"/>
+    <menuitem id="casting_menu_alloys"
+              name="Legierungen"
+              parent="casting_menu_master"
+              action="casting_alloy_action"
+              sequence="20"/>
+    <menuitem id="casting_menu_molds"
+              name="Gussformen"
+              parent="casting_menu_master"
+              action="casting_mold_action"
+              sequence="30"/>
+    <menuitem id="casting_menu_machines"
+              name="Maschinen"
+              parent="casting_menu_master"
+              action="casting_machine_action"
+              sequence="40"/>
+</odoo>

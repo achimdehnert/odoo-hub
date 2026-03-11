@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_save_query_wizard_form" model="ir.ui.view">
+        <field name="name">nl2sql.save.query.wizard.form</field>
+        <field name="model">nl2sql.save.query.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Abfrage speichern">
+                <group>
+                    <field name="name" placeholder="z.B. Monatliche Bestellübersicht"/>
+                    <field name="query_text" readonly="1"/>
+                    <field name="domain_filter"/>
+                    <field name="chart_type"/>
+                    <field name="is_dashboard_tile"/>
+                    <field name="is_shared"/>
+                </group>
+                <footer>
+                    <button name="action_save" type="object"
+                            string="Speichern" class="btn-primary"/>
+                    <button string="Abbrechen" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

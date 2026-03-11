@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="casting_foundry.QualityPanel">
+    <div class="iil-quality-panel">
+        <t t-if="state.loading">
+            <div class="iil-panel-loading"><i class="fa fa-spinner fa-spin"/> Lade QS-Daten…</div>
+        </t>
+        <t t-elif="state.error">
+            <div class="iil-panel-error"><i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/></div>
+        </t>
+        <t t-else="">
+            <!-- KPI-Zeile -->
+            <div class="iil-kpi-row">
+                <div t-att-class="'iil-kpi-card iil-clickable ' + qcTrendClass()" t-on-click="openQualityChecks">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.qc_rate_all"/>%</div>
+                    <div class="iil-kpi-label">Bestehensrate (gesamt)</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_rate"/>% · VM: <t t-esc="state.kpis.qc_rate_lm"/>%</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div class="iil-kpi-card iil-clickable" t-on-click="openQualityChecks">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.qc_total_all"/></div>
+                    <div class="iil-kpi-label">Prüfungen gesamt</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_total"/> · VM: <t t-esc="state.kpis.qc_total_lm"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div class="iil-kpi-card iil-trend-good iil-clickable" t-on-click="openQualityChecks">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.qc_pass_all"/></div>
+                    <div class="iil-kpi-label">Bestanden (i.O.)</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_pass"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.qc_fail_all > 0 ? 'iil-trend-bad' : '')" t-on-click="openFailedChecks">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.qc_fail_all"/></div>
+                    <div class="iil-kpi-label">Nicht bestanden</div>
+                    <div class="iil-kpi-sub">Monat: <t t-esc="state.kpis.qc_fail"/></div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+                <div t-att-class="'iil-kpi-card iil-clickable ' + (state.kpis.open_checks > 0 ? 'iil-trend-bad' : '')" t-on-click="openQualityChecks">
+                    <div class="iil-kpi-value"><t t-esc="state.kpis.open_checks"/></div>
+                    <div class="iil-kpi-label">Offene Prüfungen</div>
+                    <i class="fa fa-arrow-right iil-kpi-nav"/>
+                </div>
+            </div>
+
+            <!-- Trend-Minibar letzte 30 Tage -->
+            <t t-if="state.kpis.trend.length">
+                <div class="iil-section-title">Trend letzte 30 Tage</div>
+                <div class="iil-trend-bar-row">
+                    <t t-foreach="state.kpis.trend" t-as="d" t-key="d.date">
+                        <div class="iil-trend-bar-col" t-att-title="d.date + ': ' + d.pass + ' i.O. / ' + d.fail + ' n.i.O.'">
+                            <div class="iil-trend-bar-pass" t-att-style="'height:' + trendBarHeight(d.pass) + 'px'"/>
+                            <div class="iil-trend-bar-fail" t-att-style="'height:' + trendBarHeight(d.fail) + 'px'"/>
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Prüfungen nach Typ -->
+            <t t-if="state.kpis.by_type.length">
+                <div class="iil-section-title">Prüfungen nach Art (gesamt)</div>
+                <div class="iil-status-bar-row">
+                    <t t-foreach="state.kpis.by_type" t-as="t" t-key="t.type">
+                        <div class="iil-status-chip" style="background:#3b82f6">
+                            <span class="iil-status-count"><t t-esc="t.count"/></span>
+                            <span><t t-esc="t.label"/></span>
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Top-Fehlerarten -->
+            <t t-if="state.kpis.top_defects.length">
+                <div class="iil-section-title">Häufigste Fehlerarten</div>
+                <div class="iil-machine-list">
+                    <t t-foreach="state.kpis.top_defects" t-as="d" t-key="d.code">
+                        <div class="iil-machine-row iil-clickable"
+                             t-att-data-severity="d.severity"
+                             t-on-click="openDefectEv">
+                            <span class="iil-machine-state-dot" t-att-style="'background:' + severityColor(d.severity)"/>
+                            <span class="iil-machine-name"><t t-esc="d.name"/></span>
+                            <span class="iil-machine-hall"><t t-esc="d.severity"/></span>
+                            <span class="iil-machine-orders"><t t-esc="d.count"/>×</span>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </div>
+</t>
+
+</templates>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_mfg_dashboard" model="ir.actions.client">
+        <field name="name">Manufacturing Cockpit</field>
+        <field name="tag">mfg_management.Dashboard</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_mfg_production_board" model="ir.actions.client">
+        <field name="name">Production Board</field>
+        <field name="tag">mfg_management.ProductionBoard</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_mfg_machine_status" model="ir.actions.client">
+        <field name="name">Maschinenstatus</field>
+        <field name="tag">mfg_management.MachineStatus</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_mfg_scm_overview" model="ir.actions.client">
+        <field name="name">SCM Übersicht</field>
+        <field name="tag">mfg_management.ScmOverview</field>
+        <field name="target">current</field>
+    </record>
+</odoo>
