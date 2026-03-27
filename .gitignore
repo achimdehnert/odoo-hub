@@ -47,3 +47,6 @@ sessions/
 secrets.env
 !secrets.enc.env
 env_loader.py
+
+# IDE agent workflows (symlinked, not repo-specific)
+.windsurf/
