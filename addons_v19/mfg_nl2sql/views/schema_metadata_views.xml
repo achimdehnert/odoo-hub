@@ -63,7 +63,7 @@
                 <field name="model_name"/>
                 <filter name="active" string="Aktiv"
                         domain="[('is_active','=',True)]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_domain" string="Domäne"
                             context="{'group_by': 'domain'}"/>
                 </group>

@@ -80,7 +80,7 @@
                 <field name="code"/>
                 <filter name="active_molds" string="Im Einsatz" domain="[('state','=','active')]"/>
                 <filter name="maintenance" string="In Wartung" domain="[('state','=','maintenance')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_type" string="Formtyp" context="{'group_by': 'mold_type'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_machine" string="Maschine" context="{'group_by': 'machine_id'}"/>

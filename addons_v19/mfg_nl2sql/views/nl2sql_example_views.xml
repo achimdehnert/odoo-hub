@@ -85,7 +85,7 @@
                         domain="[('domain','=','casting')]"/>
                 <filter name="scm" string="SCM"
                         domain="[('domain','=','scm')]"/>
-                <group expand="0" string="Gruppieren nach">
+                <group>
                     <filter name="group_domain" string="Domäne"
                             context="{'group_by': 'domain'}"/>
                     <filter name="group_difficulty" string="Schwierigkeitsgrad"

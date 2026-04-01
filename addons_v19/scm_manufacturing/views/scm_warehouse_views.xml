@@ -62,7 +62,7 @@
             <search>
                 <field name="name"/>
                 <field name="code"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_type" string="Lagertyp"
                             context="{'group_by': 'warehouse_type'}"/>
                 </group>
@@ -108,7 +108,7 @@
                 <field name="reference"/>
                 <filter name="in" string="Zugang" domain="[('move_type','=','in')]"/>
                 <filter name="out" string="Abgang" domain="[('move_type','=','out')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_warehouse" string="Lager"
                             context="{'group_by': 'warehouse_id'}"/>
                     <filter name="group_type" string="Bewegungsart"

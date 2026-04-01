@@ -70,7 +70,7 @@
                 <field name="revision"/>
                 <filter name="active_bom" string="Aktiv" domain="[('state','=','active')]"/>
                 <filter name="draft_bom" string="Entwurf" domain="[('state','=','draft')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_part" string="Fertigteil"
                             context="{'group_by': 'part_id'}"/>
                     <filter name="group_state" string="Status"

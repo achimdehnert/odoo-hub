@@ -101,7 +101,7 @@
                 <filter name="draft" string="Entwurf" domain="[('state','=','draft')]"/>
                 <filter name="in_progress" string="In Fertigung" domain="[('state','=','in_progress')]"/>
                 <filter name="done" string="Abgeschlossen" domain="[('state','=','done')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_part" string="Fertigteil"
                             context="{'group_by': 'part_id'}"/>
                     <filter name="group_state" string="Status"

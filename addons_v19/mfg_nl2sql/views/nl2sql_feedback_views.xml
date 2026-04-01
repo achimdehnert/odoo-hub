@@ -88,7 +88,7 @@
                         domain="[('error_type','=','schema_error')]"/>
                 <filter name="join_errors" string="Join-Fehler"
                         domain="[('error_type','=','join_error')]"/>
-                <group expand="0" string="Gruppieren nach">
+                <group>
                     <filter name="group_error_type" string="Fehlertyp"
                             context="{'group_by': 'error_type'}"/>
                     <filter name="group_date" string="Datum"

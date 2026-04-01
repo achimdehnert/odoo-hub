@@ -102,7 +102,7 @@
                         domain="[('domain_filter','=','production')]"/>
                 <filter name="quality" string="Qualität"
                         domain="[('domain_filter','=','quality')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_state" string="Status"
                             context="{'group_by': 'state'}"/>
                     <filter name="group_domain" string="Domäne"

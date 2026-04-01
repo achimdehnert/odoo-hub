@@ -76,7 +76,7 @@
                 <field name="order_id"/>
                 <filter name="pass" string="Bestanden" domain="[('result','=','pass')]"/>
                 <filter name="fail" string="Nicht bestanden" domain="[('result','=','fail')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_type" string="Prüfart" context="{'group_by': 'check_type'}"/>
                     <filter name="group_result" string="Ergebnis" context="{'group_by': 'result'}"/>
                     <filter name="group_month" string="Monat" context="{'group_by': 'check_date:month'}"/>

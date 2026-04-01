@@ -68,7 +68,7 @@
                 <field name="material"/>
                 <filter name="make" string="Eigenfertigung" domain="[('make_or_buy','=','make')]"/>
                 <filter name="buy" string="Fremdbezug" domain="[('make_or_buy','=','buy')]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_type" string="Teiletyp" context="{'group_by': 'part_type'}"/>
                     <filter name="group_category" string="Kategorie" context="{'group_by': 'category_id'}"/>
                 </group>

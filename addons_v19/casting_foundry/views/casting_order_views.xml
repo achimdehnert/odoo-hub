@@ -126,7 +126,7 @@
                 <filter name="done" string="Abgeschlossen" domain="[('state','=','done')]"/>
                 <separator/>
                 <filter name="priority_high" string="Dringend" domain="[('priority','in',['1','2'])]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_partner" string="Kunde" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_month" string="Monat" context="{'group_by': 'date_planned:month'}"/>

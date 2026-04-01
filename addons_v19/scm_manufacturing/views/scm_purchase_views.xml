@@ -107,7 +107,7 @@
                 <separator/>
                 <filter name="this_month" string="Diesen Monat"
                         domain="[('date_order','&gt;=', (context_today() - relativedelta(day=1)).strftime('%%Y-%%m-%%d'))]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_partner" string="Lieferant"
                             context="{'group_by': 'partner_id'}"/>
                     <filter name="group_state" string="Status"
