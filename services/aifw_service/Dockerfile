@@ -13,16 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY services/aifw_service/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ── Layer 2: iil-aifw from source (not yet on PyPI as v0.6.0) ───────────────
-# Copied from aifw/ sibling dir in repo root (kept in sync via deploy script).
-# Only invalidated when aifw/pyproject.toml or aifw/src/ changes.
-COPY aifw/pyproject.toml /tmp/iil_aifw/pyproject.toml
-COPY aifw/README.md      /tmp/iil_aifw/README.md
-COPY aifw/src/           /tmp/iil_aifw/src/
-RUN pip install --no-cache-dir /tmp/iil_aifw \
-    && rm -rf /tmp/iil_aifw
-
-# ── Layer 3: Application code (changes most often) ───────────────────────────
+# ── Layer 2: Application code (changes most often) ───────────────────────────
+# Note: iil-aifw is now installed from PyPI via requirements.txt
 COPY services/aifw_service/ .
 
 # Non-root user for security
