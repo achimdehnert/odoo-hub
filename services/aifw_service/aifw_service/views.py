@@ -282,6 +282,8 @@ def nl2sql_query(request):
                 "success": False,
                 "error": result.error,
                 "error_type": result.error_type,
+                "user_hint": getattr(result, "user_hint", "") or "",
+                "suggestions": getattr(result, "suggestions", []) or [],
                 "sql": result.sql or "",
             },
             status=422,
