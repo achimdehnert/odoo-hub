@@ -56,6 +56,7 @@ DATABASES = {
         "HOST": os.environ.get("AIFW_DB_HOST", "db"),
         "PORT": os.environ.get("AIFW_DB_PORT", "5432"),
         "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
     },
     "odoo": {
         "ENGINE": "django.db.backends.postgresql",
@@ -65,6 +66,7 @@ DATABASES = {
         "HOST": os.environ.get("ODOO_DB_HOST", "db"),
         "PORT": os.environ.get("ODOO_DB_PORT", "5432"),
         "CONN_MAX_AGE": 30,
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "options": "-c default_transaction_read_only=on",
         },

@@ -25,6 +25,7 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <column name="date_planned" type="date"><description>Geplantes Fertigstellungsdatum</description></column>
     <column name="total_pieces" type="integer"><description>Geplante Gesamtstückzahl</description></column>
     <column name="total_scrap_pct" type="numeric"><description>Ausschussquote in Prozent</description></column>
+    <column name="partner_id" type="integer"><description>FK zu res_partner — Kunde dieses Auftrags. JOIN res_partner rp ON rp.id = co.partner_id → rp.name AS "Kunde"</description></column>
     <column name="customer_reference" type="varchar"><description>Kundenbestellnummer</description></column>
     <column name="create_date" type="timestamp"><description>Erstellungszeitpunkt</description></column>
     <column name="is_demo_data" type="boolean"><description>True wenn Demo-Datensatz</description></column>
@@ -48,6 +49,18 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <column name="casting_process" type="varchar"><description>Gießverfahren</description></column>
     <sample_query>Top 5 Maschinen nach Anzahl aktiver Aufträge: SELECT cm.name, COUNT(DISTINCT col.order_id) FROM casting_order_line col JOIN casting_machine cm ON cm.id = col.machine_id JOIN casting_order co ON co.id = col.order_id WHERE co.state = 'in_production' GROUP BY cm.name ORDER BY 2 DESC LIMIT 5</sample_query>
     <sample_query>Welche Maschine hat die meisten Wartungspositionen</sample_query>
+  </table>
+
+  <table name="casting_alloy" domain="casting" row_count_hint="50">
+    <description>Gusslegierungen (z.B. AlSi9Cu3, GJL-250). Wird in casting_order_line referenziert.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="name" type="varchar" nullable="false"><description>Legierungsbezeichnung z.B. AlSi9Cu3</description><example>AlSi9Cu3</example></column>
+    <column name="alloy_type" type="varchar"><description>Legierungstyp: aluminium, iron, copper, zinc, magnesium</description></column>
+    <column name="din_number" type="varchar"><description>DIN/EN-Werkstoffnummer</description></column>
+    <column name="cost_per_kg" type="numeric"><description>Kosten pro kg in EUR</description></column>
+    <column name="active" type="boolean"/>
+    <sample_query>Welche Aluminium-Legierungen sind aktiv?</sample_query>
+    <sample_query>Legierungen sortiert nach Häufigkeit in Aufträgen</sample_query>
   </table>
 
   <table name="casting_machine" domain="casting" row_count_hint="80">
@@ -110,6 +123,19 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <column name="is_company" type="boolean"/>
     <column name="email" type="varchar"><description>E-Mail-Adresse</description></column>
     <column name="phone" type="varchar"><description>Telefonnummer</description></column>
+    <column name="country_id" type="integer"><description>FK zu res_country — IMMER per JOIN auflösen: JOIN res_country rc ON rc.id = rp.country_id → rc.name AS "Land"</description></column>
+    <column name="supplier_rank" type="integer"><description>Lieferantenrang, &gt;0 = ist Lieferant</description></column>
+    <column name="customer_rank" type="integer"><description>Kundenrang, &gt;0 = ist Kunde</description></column>
+    <sample_query>Welche Lieferanten gibt es?</sample_query>
+    <sample_query>Zeige alle Kunden mit E-Mail-Adresse</sample_query>
+  </table>
+
+  <table name="res_country" domain="base" row_count_hint="250">
+    <description>Länder (ISO 3166). Wird über country_id in res_partner referenziert.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="name" type="jsonb" nullable="false"><description>Ländername (JSONB — bei Text-Vergleich: name::text ILIKE ... oder name->>'en_US'). Werte z.B. {"en_US": "Germany"}</description><example>Germany</example></column>
+    <column name="code" type="varchar"><description>ISO-Code z.B. DE, FR, US</description><example>DE</example></column>
+    <sample_query>Aus welchen Ländern kommen unsere Lieferanten?</sample_query>
   </table>
 
 </schema>
