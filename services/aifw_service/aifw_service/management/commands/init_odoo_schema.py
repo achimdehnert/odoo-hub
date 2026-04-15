@@ -138,6 +138,68 @@ ODOO_MFG_SCHEMA_XML = """<?xml version="1.0" encoding="utf-8"?>
     <sample_query>Aus welchen Ländern kommen unsere Lieferanten?</sample_query>
   </table>
 
+  <!-- ── Stock / Inventory domain ── -->
+
+  <table name="product_template" domain="stock" row_count_hint="64">
+    <description>Produktvorlagen (Artikel-Stammdaten). Jedes Produkt hat ein product_template. name ist JSONB (Odoo translated).</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="name" type="jsonb" nullable="false"><description>Produktname (JSONB — name::text ILIKE oder name->>'en_US' AS "Produkt")</description></column>
+    <column name="default_code" type="varchar"><description>Interne Referenz / Artikelnummer</description><example>PART-001</example></column>
+    <column name="type" type="varchar"><description>Produkttyp: consu (Verbrauchsmaterial), product (Lagerartikel), service</description></column>
+    <column name="categ_id" type="integer"><description>FK → product_category: Produktkategorie</description></column>
+    <column name="list_price" type="numeric"><description>Verkaufspreis</description></column>
+    <column name="sale_ok" type="boolean"><description>Verkaufbar</description></column>
+    <column name="purchase_ok" type="boolean"><description>Einkaufbar</description></column>
+    <column name="active" type="boolean"/>
+    <sample_query>Alle Lagerartikel: SELECT name->>'en_US' AS "Produkt", default_code AS "Artikelnr" FROM product_template WHERE type = 'product' AND active = true</sample_query>
+    <sample_query>Kritische Teile mit Nullbestand</sample_query>
+  </table>
+
+  <table name="product_product" domain="stock" row_count_hint="70">
+    <description>Produktvarianten. Verweist auf product_template. Für Bestands-Abfragen über stock_quant verbinden.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="product_tmpl_id" type="integer" nullable="false"><description>FK → product_template: JOIN product_template pt ON pt.id = pp.product_tmpl_id → pt.name->>'en_US' AS "Produkt"</description></column>
+    <column name="default_code" type="varchar"><description>Varianten-spezifische Artikelnummer</description></column>
+    <column name="barcode" type="varchar"><description>Barcode / EAN</description></column>
+    <column name="active" type="boolean"/>
+    <sample_query>Produkte mit Barcode: SELECT pt.name->>'en_US' AS "Produkt", pp.barcode FROM product_product pp JOIN product_template pt ON pt.id = pp.product_tmpl_id WHERE pp.barcode IS NOT NULL</sample_query>
+  </table>
+
+  <table name="stock_quant" domain="stock" row_count_hint="67">
+    <description>Lagerbestand pro Produkt und Lagerort. quantity = verfügbare Menge, reserved_quantity = reserviert. Für "Nullbestand" → quantity = 0 oder quantity &lt;= 0.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="product_id" type="integer" nullable="false"><description>FK → product_product: JOIN product_product pp ON pp.id = sq.product_id</description></column>
+    <column name="location_id" type="integer" nullable="false"><description>FK → stock_location: JOIN stock_location sl ON sl.id = sq.location_id → sl.complete_name AS "Lagerort"</description></column>
+    <column name="quantity" type="numeric"><description>Verfügbare Menge auf Lager</description></column>
+    <column name="reserved_quantity" type="numeric"><description>Reservierte Menge</description></column>
+    <column name="in_date" type="timestamp"><description>Einlagerungsdatum</description></column>
+    <join_hint>Bestand pro Produkt: SELECT pt.name->>'en_US' AS "Produkt", SUM(sq.quantity) AS "Bestand" FROM stock_quant sq JOIN product_product pp ON pp.id = sq.product_id JOIN product_template pt ON pt.id = pp.product_tmpl_id JOIN stock_location sl ON sl.id = sq.location_id WHERE sl.usage = 'internal' GROUP BY pt.name->>'en_US'</join_hint>
+    <sample_query>Kritische Teile mit Nullbestand: Produkte mit Bestand = 0 auf internen Lagerorten</sample_query>
+    <sample_query>Top 10 Produkte nach Lagerbestand</sample_query>
+  </table>
+
+  <table name="stock_location" domain="stock" row_count_hint="49">
+    <description>Lagerorte. usage='internal' = echtes Lager, 'customer'/'supplier'/'production' = virtuelle Orte. Für Bestands-Abfragen nur usage='internal' filtern!</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="name" type="varchar" nullable="false"><description>Kurzname des Lagerorts</description></column>
+    <column name="complete_name" type="varchar"><description>Vollständiger Pfad z.B. WH/Stock</description><example>WH/Stock</example></column>
+    <column name="usage" type="varchar"><description>Typ: internal, customer, supplier, production, transit, inventory</description></column>
+    <column name="active" type="boolean"/>
+    <sample_query>Alle internen Lagerorte: SELECT complete_name AS "Lagerort" FROM stock_location WHERE usage = 'internal' AND active = true</sample_query>
+  </table>
+
+  <table name="stock_warehouse_orderpoint" domain="stock" row_count_hint="50">
+    <description>Nachbestellregeln: Mindest-/Maximalbestand pro Produkt und Lagerort. Für "kritische Teile" = Bestand unter product_min_qty.</description>
+    <column name="id" type="integer" nullable="false"><description>Primary Key</description></column>
+    <column name="product_id" type="integer" nullable="false"><description>FK → product_product</description></column>
+    <column name="warehouse_id" type="integer"><description>FK → stock_warehouse</description></column>
+    <column name="location_id" type="integer"><description>FK → stock_location</description></column>
+    <column name="product_min_qty" type="numeric"><description>Mindestbestand — darunter = kritisch</description></column>
+    <column name="product_max_qty" type="numeric"><description>Maximalbestand</description></column>
+    <column name="name" type="varchar"><description>Regelname</description></column>
+    <sample_query>Produkte unter Mindestbestand: stock_quant.quantity &lt; stock_warehouse_orderpoint.product_min_qty</sample_query>
+  </table>
+
 </schema>
 """
 
