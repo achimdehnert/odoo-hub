@@ -31,6 +31,19 @@ Odoo module versions follow the `18.0.X.Y.Z` scheme.
   - Responsive CSS grid (1 / 2 / 3 columns at 1200 / 1800px)
 - CI/CD: automatic `odoo -u` step after every deployment (no more manual module updates)
 - CI/CD: explicit restart + health check after module update
+- Tests: v18/v19-Paritäts-Guard für `mfg_nl2sql`
+  (`tests/test_nl2sql_v18_v19_parity.py`, 43 Tests — Retro R8/F-E5,
+  platform#913). Die geplante Konsolidierung auf EINE Quelle wurde geprüft
+  und mit Beleg verworfen: die Divergenz umfasst nicht nur die 6
+  Route-Typ-Zeilen (`type='json'` vs. `type='jsonrpc'`), sondern auch
+  Manifest (Version + data-Liste), `security/security.xml`
+  (ir.module.category-Restrukturierung), die v19-only
+  `security/module_category.xml` und 4 View-XMLs (`<group expand>` in
+  Odoo 19 entfernt); zudem mountet jeder Container nur seinen eigenen
+  Addons-Baum (kein Cross-Tree-Import zur Laufzeit). Der Guard läuft im
+  bestehenden CI-pytest-Job und wird rot bei jeder Divergenz, die über die
+  dokumentierten Odoo-19-Transformationen hinausgeht (bekannte
+  XML-Divergenzen SHA-256-gepinnt).
 
 ### Changed
 - `mfg_management`: `DynamicDashboard` now subclasses `IilDynamicDashboard` from core
