@@ -31,6 +31,14 @@ Odoo module versions follow the `18.0.X.Y.Z` scheme.
   - Responsive CSS grid (1 / 2 / 3 columns at 1200 / 1800px)
 - CI/CD: automatic `odoo -u` step after every deployment (no more manual module updates)
 - CI/CD: explicit restart + health check after module update
+- CI/CD: `workflow_dispatch`-Input `target` (choice `staging`|`prod`, Default
+  `staging`) in `_deploy-odoo-hub.yml` (Retro R4, platform#913). Push auf main
+  deployt weiterhin prod; manuelle Runs deployen per Default den
+  Staging-v18-Stack (gleicher Host wie Prod, `docker-compose.staging.yml
+  --profile v18`, Compose-Env-Datei `.env.staging` muss serverseitig gepflegt
+  sein). Host, Pfad, Compose-File, Web-Service, DB und Health-Check-Domain
+  werden zentral aus dem Target abgeleitet; der Prod-Traefik wird bei
+  Staging-Deploys nicht angefasst.
 
 ### Changed
 - `mfg_management`: `DynamicDashboard` now subclasses `IilDynamicDashboard` from core
@@ -43,6 +51,17 @@ Odoo module versions follow the `18.0.X.Y.Z` scheme.
 - **Critical**: `NL2SqlQueryBar` cross-module import in `casting_foundry` + `scm_manufacturing`
   without declaring `mfg_management` as dependency → JS bundle load error → blank dashboard
 - `mrp` feature deactivated in DB (no panel registered → was causing null-component error)
+- **Critical (CI, #12)**: Deploy-Workflow `_deploy-odoo-hub.yml` war als
+  Workflow-File invalide — `if: ${{ secrets.SOPS_AGE_KEY != '' }}` auf
+  Job-Ebene ist nicht erlaubt (secrets-Kontext dort nicht verfügbar) und
+  führte zu 0s-Fails mit 0 Jobs auf jedem Push. Guard jetzt als
+  Fail-Fast-Step im Job (Retro R6b, Nachtrag).
+- **Critical (CI, #12, Prod-Incident 2026-07-04 17:24–17:46 UTC)**: Die
+  Generierung der Compose-Env-Datei schrieb via quoted+eingerücktem Heredoc
+  die `$(cat /run/secrets/…)`-Kommandos LITERAL in die Datei (Terminator
+  matchte nie) → `odoo_web` crashloopte an `wait-for-psql`. Heredoc durch
+  Echo-Block mit serverseitiger Evaluierung + Sanity-Checks (keine literalen
+  Kommandos, Pflicht-Keys nicht leer) ersetzt (Retro R6b, Nachtrag).
 
 ---
 

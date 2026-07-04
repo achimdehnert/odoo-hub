@@ -1,16 +1,52 @@
-name: Deploy odoo-hub to Production
+name: Deploy odoo-hub (prod | staging)
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy-Ziel (push auf main deployt immer prod)"
+        type: choice
+        options:
+          - staging
+          - prod
+        default: staging
 
+# ── Ziel-Auflösung (Retro R4, platform#913) ──────────────────────────────────
+# push auf main            → prod  (inputs.target ist leer → Fallback 'prod')
+# workflow_dispatch        → Input `target`, Default STAGING (Safety-Default:
+#                            manueller Klick deployt nie versehentlich Prod).
+#
+# Staging läuft auf DEMSELBEN Host wie Prod (Hetzner CPX32, 46.225.127.211).
+# Evidenz: docker-compose.staging.yml Header ("Zwei isolierte Stacks auf
+# demselben Host", "gemeinsamer Traefik aus prod") + Netzwerk staging_proxy =
+# externer Alias auf odoo_hub_proxy (existiert nur auf dem Prod-Host).
+#
+# Profil-Mapping Staging: v18 (= Klon der Prod-Konfiguration) — das einfachste
+# lauffähige Mapping. Der v19-Stack (Odoo-19-Migrationstest) wird weiterhin
+# manuell gestartet:
+#   docker compose -f docker-compose.staging.yml --profile v19 --env-file .env.staging up -d
+#
+# TODO(staging): DEPLOY_PATH für staging (/opt/odoo-hub-staging) ist ein klar
+# markierter Default — bitte bestätigen/anpassen, falls das Staging-Checkout
+# auf dem Server woanders liegt. Die Compose-Env-Datei (.env.staging) wird
+# NICHT vom CI generiert (kein SOPS-Mapping für STAGING_*-Keys) und muss auf
+# dem Server im Staging-Pfad vorliegen; der Deploy bricht sonst laut ab.
 env:
+  DEPLOY_TARGET: ${{ inputs.target || 'prod' }}
   DEPLOY_HOST: root@46.225.127.211
-  DEPLOY_PATH: /opt/odoo-hub
+  DEPLOY_PATH: ${{ (inputs.target || 'prod') == 'staging' && '/opt/odoo-hub-staging' || '/opt/odoo-hub' }}
+  COMPOSE_FILE: ${{ (inputs.target || 'prod') == 'staging' && 'docker-compose.staging.yml' || 'docker-compose.prod.yml' }}
+  COMPOSE_ENV_FILE: ${{ (inputs.target || 'prod') == 'staging' && '.env.staging' || '.env.prod' }}
+  COMPOSE_PROFILE_ARGS: ${{ (inputs.target || 'prod') == 'staging' && '--profile v18' || '' }}
+  WEB_SERVICE: ${{ (inputs.target || 'prod') == 'staging' && 'staging_v18_web' || 'web' }}
+  ODOO_DB: ${{ (inputs.target || 'prod') == 'staging' && 'odoo_staging_v18' || 'odoo' }}
 
 jobs:
   # ── Job 1: Secrets entschlüsseln + auf Server deployen ─────────────────────
+  # Läuft für BEIDE Targets: prod und staging teilen sich den Host, und
+  # /run/secrets/ wird idempotent (identischer Inhalt) neu geschrieben.
   secrets:
     name: Deploy Secrets via SOPS
     runs-on: ubuntu-latest
@@ -116,6 +152,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Show resolved deploy target
+        run: |
+          echo "Target        : ${DEPLOY_TARGET}"
+          echo "Host          : ${DEPLOY_HOST}"
+          echo "Path          : ${DEPLOY_PATH}"
+          echo "Compose file  : ${COMPOSE_FILE}"
+          echo "Compose env   : ${COMPOSE_ENV_FILE}"
+          echo "Profile args  : ${COMPOSE_PROFILE_ARGS:-<none>}"
+          echo "Web service   : ${WEB_SERVICE}"
+          echo "Odoo DB       : ${ODOO_DB}"
+
       - name: Setup SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -131,10 +178,12 @@ jobs:
             --exclude='.git' \
             --exclude='secrets.env' \
             --exclude='.env.prod' \
+            --exclude='.env.staging' \
             --exclude='*.log' \
             ./ "${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
       - name: Generate .env.prod from /run/secrets/
+        if: env.DEPLOY_TARGET == 'prod'
         # Traefik und docker-compose.prod.yml benötigen einige Werte als Umgebungsvariablen
         # (ODOO_DOMAIN, ACME_EMAIL für Traefik-Labels + Healthcheck).
         # read_secret() liest aus /run/secrets/ — diese Bridge-Datei ist kein Secret-Store,
@@ -166,13 +215,32 @@ jobs:
             done
           "
 
+      - name: Verify staging compose env file exists on server
+        if: env.DEPLOY_TARGET == 'staging'
+        # .env.staging wird NICHT vom CI generiert (STAGING_*-Keys sind nicht
+        # im SOPS-Mapping). Sie muss manuell auf dem Server gepflegt werden —
+        # ohne sie bricht der Deploy hier laut ab statt später kryptisch.
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            if [ ! -s '${DEPLOY_PATH}/${COMPOSE_ENV_FILE}' ]; then
+              echo 'FEHLER: ${COMPOSE_ENV_FILE} fehlt/leer in ${DEPLOY_PATH} — Staging-Deploy abgebrochen.' >&2
+              echo '  -> Compose-Env-Datei mit STAGING_V18_* Werten auf dem Server anlegen (chmod 600).' >&2
+              exit 1
+            fi
+            for k in STAGING_V18_DB_PASSWORD STAGING_V18_DOMAIN; do
+              grep -q \"^\${k}=..*\" '${DEPLOY_PATH}/${COMPOSE_ENV_FILE}' \
+                || { echo \"FEHLER: \${k} leer/fehlt in ${COMPOSE_ENV_FILE}\" >&2; exit 1; }
+            done
+            echo 'Staging compose env file verified.'
+          "
+
       - name: Docker Compose up
         run: |
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
             cd ${DEPLOY_PATH}
-            docker compose -f docker-compose.prod.yml --env-file .env.prod pull --quiet || true
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate --remove-orphans
-            docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+            docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} pull --quiet || true
+            docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} up -d --force-recreate --remove-orphans
+            docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} ps
           "
 
       - name: Odoo module update (odoo -u)
@@ -182,9 +250,9 @@ jobs:
             echo 'Waiting for Odoo to be ready...'
             sleep 20
             MODULES=\"iil_dashboard_core,casting_foundry,scm_manufacturing,mfg_machining,iil_configurator,mfg_management,mfg_nl2sql\"
-            echo \"Running: odoo -u \${MODULES}\"
-            docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm web \\
-              odoo -u \"\${MODULES}\" --stop-after-init -d odoo 2>&1 | tail -20
+            echo \"Running: odoo -u \${MODULES} -d ${ODOO_DB} (service ${WEB_SERVICE})\"
+            docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} run --rm ${WEB_SERVICE} \\
+              odoo -u \"\${MODULES}\" --stop-after-init -d ${ODOO_DB} 2>&1 | tail -20
             EXIT_CODE=\$?
             if [ \$EXIT_CODE -ne 0 ]; then
               echo 'ERROR: odoo -u failed with exit code '\$EXIT_CODE >&2
@@ -199,22 +267,36 @@ jobs:
             cd ${DEPLOY_PATH}
             # Always use --env-file so ODOO_DOMAIN label is set correctly.
             # Without it Traefik gets Host(``) and returns 404 for all requests.
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-deps web
+            docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} up -d --no-deps ${WEB_SERVICE}
             sleep 15
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-deps traefik
-            sleep 5
+            if [ '${DEPLOY_TARGET}' = 'prod' ]; then
+              # Nur Prod hat einen eigenen Traefik. Staging nutzt den Prod-Traefik
+              # (staging_proxy = externer Alias auf odoo_hub_proxy) und darf ihn
+              # bei einem Staging-Deploy NICHT anfassen.
+              docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} up -d --no-deps traefik
+              sleep 5
+            fi
           "
 
       - name: Health check
         run: |
           sleep 10
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
-            DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
+            if [ '${DEPLOY_TARGET}' = 'prod' ]; then
+              DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
+            else
+              DOMAIN=\$(grep '^STAGING_V18_DOMAIN=' '${DEPLOY_PATH}/${COMPOSE_ENV_FILE}' | cut -d= -f2)
+            fi
+            if [ -z \"\${DOMAIN}\" ]; then
+              echo 'FEHLER: Health-Check-Domain konnte nicht ermittelt werden.' >&2
+              exit 1
+            fi
             if curl -sf --max-time 15 \"https://\${DOMAIN}/web/health\" > /dev/null; then
-              echo 'Health check passed.'
+              echo \"Health check passed (https://\${DOMAIN}).\"
             else
               echo 'Health check failed — Logs:' >&2
-              docker compose -f ${DEPLOY_PATH}/docker-compose.prod.yml logs --tail=50 web >&2
+              cd ${DEPLOY_PATH}
+              docker compose -f ${COMPOSE_FILE} ${COMPOSE_PROFILE_ARGS} --env-file ${COMPOSE_ENV_FILE} logs --tail=50 ${WEB_SERVICE} >&2
               exit 1
             fi
           "
