@@ -1,3 +1,8 @@
+---
+status: accepted
+date: 2026-03-03
+---
+
 # ADR-005: Produktkonfigurator — Architektur & Implementierung
 
 | Feld | Wert |

@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-03
+---
+
 # ADR-004: Code Review — `mfg_nl2sql` Produktionscode
 
 | Feld | Wert |

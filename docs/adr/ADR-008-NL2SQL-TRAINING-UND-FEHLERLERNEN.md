@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-04
+---
+
 # ADR-008: NL2SQL — Vorab-Training und kontinuierliches Fehlerlernen
 
 **Status:** Konzept  

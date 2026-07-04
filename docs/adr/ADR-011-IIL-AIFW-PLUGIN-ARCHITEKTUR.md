@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-04
+---
+
 # ADR-011: `iil-aifw` Plugin-Architektur und Breaking-Change-Analyse
 
 **Status:** Entschieden — Rev. 2 (2026-03-04, Review-Korrekturen)
