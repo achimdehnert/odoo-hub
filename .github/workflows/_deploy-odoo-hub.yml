@@ -14,9 +14,20 @@ jobs:
   secrets:
     name: Deploy Secrets via SOPS
     runs-on: ubuntu-latest
-    # Überspringen wenn SOPS_AGE_KEY nicht gesetzt (lokale Forks, PRs ohne Secret)
-    if: ${{ secrets.SOPS_AGE_KEY != '' }}
     steps:
+      # Der secrets-Kontext ist in Job-level `if` nicht verfügbar — die frühere
+      # Zeile `if: ${{ secrets.SOPS_AGE_KEY != '' }}` invalidierte das gesamte
+      # Workflow-File (0s-Fail, 0 Jobs, auf jedem Push). Guard daher als
+      # Fail-Fast-Step: ohne Secret bricht der Deploy laut ab statt still.
+      - name: Verify SOPS_AGE_KEY configured
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          if [ -z "${SOPS_AGE_KEY}" ]; then
+            echo "FEHLER: Secret SOPS_AGE_KEY nicht gesetzt — Deploy abgebrochen (Fork / Secret fehlt)." >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - name: Install sops + age
