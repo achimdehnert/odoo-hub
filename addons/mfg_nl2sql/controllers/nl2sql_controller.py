@@ -29,8 +29,13 @@ FORBIDDEN_KEYWORDS = {
 WRITE_KEYWORDS = {'INSERT', 'UPDATE', 'DELETE', 'MERGE', 'UPSERT'}
 
 
-def sanitize_sql(sql, allow_write=False):
-    """Validate and sanitize SQL for safe execution.
+def sanitize_sql(sql):
+    """Validate and sanitize SQL for safe execution (always read-only).
+
+    Write operations are never allowed — there is deliberately no opt-out
+    (NL2X-Audit WP1, platform#913). The regex checks here are the first
+    line of defence; the enforced one is the read-only transaction in
+    ``_execute_sql``.
 
     Returns:
         tuple: (sanitized_sql, error_message)
@@ -54,12 +59,11 @@ def sanitize_sql(sql, allow_write=False):
         if re.search(pattern, upper):
             return None, f"Verbotenes Schlüsselwort: {kw}"
 
-    # Check write operations
-    if not allow_write:
-        for kw in WRITE_KEYWORDS:
-            pattern = rf'\b{kw}\b'
-            if re.search(pattern, upper):
-                return None, f"Schreiboperation nicht erlaubt: {kw}"
+    # Write operations are never allowed (read-only by design)
+    for kw in WRITE_KEYWORDS:
+        pattern = rf'\b{kw}\b'
+        if re.search(pattern, upper):
+            return None, f"Schreiboperation nicht erlaubt: {kw}"
 
     # Must start with SELECT or WITH
     if not re.match(r'^(SELECT|WITH)\b', upper):
@@ -228,8 +232,6 @@ class NL2SQLController(http.Controller):
             'temperature': float(ICP.get_param('mfg_nl2sql.temperature', 0.0)),
             'timeout': int(ICP.get_param('mfg_nl2sql.query_timeout', 30)),
             'max_rows': int(ICP.get_param('mfg_nl2sql.max_rows', 1000)),
-            'allow_write': ICP.get_param('mfg_nl2sql.allow_write', 'False')
-                            == 'True',
         }
 
     def _build_system_prompt(self, schema_context):
@@ -352,52 +354,67 @@ WICHTIG:
             return None, 0, f"Übersetzungsfehler: {str(exc)}"
 
     def _execute_sql(self, sql, max_rows=1000):
-        """Execute sanitized SQL and return structured results.
+        """Execute sanitized SQL read-only and return structured results.
 
-        Wrapped in a savepoint so a failing SQL statement does not roll back
-        unrelated ORM writes on the shared request cursor (fixes ADR-004 C1).
+        Defence in depth (NL2X-Audit WP1, platform#913): the LLM-generated
+        SQL runs on a FRESH registry cursor with its own transaction that is
+        forced read-only at the database level. Any write that slips past the
+        ``sanitize_sql`` regex blocklist is rejected by PostgreSQL itself
+        ("cannot execute ... in a read-only transaction").
+
+        Why a fresh cursor: ``SET TRANSACTION READ ONLY`` only takes effect
+        before the first query of a transaction — issued on the shared
+        request cursor (``request.env.cr``, already mid-transaction) it would
+        be a silent no-op. The transaction is always rolled back (pure read,
+        never commit). This also isolates failing SQL from unrelated ORM
+        writes on the request cursor (supersedes the ADR-004 C1 savepoint).
         """
         config = self._get_llm_config()
-        timeout_ms = config['timeout'] * 1000
+        timeout_ms = int(config['timeout']) * 1000
 
         start = time.time()
-        cr = request.env.cr
         try:
-            with cr.savepoint():
-                cr.execute(f"SET LOCAL statement_timeout = '{timeout_ms}'")
-                limited_sql = f"SELECT * FROM ({sql}) AS _q LIMIT {max_rows}"
-                cr.execute(limited_sql)
+            with request.env.registry.cursor() as cr:
+                try:
+                    # Must be the FIRST statement of the fresh transaction.
+                    cr.execute("SET TRANSACTION READ ONLY")
+                    cr.execute(f"SET LOCAL statement_timeout = '{timeout_ms}'")
+                    limited_sql = f"SELECT * FROM ({sql}) AS _q LIMIT {max_rows}"
+                    cr.execute(limited_sql)
 
-                columns = []
-                if cr.description:
-                    for desc in cr.description:
-                        pg_type = desc.type_code
-                        type_name = 'text'
-                        if pg_type in (20, 21, 23):  # int8, int2, int4
-                            type_name = 'integer'
-                        elif pg_type in (700, 701, 1700):  # float4, float8, numeric
-                            type_name = 'float'
-                        elif pg_type == 16:  # bool
-                            type_name = 'boolean'
-                        elif pg_type == 1082:  # date
-                            type_name = 'date'
-                        elif pg_type in (1114, 1184):  # timestamp, timestamptz
-                            type_name = 'datetime'
-                        columns.append({'name': desc.name, 'type': type_name})
+                    columns = []
+                    if cr.description:
+                        for desc in cr.description:
+                            pg_type = desc.type_code
+                            type_name = 'text'
+                            if pg_type in (20, 21, 23):  # int8, int2, int4
+                                type_name = 'integer'
+                            elif pg_type in (700, 701, 1700):  # float4, float8, numeric
+                                type_name = 'float'
+                            elif pg_type == 16:  # bool
+                                type_name = 'boolean'
+                            elif pg_type == 1082:  # date
+                                type_name = 'date'
+                            elif pg_type in (1114, 1184):  # timestamp, timestamptz
+                                type_name = 'datetime'
+                            columns.append({'name': desc.name, 'type': type_name})
 
-                rows = cr.fetchall()
-                elapsed = int((time.time() - start) * 1000)
+                    rows = cr.fetchall()
+                finally:
+                    # Pure read — always discard the transaction, never commit.
+                    cr.rollback()
 
-                serializable_rows = [
-                    [v.isoformat() if hasattr(v, 'isoformat') else v for v in row]
-                    for row in rows
-                ]
-                return {
-                    'columns': columns,
-                    'rows': serializable_rows,
-                    'row_count': len(serializable_rows),
-                    'execution_time_ms': elapsed,
-                }
+            elapsed = int((time.time() - start) * 1000)
+            serializable_rows = [
+                [v.isoformat() if hasattr(v, 'isoformat') else v for v in row]
+                for row in rows
+            ]
+            return {
+                'columns': columns,
+                'rows': serializable_rows,
+                'row_count': len(serializable_rows),
+                'execution_time_ms': elapsed,
+            }
 
         except Exception as exc:
             elapsed = int((time.time() - start) * 1000)
@@ -524,7 +541,7 @@ WICHTIG:
             return {'error': error}
 
         # 2. Sanitize SQL
-        sanitized, san_error = sanitize_sql(generated_sql, config['allow_write'])
+        sanitized, san_error = sanitize_sql(generated_sql)
         if san_error:
             request.env['nl2sql.query.history'].create({
                 'name': query_text,
