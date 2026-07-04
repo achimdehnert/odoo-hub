@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-04
+---
+
 # ADR-009: NL2SQL Evolutionspfad — RAG, Graph-Schema und Clarification-Agent
 
 **Status:** Konzept  

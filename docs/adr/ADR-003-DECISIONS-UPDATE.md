@@ -1,3 +1,8 @@
+---
+status: accepted
+date: 2026-03-03
+---
+
 # ADR-003: Entscheidungsupdate — Produktstrategie & Architektur
 
 | Feld | Wert |

@@ -1,3 +1,8 @@
+---
+status: accepted
+date: 2026-03-03
+---
+
 # ADR-002: Produktstrategie & Implementierungsvorschlag
 ## Odoo ERP + NL2SQL als Managed-Service-Produkt für den Mittelstand
 

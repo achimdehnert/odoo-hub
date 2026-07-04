@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-02
+---
+
 # ADR-001 Review: aifw NL2SQL Extension + mfg_nl2sql Odoo-Modul
 
 | Feld | Wert |

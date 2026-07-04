@@ -1,3 +1,8 @@
+---
+status: accepted  # auto-migriert (Fleet-Audit F-1): Body ohne Status — im Review bestätigen
+date: 2026-03-04
+---
+
 # ADR-006: Odoo 18 JavaScript Import-Regeln
 
 **Status:** Accepted  

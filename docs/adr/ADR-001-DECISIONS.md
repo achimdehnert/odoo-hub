@@ -1,3 +1,8 @@
+---
+status: proposed
+date: 2026-03-02
+---
+
 # ADR-001 Entscheidungsanalyse — drei offene Fragen
 
 | Feld | Wert |
