@@ -140,20 +140,30 @@ jobs:
         # read_secret() liest aus /run/secrets/ — diese Bridge-Datei ist kein Secret-Store,
         # nur Compose-Interpolation. Passwörter stehen nur in /run/secrets/.
         run: |
+          # Kein Heredoc: die frühere quoted+eingerückte ENVEOF-Variante schrieb
+          # die $(cat …)-Kommandos LITERAL in .env.prod (Terminator matchte nie)
+          # → odoo_web crashloopte an wait-for-psql (Incident 2026-07-04).
+          # Jetzt: Echo-Block, Werte werden auf dem Server evaluiert.
           ssh -i ~/.ssh/id_ed25519 "${DEPLOY_HOST}" "
+            set -e
             cd ${DEPLOY_PATH}
-            # Generiere minimale .env.prod für docker-compose Variable-Interpolation
-            # Nur nicht-sensitive Werte + Referenzen (keine Passwörter direkt)
-            cat > .env.prod << 'ENVEOF'
-            POSTGRES_USER=\$(cat /run/secrets/postgres_user 2>/dev/null || echo odoo)
-            POSTGRES_DB=\$(cat /run/secrets/postgres_db 2>/dev/null || echo odoo)
-            ODOO_DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)
-            ACME_EMAIL=\$(cat /run/secrets/acme_email 2>/dev/null)
-            IMAGE_TAG=${GITHUB_SHA::8}
-          ENVEOF
-            # Sensitive Werte separat setzen (nur für Compose-Interpolation, chmod 600)
-            echo \"POSTGRES_PASSWORD=\$(cat /run/secrets/postgres_password)\" >> .env.prod
+            umask 077
+            {
+              echo \"POSTGRES_USER=\$(cat /run/secrets/postgres_user 2>/dev/null || echo odoo)\"
+              echo \"POSTGRES_DB=\$(cat /run/secrets/postgres_db 2>/dev/null || echo odoo)\"
+              echo \"ODOO_DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)\"
+              echo \"ACME_EMAIL=\$(cat /run/secrets/acme_email 2>/dev/null)\"
+              echo \"IMAGE_TAG=${GITHUB_SHA::8}\"
+              echo \"POSTGRES_PASSWORD=\$(cat /run/secrets/postgres_password)\"
+            } > .env.prod
             chmod 600 .env.prod
+            # Sanity: keine unevaluierten Kommandos, alle Pflicht-Keys nicht leer
+            if grep -q 'cat /run/secrets' .env.prod; then
+              echo 'FEHLER: .env.prod enthält literale Kommandos' >&2; exit 1
+            fi
+            for k in POSTGRES_USER POSTGRES_DB ODOO_DOMAIN POSTGRES_PASSWORD; do
+              grep -q \"^\${k}=..*\" .env.prod || { echo \"FEHLER: \${k} leer/fehlt in .env.prod\" >&2; exit 1; }
+            done
           "
 
       - name: Docker Compose up
