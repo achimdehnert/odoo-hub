@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: void  # F-3 T-12 (2026-07-04): Analyse-Doc ohne Entscheidung
 date: 2026-03-02
 ---
 
