@@ -38,14 +38,26 @@ class TestSanitizeSQL(TransactionCase):
         sql, err = sanitize_sql("INSERT INTO purchase_order (name) VALUES ('test')")
         self.assertIsNone(sql)
 
-    def test_update_allowed_with_write(self):
+    def test_should_reject_write_sql_in_fallback(self):
+        """DML/DDL is always rejected — incl. comment obfuscation (WP1)."""
         from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import sanitize_sql
-        sql, err = sanitize_sql(
+        for bad in (
             "UPDATE purchase_order SET state='done' WHERE id=1",
-            allow_write=True
-        )
-        # Still blocked because it doesn't start with SELECT
-        self.assertIsNone(sql)
+            "INSERT INTO res_users (login) VALUES ('x')",
+            "DROP TABLE purchase_order",
+            "SELECT 1; -- harmlos\nDROP TABLE purchase_order",
+            "SELECT * FROM (DELETE FROM res_users RETURNING *) AS t",
+            "DELETE/*versteckt*/FROM res_users",
+        ):
+            sql, err = sanitize_sql(bad)
+            self.assertIsNone(sql, f"nicht blockiert: {bad}")
+            self.assertTrue(err)
+
+    def test_should_not_accept_allow_write_parameter(self):
+        """allow_write was removed (NL2X-Audit WP1) — no write opt-out."""
+        from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import sanitize_sql
+        with self.assertRaises(TypeError):
+            sanitize_sql("SELECT 1", allow_write=True)
 
     def test_multiple_statements_blocked(self):
         from odoo.addons.mfg_nl2sql.controllers.nl2sql_controller import sanitize_sql

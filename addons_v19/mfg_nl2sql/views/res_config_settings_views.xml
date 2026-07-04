@@ -36,12 +36,9 @@
                             <field name="nl2sql_max_rows"/>
                         </setting>
                     </block>
-                    <block title="Sicherheit">
-                        <setting string="Schreibzugriff erlauben"
-                                 help="ACHTUNG: Erlaubt INSERT/UPDATE/DELETE Queries">
-                            <field name="nl2sql_allow_write"/>
-                        </setting>
-                    </block>
+                    <!-- Block "Sicherheit" (nl2sql_allow_write) entfernt:
+                         LLM-SQL ist immer read-only (NL2X-Audit WP1, platform#913),
+                         durchgesetzt per Read-only-Transaktion im Controller. -->
                 </app>
             </xpath>
         </field>

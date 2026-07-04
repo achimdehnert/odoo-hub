@@ -8,6 +8,21 @@ Odoo module versions follow the `18.0.X.Y.Z` scheme.
 
 ## [Unreleased]
 
+### Security
+- **`mfg_nl2sql` (18.0.1.0.1 / 19.0.1.0.1): LLM-generated SQL in the fallback
+  pipeline now runs inside a read-only PostgreSQL transaction** (NL2X-Audit
+  WP1, achimdehnert/platform#913). `_execute_sql` no longer executes on the
+  shared `request.env.cr` (full RW Odoo DB user); it opens a fresh registry
+  cursor, issues `SET TRANSACTION READ ONLY` as the first statement plus
+  `SET LOCAL statement_timeout`, and always rolls back (never commits). Any
+  write that slips past the `sanitize_sql` regex blocklist is rejected by the
+  database itself. The preferred aifw_service path is unchanged.
+- **`allow_write` opt-out removed** from `sanitize_sql`, the controller config
+  plumbing and the `res.config.settings` UI (`mfg_nl2sql.allow_write`). Write
+  queries can no longer be enabled by configuration. Covered by unit tests in
+  `tests/test_nl2sql_readonly.py` (v18 + v19, mock cursor — statement order,
+  rollback) and addon-level `TransactionCase` tests.
+
 ### Added
 - `iil_dashboard_core` — generic OWL 2 plugin-registry dashboard engine
   - `PanelErrorBoundary`: isolates crashing panels, prevents OWL-app navigation freeze

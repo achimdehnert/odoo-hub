@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'NL2SQL Management Dashboard',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'category': 'Manufacturing/Reporting',
     'summary': 'Natural Language SQL queries with visual dashboard for manufacturing data',
     'description': """

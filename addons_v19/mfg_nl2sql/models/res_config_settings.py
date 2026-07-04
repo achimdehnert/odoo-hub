@@ -47,9 +47,6 @@ class ResConfigSettings(models.TransientModel):
         default=1000,
         config_parameter='mfg_nl2sql.max_rows',
     )
-    nl2sql_allow_write = fields.Boolean(
-        string='Allow Write Queries',
-        default=False,
-        config_parameter='mfg_nl2sql.allow_write',
-        help='DANGEROUS: Allow INSERT/UPDATE/DELETE. Default: read-only.',
-    )
+    # nl2sql_allow_write was removed (NL2X-Audit WP1, platform#913):
+    # LLM-generated SQL is always read-only, enforced by a read-only
+    # transaction in the controller. There is deliberately no opt-out.
