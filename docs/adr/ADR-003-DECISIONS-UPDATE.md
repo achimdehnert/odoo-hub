@@ -419,7 +419,7 @@ Wizard-Abschlusses (`generate_demo_data=True` als Default). Ohne Demo-Daten kein
 
 | Dokument | Datum | Status | Inhalt |
 |----------|-------|--------|--------|
-| `ADR-001-REVIEW.md` | 2026-03-02 | Abgeschlossen | 7 kritische Befunde, 8 Empfehlungen |
+| `reviews/ADR-001-REVIEW.md` | 2026-03-02 | Abgeschlossen | 7 kritische Befunde, 8 Empfehlungen |
 | `ADR-001-DECISIONS.md` | 2026-03-02 | Abgeschlossen | F1/F2/F3 Analyse + Empfehlungen |
 | `ADR-002-PRODUCT-STRATEGY.md` | 2026-03-03 | Abgeschlossen | Produktbewertung + 5-Sprint-Plan |
 | **`ADR-003-DECISIONS-UPDATE.md`** | **2026-03-03** | **Aktiv** | **D1/D3/D6 bestätigt, A1/A2/A3 festgelegt, D7/D8/D9 ergänzt** |

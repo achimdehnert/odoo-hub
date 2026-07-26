@@ -10,7 +10,7 @@ date: 2026-03-03
 |------|------|
 | **Datum** | 2026-03-03 |
 | **Reviewer** | Cascade — IT-Architekt & Produktmanager Perspektive |
-| **Eingaben** | `odoo_produktvorschlag.docx`, `odoo_flyer_mittelstand.html`, `ADR-001-REVIEW.md` |
+| **Eingaben** | `odoo_produktvorschlag.docx`, `odoo_flyer_mittelstand.html`, `reviews/ADR-001-REVIEW.md` |
 | **Status** | **AKTUALISIERT** — ergänzt durch ADR-005-KONFIGURATOR.md (2026-03-03) |
 | **Entscheidungsträger** | Achim Dehnert |
 

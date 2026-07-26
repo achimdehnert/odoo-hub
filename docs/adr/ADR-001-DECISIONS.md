@@ -8,7 +8,7 @@ date: 2026-03-02
 | Feld | Wert |
 |------|------|
 | **Datum** | 2026-03-02 |
-| **Basis** | ADR-001-REVIEW.md + aifw v0.5.0 Wheel-Analyse + Hetzner odoo-prod CPX32 |
+| **Basis** | reviews/ADR-001-REVIEW.md + aifw v0.5.0 Wheel-Analyse + Hetzner odoo-prod CPX32 |
 | **Status** | Entscheidung ausstehend (3 Fragen) |
 
 ---
@@ -184,7 +184,7 @@ nl2sql = [
 ]
 ```
 
-**Migration 0004 für `SchemaSource`:** Siehe `ADR-001-REVIEW.md` Abschnitt 4.3 —
+**Migration 0004 für `SchemaSource`:** Siehe `reviews/ADR-001-REVIEW.md` Abschnitt 4.3 —
 vollständige Django-Migration ist dort bereits als Code-Output dokumentiert.
 
 ### Repo-Struktur-Problem: `src/aifw/` ist leer
