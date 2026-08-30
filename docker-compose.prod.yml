@@ -211,6 +211,7 @@ services:
       - "--web.enable-lifecycle"
     volumes:
       - ./grafana/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./grafana/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     expose:
       - "9090"
