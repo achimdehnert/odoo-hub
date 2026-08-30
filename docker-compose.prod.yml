@@ -39,7 +39,10 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      # 228: tls-alpn-01 scheitert hinter dem Cloudflare-Proxy (Cloudflare terminiert
+      # TLS, die ALPN-Antwort erreicht Let's Encrypt nie). http-01 wird durchgereicht.
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--log.level=INFO"
@@ -327,6 +330,10 @@ services:
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - ./grafana/promtail/promtail.yml:/etc/promtail/config.yml:ro
+      # 228 (platform#2516, 2026-08-30): positions lagen unter /tmp im Container und
+      # waren nach jedem Neustart weg — promtail las alle Container-Logs von vorn und
+      # Loki lehnte ~700 Batches/h als 'timestamp too old' ab. Persistent gemacht.
+      - promtail_positions:/var/lib/promtail
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
@@ -383,6 +390,8 @@ services:
           memory: 256M
 
 volumes:
+  promtail_positions:
+    name: odoo_hub_promtail_positions
   odoo_data:
     name: odoo_hub_data        # Expliziter Name für Backup-Scripts
   odoo_pgdata:
