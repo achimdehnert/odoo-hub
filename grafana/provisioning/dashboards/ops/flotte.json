@@ -1,0 +1,73 @@
+{
+  "uid": "flotte",
+  "title": "IIL-Flotte — Knoten",
+  "tags": ["flotte", "konz-054"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Exporter erreichbar",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "sum(up{job=~\"fleet-.*\"}) / count(up{job=~\"fleet-.*\"})", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 0.5 }, { "color": "green", "value": 1 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Swap je Knoten",
+      "gridPos": { "x": 6, "y": 0, "w": 9, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "1 - node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes", "legendFormat": "{{host}}", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.6 }, { "color": "red", "value": 0.9 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Platte / frei je Knoten",
+      "gridPos": { "x": 15, "y": 0, "w": 9, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"}", "legendFormat": "{{host}}", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 0.1 }, { "color": "green", "value": 0.25 } ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Load (1 min) je Kern",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode=\"idle\"})", "legendFormat": "{{host}}" }],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 1, "fillOpacity": 8 } }, "overrides": [] }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "RAM belegt",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes", "legendFormat": "{{host}}" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "custom": { "lineWidth": 1, "fillOpacity": 8 } }, "overrides": [] }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Platte / — Tage bis voll (7-Tage-Trend, negativ = kein Trend zu voll)",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"} / clamp_min(-deriv(node_filesystem_avail_bytes{mountpoint=\"/\"}[7d]), 1) / 86400", "legendFormat": "{{host}}" }],
+      "fieldConfig": { "defaults": { "unit": "d", "custom": { "lineWidth": 1 } }, "overrides": [] }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Container-Neustarts je Stunde (Top 8)",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "topk(8, increase(container_restart_count{name!=\"\"}[1h]))", "legendFormat": "{{host}} {{name}}" }],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 1, "drawStyle": "bars" } }, "overrides": [] }
+    },
+    {
+      "id": 8, "type": "table", "title": "Container > 80 % ihres Speicherlimits",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "flotte_prom" },
+      "targets": [{ "refId": "A", "expr": "sort_desc(container_memory_working_set_bytes{name!=\"\"} / container_spec_memory_limit_bytes{name!=\"\"} > 0.8 and container_spec_memory_limit_bytes{name!=\"\"} > 0)", "instant": true, "format": "table" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] },
+      "transformations": [{ "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true, "id": true, "image": true }, "renameByName": { "Value": "Anteil vom Limit" } } }]
+    }
+  ]
+}

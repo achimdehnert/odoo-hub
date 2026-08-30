@@ -1,0 +1,15 @@
+# Prometheus als Grafana-Datasource (platform KONZ-054, 182 — 2026-08-30).
+# Bis heute kannte Grafana nur die Odoo-Postgres-Quelle; die Flotten-Werte
+# (fleet-node, fleet-cadvisor) lagen im Prometheus nebenan und niemand sah sie.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus (Flotte)
+    type: prometheus
+    uid: flotte_prom
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      timeInterval: 60s
