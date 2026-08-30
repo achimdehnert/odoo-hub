@@ -1,8 +1,11 @@
 name: Deploy odoo-hub to Production
 
+# Odoo ist seit 2026-08-30 bis auf weiteres STILLGELEGT (Owner-Entscheid,
+# platform KONZ-054 §12): odoo_web und odoo_db sind gestoppt, der Monitoring-
+# Stack auf demselben Host laeuft weiter (Prometheus ist der Flotten-Monitor).
+# Ein Push auf main darf den Stack deshalb NICHT mehr per --force-recreate
+# hochfahren — der Deploy laeuft nur noch auf ausdruecklichen Anstoss.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:
