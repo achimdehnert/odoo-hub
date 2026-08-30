@@ -220,6 +220,11 @@ services:
       - postgres_exporter
     networks:
       - internal
+      # proxy zusaetzlich: `internal` hat internal: true und damit KEINEN Weg nach
+      # draussen — der erste Flotten-Scrape (2026-08-30) scheiterte genau daran
+      # ("network is unreachable"). Prometheus braucht Egress zu prod/prod-b,
+      # bleibt aber ohne publizierten Port.
+      - proxy
     deploy:
       resources:
         limits:
