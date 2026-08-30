@@ -231,6 +231,31 @@ services:
           cpus: "0.5"
           memory: 512M
 
+  # ── cAdvisor (2026-08-30, platform#2516 Owner-Go 222) ───────────────────────
+  # Der odoo-Host ist seit 2026-08-30 der Flotten-Monitor und war fuer seine
+  # eigenen Container blind: ContainerRestartLoop/ContainerNearMemoryLimit konnten
+  # hier nie feuern (aifw_service: 23.000 Neustarts, nie gemeldet). Wie mon_cadvisor
+  # auf prod/prod-b, aber OHNE publizierten Port — Prometheus erreicht ihn im Netz.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: odoo_cadvisor
+    restart: unless-stopped
+    command: ["-logtostderr", "-housekeeping_interval=30s", "-docker_only=true"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    expose:
+      - "8080"
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   # ── Node Exporter ────────────────────────────────────────────────────────────
   # Layer 2: Host system metrics (CPU, RAM, Disk, Network).
   node_exporter:
