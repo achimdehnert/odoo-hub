@@ -5,6 +5,12 @@ global:
     environment: production
     stack: odoo-hub
 
+# Alert-Regeln (KONZ-054 E3/K3). Ohne Alertmanager feuern sie nur in der
+# Prometheus-Oberflaeche — der Weg zum Menschen braucht das Discord-Secret
+# (platform infra/alarmwege.yaml, discord-owner) und einen Alertmanager.
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
 scrape_configs:
   - job_name: 'node'
     static_configs:
@@ -25,3 +31,25 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  # ── Flotte (KONZ-platform-054 §8 A2, Owner-Go 2026-08-30) ──────────────────
+  # Dieser Prometheus war bis 2026-08-30 der einzige im Bestand und scrapte nur
+  # sich selbst — waehrend node_exporter und cadvisor auf prod und prod-b liefen
+  # und ins Leere exportierten. prod:9100 fehlt hier absichtlich: ufw auf prod
+  # blockt den Port (Default deny), die Freigabe ist Security-Config (Owner).
+  # prod:9338 antwortet, weil Docker den Port an ufw vorbei publiziert — das ist
+  # ein eigener Befund (cadvisor weltweit lesbar), kein Feature.
+  - job_name: 'fleet-node'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['89.167.43.30:9100']
+        labels: { host: prod-b }
+      # - targets: ['88.198.191.108:9100']   # prod: ufw allow from 46.225.127.211 fehlt
+      #   labels: { host: prod }
+  - job_name: 'fleet-cadvisor'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['88.198.191.108:9338']
+        labels: { host: prod }
+      - targets: ['89.167.43.30:9338']
+        labels: { host: prod-b }

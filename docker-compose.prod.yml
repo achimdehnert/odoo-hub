@@ -211,6 +211,7 @@ services:
       - "--web.enable-lifecycle"
     volumes:
       - ./grafana/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./grafana/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     expose:
       - "9090"
@@ -219,6 +220,11 @@ services:
       - postgres_exporter
     networks:
       - internal
+      # proxy zusaetzlich: `internal` hat internal: true und damit KEINEN Weg nach
+      # draussen — der erste Flotten-Scrape (2026-08-30) scheiterte genau daran
+      # ("network is unreachable"). Prometheus braucht Egress zu prod/prod-b,
+      # bleibt aber ohne publizierten Port.
+      - proxy
     deploy:
       resources:
         limits:
