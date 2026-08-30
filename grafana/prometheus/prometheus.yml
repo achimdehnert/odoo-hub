@@ -49,6 +49,8 @@ scrape_configs:
   - job_name: 'fleet-cadvisor'
     scrape_interval: 60s
     static_configs:
+      - targets: ['cadvisor:8080']
+        labels: { host: odoo }
       - targets: ['88.198.191.108:9338']
         labels: { host: prod }
       - targets: ['89.167.43.30:9338']
