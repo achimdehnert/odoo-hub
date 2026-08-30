@@ -156,6 +156,9 @@ jobs:
               echo \"POSTGRES_DB=\$(cat /run/secrets/postgres_db 2>/dev/null || echo odoo)\"
               echo \"ODOO_DOMAIN=\$(cat /run/secrets/odoo_domain 2>/dev/null)\"
               echo \"ACME_EMAIL=\$(cat /run/secrets/acme_email 2>/dev/null)\"
+              # 182 (platform KONZ-054, 2026-08-30): ohne diese Zeile war die Traefik-Regel
+              # fuer Grafana buchstaeblich Host(``) — der Monitor war unerreichbar.
+              echo \"GRAFANA_DOMAIN=\$(cat /run/secrets/grafana_domain 2>/dev/null || echo grafana.iil.pet)\"
               echo \"IMAGE_TAG=${GITHUB_SHA::8}\"
               echo \"POSTGRES_PASSWORD=\$(cat /run/secrets/postgres_password)\"
             } > .env.prod
