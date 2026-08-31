@@ -132,9 +132,7 @@ def main() -> int:
         gruppen: dict[str, list[bool]] = {}
         for e in ergebnisse:
             gruppen.setdefault(str(e[feld]), []).append(e["bestanden"])
-        teile = [
-            f"{k}: {sum(v)}/{len(v)}" for k, v in sorted(gruppen.items())
-        ]
+        teile = [f"{k}: {sum(v)}/{len(v)}" for k, v in sorted(gruppen.items())]
         print(f"  nach {feld} — " + " · ".join(teile))
 
     if args.json:
