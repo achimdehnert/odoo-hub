@@ -1,6 +1,10 @@
 # Build context: repo root (odoo-hub/)
 # docker compose build --build-arg CACHE_BUST=$(date +%s) aifw_service
-FROM python:3.11-slim
+# 3.12 ist Pflicht: iil-aifw deklariert ab 0.10.2 Requires-Python >=3.12.
+# Unter 3.11 sieht pip nichts neuer als 0.9.0 — gemessen im laufenden
+# Prod-Container am 2026-08-31: Python 3.11.14, iil-aifw **0.6.0**, obwohl
+# requirements.txt >=0.11.4 fordert (achimdehnert/platform#2546).
+FROM python:3.12-slim
 
 WORKDIR /app
 
