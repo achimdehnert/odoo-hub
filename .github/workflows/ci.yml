@@ -66,3 +66,34 @@ jobs:
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
+
+  build-aifw-service:
+    # Eigenes Image, weil der Dienst einen eigenen Lebenszyklus hat: er wird von
+    # zwei Projekten gebraucht (odoo-hub und ttz-hub), beide bauen ihn heute
+    # lokal per `build:` — mit dem Ergebnis, dass zwei Repos denselben
+    # container_name definieren und ihr Code auseinanderlief
+    # (achimdehnert/platform#2546). Ein publiziertes Image ist die Vorbedingung
+    # dafuer, dass ttz-hub es zieht statt selbst zu bauen.
+    name: "Docker Build (aifw_service)"
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/aifw_service/Dockerfile
+          # Auf PRs nur bauen, nicht schieben — der Build ist dort das Gate,
+          # nicht die Veroeffentlichung. Gleiches Muster wie beim odoo-Image.
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/achimdehnert/odoo-hub/aifw-service:latest
+            ghcr.io/achimdehnert/odoo-hub/aifw-service:${{ github.sha }}
