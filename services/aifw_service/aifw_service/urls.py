@@ -1,4 +1,5 @@
 """URL configuration for aifw-service."""
+
 from django.urls import path
 
 from aifw_service import views
