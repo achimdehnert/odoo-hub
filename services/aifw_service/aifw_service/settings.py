@@ -68,7 +68,15 @@ DATABASES = {
         "CONN_MAX_AGE": 30,
         "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
-            "options": "-c default_transaction_read_only=on",
+            # Nur-lesend reicht nicht: eine ungluecklich generierte Abfrage
+            # laeuft sonst ohne Zeitlimit gegen die Produktionsdatenbank.
+            # ttz-hub setzt dieses Limit seit jeher; hier fehlte es
+            # (achimdehnert/platform#2546).
+            "options": (
+                "-c default_transaction_read_only=on"
+                " -c statement_timeout="
+                + os.environ.get("ODOO_NL2SQL_STATEMENT_TIMEOUT_MS", "10000")
+            ),
         },
     },
 }

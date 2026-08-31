@@ -1,7 +1,9 @@
 Django>=5.0,<6.0
 gunicorn>=21.2
 psycopg2-binary>=2.9
-iil-aifw>=0.11.4,<1
+# 0.14.0 bringt den Stacked-Query-Schutz: bis 0.13.1 liess
+# NL2SQLEngine `SELECT * FROM a; SELECT pg_sleep(10)` durch (aifw#58).
+iil-aifw>=0.14.0,<1
 sqlglot>=25.0
 litellm>=1.30
 tenacity>=8.2
