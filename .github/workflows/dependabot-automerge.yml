@@ -1,0 +1,49 @@
+name: Dependabot auto-merge
+
+# Aktiviert Auto-Merge für Dependabot-**patch/minor**-Bumps, sobald die Required
+# Checks grün sind. **major**-Bumps werden bewusst NICHT angefasst → manuelle
+# Prüfung.
+#
+# Übernommen aus achimdehnert/platform (platform#3352-Strang, 2026-09-22).
+# WARUM HIER ZUERST: Dieses Repo deployt NICHT bei Push auf `main` — ein
+# Auto-Merge löst also keinen Produktions-Deploy aus. In den vier
+# Schwester-Repos (pptx-hub, travel-beat, dev-hub, wedding-hub) ist das anders,
+# und dort fehlt zusätzlich die Review-Pflicht im Ruleset: gemessen am
+# 2026-09-22 trägt keines von ihnen eine `pull_request`-Regel. Automerge dort
+# hieße, dass ein Bot Produktion ausrollt, ohne dass irgendwo ein Mensch
+# zustimmt. Deshalb zuerst die Review-Regel, dann der Automerge — nicht
+# umgekehrt.
+#
+# In `platform` selbst steht die Regel hinter `require_code_owner_review`; das
+# ist der Zustand, den die anderen erst erreichen müssen.
+#
+# Sicherheit: `pull_request_target` gibt Dependabot-PRs einen Schreib-Token
+# (auf `pull_request` ist er read-only). Es wird **kein PR-Code ausgecheckt**
+# oder ausgeführt — nur Metadaten gelesen + Auto-Merge gesetzt. Damit kein
+# untrusted-code-execution-Risiko.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    steps:
+      - name: Dependabot-Metadaten holen
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-Merge für patch/minor aktivieren
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor' }}
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
