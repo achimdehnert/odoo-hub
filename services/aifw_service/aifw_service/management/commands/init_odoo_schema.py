@@ -10,6 +10,7 @@ Usage:
     python manage.py init_odoo_schema
     python manage.py init_odoo_schema --provider anthropic --model claude-3-5-sonnet-20241022
 """
+
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
@@ -238,7 +239,9 @@ class Command(BaseCommand):
                 "api_key_env_var": f"{provider_name.upper()}_API_KEY",
             },
         )
-        self.stdout.write(f"{'Created' if created else 'Exists'}: Provider {provider.display_name}")
+        self.stdout.write(
+            f"{'Created' if created else 'Exists'}: Provider {provider.display_name}"
+        )
 
         def _get_or_create_model(model_name):
             defaults = {
@@ -252,7 +255,9 @@ class Command(BaseCommand):
             obj, created = LLMModel.objects.get_or_create(
                 provider=provider, name=model_name, defaults=defaults
             )
-            self.stdout.write(f"  {'Created' if created else 'Exists'}: Model {obj.name}")
+            self.stdout.write(
+                f"  {'Created' if created else 'Exists'}: Model {obj.name}"
+            )
             return obj
 
         primary_model = _get_or_create_model(options["model"])
@@ -320,6 +325,6 @@ class Command(BaseCommand):
                 f"\nNächste Schritte:\n"
                 f"  1. Sicherstellen dass ANTHROPIC_API_KEY oder OPENAI_API_KEY gesetzt ist\n"
                 f"  2. nl2sql_user in PostgreSQL anlegen (docker/db/init.sql)\n"
-                f"  3. Service testen: POST /nl2sql/query {{\"query\": \"Welche Maschinen sind in Störung?\"}}"
+                f'  3. Service testen: POST /nl2sql/query {{"query": "Welche Maschinen sind in Störung?"}}'
             )
         )

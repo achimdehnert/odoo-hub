@@ -9,6 +9,7 @@ Usage:
     python manage.py validate_schema --source odoo_mfg --strict
     python manage.py validate_schema --check  # exit 1 on errors (CI mode)
 """
+
 from __future__ import annotations
 
 import sys
@@ -44,9 +45,9 @@ class Command(BaseCommand):
         source_code = options["source"]
         source = SchemaSource.objects.filter(code=source_code, is_active=True).first()
         if not source:
-            self.stderr.write(self.style.ERROR(
-                f"SchemaSource '{source_code}' not found or inactive."
-            ))
+            self.stderr.write(
+                self.style.ERROR(f"SchemaSource '{source_code}' not found or inactive.")
+            )
             sys.exit(1)
 
         # Parse schema XML
@@ -63,7 +64,9 @@ class Command(BaseCommand):
 
         for table_name, xml_columns in schema_tables.items():
             if table_name not in db_tables:
-                errors.append(f"TABLE {table_name}: exists in schema XML but NOT in database")
+                errors.append(
+                    f"TABLE {table_name}: exists in schema XML but NOT in database"
+                )
                 continue
 
             db_columns = db_tables[table_name]
@@ -79,7 +82,10 @@ class Command(BaseCommand):
             if options["strict"]:
                 for col_name in db_columns:
                     if col_name not in xml_columns and col_name not in (
-                        "write_uid", "write_date", "create_uid", "create_date",
+                        "write_uid",
+                        "write_date",
+                        "create_uid",
+                        "create_date",
                         "__last_update",
                     ):
                         warnings.append(
@@ -88,17 +94,27 @@ class Command(BaseCommand):
 
         # Tables in DB matching prefix but not in XML
         if options["strict"]:
-            blocked = source.get_blocked_tables_set() if hasattr(source, "get_blocked_tables_set") else set()
-            all_db_tables = self._query_all_tables(db_alias, prefixes=["casting_", "scm_"])
+            blocked = (
+                source.get_blocked_tables_set()
+                if hasattr(source, "get_blocked_tables_set")
+                else set()
+            )
+            all_db_tables = self._query_all_tables(
+                db_alias, prefixes=["casting_", "scm_"]
+            )
             for t in all_db_tables:
                 if t not in schema_tables and t not in blocked:
-                    warnings.append(f"TABLE {t}: exists in database but NOT in schema XML")
+                    warnings.append(
+                        f"TABLE {t}: exists in database but NOT in schema XML"
+                    )
 
         # Output
         if errors:
-            self.stderr.write(self.style.ERROR(f"\n{'='*60}"))
-            self.stderr.write(self.style.ERROR(f"SCHEMA DRIFT DETECTED — {len(errors)} error(s)"))
-            self.stderr.write(self.style.ERROR(f"{'='*60}"))
+            self.stderr.write(self.style.ERROR(f"\n{'=' * 60}"))
+            self.stderr.write(
+                self.style.ERROR(f"SCHEMA DRIFT DETECTED — {len(errors)} error(s)")
+            )
+            self.stderr.write(self.style.ERROR(f"{'=' * 60}"))
             for e in errors:
                 self.stderr.write(self.style.ERROR(f"  ✗ {e}"))
 
@@ -108,15 +124,19 @@ class Command(BaseCommand):
                 self.stderr.write(self.style.WARNING(f"  ⚠ {w}"))
 
         if not errors and not warnings:
-            self.stdout.write(self.style.SUCCESS(
-                f"✓ Schema '{source_code}' is consistent with database "
-                f"({len(schema_tables)} tables, "
-                f"{sum(len(c) for c in schema_tables.values())} columns)"
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✓ Schema '{source_code}' is consistent with database "
+                    f"({len(schema_tables)} tables, "
+                    f"{sum(len(c) for c in schema_tables.values())} columns)"
+                )
+            )
         elif not errors:
-            self.stdout.write(self.style.SUCCESS(
-                f"✓ No errors — {len(warnings)} warnings (use --strict for details)"
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✓ No errors — {len(warnings)} warnings (use --strict for details)"
+                )
+            )
 
         if options["check"] and errors:
             sys.exit(1)

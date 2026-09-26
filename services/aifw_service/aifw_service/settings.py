@@ -12,6 +12,7 @@ Design decisions:
   - LLM API keys: passed through docker-compose environment — litellm reads them
     directly from os.environ, no re-assignment needed.
 """
+
 import os
 
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
@@ -27,7 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "aifw",
-    "aifw.nl2sql",   # optional NL2SQL component — activates NL2SQLConfig + migrations
+    "aifw.nl2sql",  # optional NL2SQL component — activates NL2SQLConfig + migrations
     "aifw_service",  # required for management command discovery (init_odoo_schema)
 ]
 

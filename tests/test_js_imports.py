@@ -41,9 +41,9 @@ VALID_IMPORT_PREFIXES = (
     "@odoo/",
     "./",
     "../",
-    "\"./",
+    '"./',
     "'./",
-    "\"../",
+    '"../',
     "'../",
 )
 
@@ -61,7 +61,8 @@ FORBIDDEN_XML_PATTERNS = [
 
 def _get_addon_dirs() -> list[Path]:
     return [
-        d for d in ADDONS_DIR.iterdir()
+        d
+        for d in ADDONS_DIR.iterdir()
         if d.is_dir() and (d / "__manifest__.py").exists()
     ]
 
@@ -113,22 +114,24 @@ class TestJsImports:
         violations = []
 
         # Pattern 1: from "@other_module/..." — cross-module alias import
-        cross_alias = re.compile(r'from\s+["\']@(?!web/|odoo/)([^/"\'\.][^"\']*)["\']\'?')
+        cross_alias = re.compile(
+            r'from\s+["\']@(?!web/|odoo/)([^/"\'\.][^"\']*)["\']\'?'
+        )
         for match in cross_alias.finditer(source):
             imported_path = match.group(1)
             # Allow if the alias starts with own module name (intra-module)
             if imported_path.startswith(addon_name + "/"):
                 continue
-            line_num = source[:match.start()].count("\n") + 1
+            line_num = source[: match.start()].count("\n") + 1
             violations.append(f"  Line {line_num}: {match.group(0)!r}")
 
         # Pattern 2: from "other_module/static/src/..." — full path cross-module
         full_path = re.compile(
-            r'from\s+["\'](?!@|\.\./|\./|' + re.escape(addon_name) + r'/)'
+            r'from\s+["\'](?!@|\.\./|\./|' + re.escape(addon_name) + r"/)"
             r'([a-zA-Z_][a-zA-Z0-9_]*/static/[^"\']*)["\']\'?'
         )
         for match in full_path.finditer(source):
-            line_num = source[:match.start()].count("\n") + 1
+            line_num = source[: match.start()].count("\n") + 1
             violations.append(f"  Line {line_num}: {match.group(0)!r}")
 
         assert not violations, (
@@ -137,8 +140,8 @@ class TestJsImports:
             f"Odoo 18 can only resolve @web/, @odoo/, and relative (./) imports.\n"
             f"Imports from OTHER modules (@other_module/...) freeze the OWL app.\n"
             f"Violations:\n" + "\n".join(violations) + "\n\n"
-            f"Fix: duplicate the needed code into this module, or use the OWL "
-            f"registry pattern. See docs/adr/ADR-006-ODOO18-JS-IMPORTS.md"
+            "Fix: duplicate the needed code into this module, or use the OWL "
+            "registry pattern. See docs/adr/ADR-006-ODOO18-JS-IMPORTS.md"
         )
 
 
@@ -160,5 +163,5 @@ class TestXmlTemplates:
             f"In Odoo 18 QWeb, a self-closing t-inherit-mode=primary tag produces\n"
             f"an undefined template, causing OWL to freeze on mount.\n"
             f"Violations:\n" + "\n".join(violations) + "\n\n"
-            f"Fix: provide a full template body, or use t-inherit-mode='extension'."
+            "Fix: provide a full template body, or use t-inherit-mode='extension'."
         )

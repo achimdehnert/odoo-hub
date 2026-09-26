@@ -11,6 +11,7 @@ missing tables, wrong FK descriptions). This suite catches those at CI time.
 Usage:
     pytest tests/test_nl2sql_golden.py -v
 """
+
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
@@ -74,6 +75,7 @@ def schema_tables(schema_root: ET.Element) -> dict[str, dict]:
 # Structural tests
 # ---------------------------------------------------------------------------
 
+
 class TestSchemaStructure:
     """Basic schema XML structure validation."""
 
@@ -114,6 +116,7 @@ class TestSchemaStructure:
 # Domain-specific golden rules
 # ---------------------------------------------------------------------------
 
+
 class TestCastingDomainRules:
     """Rules specific to the casting/foundry domain schema."""
 
@@ -122,17 +125,14 @@ class TestCastingDomainRules:
         co = schema_tables.get("casting_order")
         assert co is not None, "casting_order table missing"
         assert "machine_id" not in co["columns"], (
-            "casting_order must NOT have machine_id — "
-            "it belongs on casting_order_line"
+            "casting_order must NOT have machine_id — it belongs on casting_order_line"
         )
 
     def test_machine_id_on_casting_order_line(self, schema_tables):
         """machine_id MUST be on casting_order_line."""
         col = schema_tables.get("casting_order_line")
         assert col is not None, "casting_order_line table missing"
-        assert "machine_id" in col["columns"], (
-            "casting_order_line must have machine_id"
-        )
+        assert "machine_id" in col["columns"], "casting_order_line must have machine_id"
 
     def test_casting_order_line_has_order_fk(self, schema_tables):
         """casting_order_line must have order_id FK to casting_order."""
@@ -224,6 +224,7 @@ class TestSCMDomainRules:
 # ---------------------------------------------------------------------------
 # Sample query consistency
 # ---------------------------------------------------------------------------
+
 
 class TestSampleQueries:
     """Validate that sample queries reference columns that exist."""

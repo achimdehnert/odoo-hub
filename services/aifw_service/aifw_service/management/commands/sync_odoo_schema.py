@@ -23,37 +23,56 @@ Usage:
     python manage.py sync_odoo_schema --db-alias odoo --dry-run
     python manage.py sync_odoo_schema --source odoo_mfg --output schema.xml
 """
+
 from __future__ import annotations
 
-import json
 import xml.etree.ElementTree as ET
 from io import StringIO
 
 from django.core.management.base import BaseCommand
-
 
 # ---------------------------------------------------------------------------
 # XML generation
 # ---------------------------------------------------------------------------
 
 TYPE_MAP = {
-    "integer": "integer", "float": "numeric", "monetary": "numeric",
-    "char": "varchar", "text": "text", "boolean": "boolean",
-    "date": "date", "datetime": "timestamp",
-    "selection": "varchar", "many2one": "integer",
+    "integer": "integer",
+    "float": "numeric",
+    "monetary": "numeric",
+    "char": "varchar",
+    "text": "text",
+    "boolean": "boolean",
+    "date": "date",
+    "datetime": "timestamp",
+    "selection": "varchar",
+    "many2one": "integer",
 }
 
 SCALAR_TYPES = {
-    "integer", "float", "monetary", "char", "text",
-    "boolean", "date", "datetime", "selection", "many2one",
+    "integer",
+    "float",
+    "monetary",
+    "char",
+    "text",
+    "boolean",
+    "date",
+    "datetime",
+    "selection",
+    "many2one",
 }
 
 
 def _build_schema_xml(tables: list, source_name: str = "odoo_mfg") -> str:
-    root = ET.Element("schema", name=source_name, description="Odoo 18 Manufacturing + SCM — auto-sync")
+    root = ET.Element(
+        "schema",
+        name=source_name,
+        description="Odoo 18 Manufacturing + SCM — auto-sync",
+    )
 
     for table_meta in tables:
-        tbl = ET.SubElement(root, "table",
+        tbl = ET.SubElement(
+            root,
+            "table",
             name=table_meta["table"],
             domain=table_meta.get("domain", ""),
         )
@@ -65,8 +84,8 @@ def _build_schema_xml(tables: list, source_name: str = "odoo_mfg") -> str:
         for col in table_meta.get("columns", []):
             col_type = TYPE_MAP.get(col.get("type", ""), col.get("type", "varchar"))
             attrs = {
-                "name":  col["name"],
-                "type":  col_type,
+                "name": col["name"],
+                "type": col_type,
                 "label": col.get("label") or col["name"],
             }
             col_el = ET.SubElement(tbl, "column", **attrs)
@@ -92,7 +111,9 @@ def _build_schema_xml(tables: list, source_name: str = "odoo_mfg") -> str:
             if col.get("type") not in SCALAR_TYPES:
                 continue
             col_type = TYPE_MAP.get(col.get("type", ""), "varchar")
-            col_el = ET.SubElement(tbl, "column",
+            col_el = ET.SubElement(
+                tbl,
+                "column",
                 name=col["name"],
                 type=col_type,
                 label=col.get("label") or col["name"],
@@ -101,7 +122,9 @@ def _build_schema_xml(tables: list, source_name: str = "odoo_mfg") -> str:
 
     # Pretty-print
     _indent(root)
-    tree = ET.ElementTree(root)
+    # `ET.ElementTree(root)` stand hier und wurde nie gelesen — die Serialisierung
+    # laeuft ueber `ET.tostring(root, ...)` zwei Zeilen tiefer. Rest einer frueheren
+    # Fassung, die vermutlich `tree.write(...)` benutzte (odoo-hub#28).
     buf = StringIO()
     buf.write('<?xml version="1.0" encoding="utf-8"?>\n')
     buf.write(ET.tostring(root, encoding="unicode"))
@@ -128,18 +151,26 @@ def _indent(elem, level=0):
 # Command
 # ---------------------------------------------------------------------------
 
+
 class Command(BaseCommand):
     help = "Sync Schema-XML aus Odoo ir.model.fields (direkte DB-Abfrage via DATABASES['odoo'])"
 
     def add_arguments(self, parser) -> None:
-        parser.add_argument("--db-alias", default="odoo", dest="db_alias",
-                            help="Django DATABASES-Alias der Odoo-DB (Standard: odoo)")
-        parser.add_argument("--source", default="odoo_mfg",
-                            help="SchemaSource-Code in aifw-DB")
-        parser.add_argument("--output", default="",
-                            help="XML in Datei schreiben statt DB-Update")
-        parser.add_argument("--dry-run", action="store_true",
-                            help="XML ausgeben ohne DB zu ändern")
+        parser.add_argument(
+            "--db-alias",
+            default="odoo",
+            dest="db_alias",
+            help="Django DATABASES-Alias der Odoo-DB (Standard: odoo)",
+        )
+        parser.add_argument(
+            "--source", default="odoo_mfg", help="SchemaSource-Code in aifw-DB"
+        )
+        parser.add_argument(
+            "--output", default="", help="XML in Datei schreiben statt DB-Update"
+        )
+        parser.add_argument(
+            "--dry-run", action="store_true", help="XML ausgeben ohne DB zu ändern"
+        )
 
     def handle(self, *args, **options) -> None:
         from django.db import connections
@@ -160,7 +191,12 @@ class Command(BaseCommand):
                     ORDER BY t.domain, t.name
                 """)
                 schema_tables = [
-                    {"name": r[0], "model_name": r[1] or "", "domain": r[2] or "", "description": r[3] or ""}
+                    {
+                        "name": r[0],
+                        "model_name": r[1] or "",
+                        "domain": r[2] or "",
+                        "description": r[3] or "",
+                    }
                     for r in cur.fetchall()
                 ]
         except Exception as e:
@@ -168,10 +204,12 @@ class Command(BaseCommand):
             return
 
         if not schema_tables:
-            self.stderr.write(self.style.WARNING(
-                "  nl2sql_schema_table ist leer — Schema-Tabellen anlegen:\n"
-                "  Odoo > NL2SQL Dashboard > Schema-Verwaltung"
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    "  nl2sql_schema_table ist leer — Schema-Tabellen anlegen:\n"
+                    "  Odoo > NL2SQL Dashboard > Schema-Verwaltung"
+                )
+            )
             return
         self.stdout.write(f"  ✓ {len(schema_tables)} Tabellen")
 
@@ -186,7 +224,8 @@ class Command(BaseCommand):
                 columns = []
 
                 if model_name:
-                    cur.execute("""
+                    cur.execute(
+                        """
                         SELECT
                             f.name,
                             f.field_description->>'en_US'  AS label,
@@ -199,33 +238,39 @@ class Command(BaseCommand):
                           AND f.ttype != ALL(%s)
                           AND f.name != ALL(%s)
                         ORDER BY f.name
-                    """, [
-                        model_name,
-                        list(SKIP_TYPES),
-                        list(SKIP_FIELDS),
-                    ])
+                    """,
+                        [
+                            model_name,
+                            list(SKIP_TYPES),
+                            list(SKIP_FIELDS),
+                        ],
+                    )
                     for fname, label, ftype, fhelp in cur.fetchall():
-                        columns.append({
-                            "name":        fname,
-                            "label":       label or fname,
-                            "type":        ftype,
-                            "description": fhelp,
-                            "fk_table":    "",
-                            "selection":   "",
-                        })
+                        columns.append(
+                            {
+                                "name": fname,
+                                "label": label or fname,
+                                "type": ftype,
+                                "description": fhelp,
+                                "fk_table": "",
+                                "selection": "",
+                            }
+                        )
 
                 labeled = sum(1 for c in columns if c["label"] != c["name"])
                 self.stdout.write(
                     f"  [{st['name']}] {len(columns)} Spalten, {labeled} mit Odoo-Label"
                 )
-                tables.append({
-                    "table":        st["name"],
-                    "model":        model_name,
-                    "domain":       st["domain"],
-                    "description":  st["description"],
-                    "columns":      columns,
-                    "extra_fields": [],
-                })
+                tables.append(
+                    {
+                        "table": st["name"],
+                        "model": model_name,
+                        "domain": st["domain"],
+                        "description": st["description"],
+                        "columns": columns,
+                        "extra_fields": [],
+                    }
+                )
 
         # 3. Build XML
         self.stdout.write("→ Generiere Schema-XML mit label-Attributen …")
@@ -242,11 +287,14 @@ class Command(BaseCommand):
 
         # 4b. Dry-run
         if dry_run:
-            self.stdout.write("\n" + schema_xml[:3000] + ("\n…[truncated]" if xml_len > 3000 else ""))
+            self.stdout.write(
+                "\n" + schema_xml[:3000] + ("\n…[truncated]" if xml_len > 3000 else "")
+            )
             return
 
         # 4c. Update SchemaSource
         from aifw.nl2sql.models import SchemaSource
+
         source, created = SchemaSource.objects.update_or_create(
             code=source_code,
             defaults={

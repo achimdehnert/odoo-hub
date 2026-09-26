@@ -18,6 +18,7 @@ aifw/tests/test_nl2sql_readonly.py.
 Both addon generations (addons/ = Odoo 18 prod, addons_v19/ = Odoo 19
 staging) are covered via parametrization.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -55,6 +56,7 @@ def _install_stubs():
         def route(*args, **kwargs):
             def deco(func):
                 return func
+
             return deco
 
         http_mod.Controller = Controller
@@ -77,9 +79,7 @@ def controller_mod(request):
     _install_stubs()
     version = request.param
     path = CONTROLLER_PATHS[version]
-    spec = importlib.util.spec_from_file_location(
-        f"nl2sql_controller_{version}", path
-    )
+    spec = importlib.util.spec_from_file_location(f"nl2sql_controller_{version}", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     mod.__test_source_path__ = path
@@ -131,9 +131,7 @@ def _make_controller(controller_mod, fake_cr, timeout_s=10):
     ctrl = controller_mod.NL2SQLController()
     # Bypass ir.config_parameter (needs Odoo env)
     ctrl._get_llm_config = lambda: {"timeout": timeout_s, "max_rows": 1000}
-    controller_mod.request.env = types.SimpleNamespace(
-        registry=FakeRegistry(fake_cr)
-    )
+    controller_mod.request.env = types.SimpleNamespace(registry=FakeRegistry(fake_cr))
     return ctrl
 
 
