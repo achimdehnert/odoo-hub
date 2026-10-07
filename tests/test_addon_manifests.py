@@ -8,7 +8,6 @@ These tests run in CI without an Odoo installation. They validate:
 """
 
 import ast
-import os
 from pathlib import Path
 
 import pytest
@@ -29,7 +28,8 @@ VALID_LICENSES = {"LGPL-3", "AGPL-3", "OPL-1", "MIT", "Apache-2.0"}
 def _get_addon_dirs() -> list[Path]:
     """Return all addon directories that contain a __manifest__.py."""
     return [
-        d for d in ADDONS_DIR.iterdir()
+        d
+        for d in ADDONS_DIR.iterdir()
         if d.is_dir() and (d / "__manifest__.py").exists()
     ]
 
@@ -70,7 +70,9 @@ class TestManifestStructure:
         assert len(parts) == 5, (
             f"{addon_dir.name}: version '{version}' must be X.Y.A.B.C (e.g. 18.0.1.0.0)"
         )
-        assert parts[0] == "18", f"{addon_dir.name}: must target Odoo 18, got '{parts[0]}'"
+        assert parts[0] == "18", (
+            f"{addon_dir.name}: must target Odoo 18, got '{parts[0]}'"
+        )
 
     def test_should_have_valid_license(self, addon_dir: Path) -> None:
         manifest = _load_manifest(addon_dir)
@@ -87,13 +89,17 @@ class TestManifestStructure:
 
     def test_should_have_non_empty_name(self, addon_dir: Path) -> None:
         manifest = _load_manifest(addon_dir)
-        assert manifest.get("name", "").strip(), f"{addon_dir.name}: name must not be empty"
+        assert manifest.get("name", "").strip(), (
+            f"{addon_dir.name}: name must not be empty"
+        )
 
     def test_should_have_depends_list(self, addon_dir: Path) -> None:
         manifest = _load_manifest(addon_dir)
         depends = manifest.get("depends", None)
         assert isinstance(depends, list), f"{addon_dir.name}: depends must be a list"
-        assert len(depends) >= 1, f"{addon_dir.name}: depends must include at least 'base'"
+        assert len(depends) >= 1, (
+            f"{addon_dir.name}: depends must include at least 'base'"
+        )
 
 
 @pytest.mark.parametrize("addon_dir", ADDON_DIRS, ids=ADDON_IDS)
@@ -126,6 +132,4 @@ class TestAddonFileStructure:
             full_path = addon_dir / rel_path
             if not full_path.exists():
                 missing.append(rel_path)
-        assert not missing, (
-            f"{addon_dir.name}: data files missing: {missing}"
-        )
+        assert not missing, f"{addon_dir.name}: data files missing: {missing}"

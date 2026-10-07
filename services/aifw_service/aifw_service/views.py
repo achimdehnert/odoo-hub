@@ -4,6 +4,7 @@ aifw-service HTTP Views.
 POST /nl2sql/query  — NL2SQL pipeline via NL2SQLEngine
 GET  /health        — liveness probe
 """
+
 import json
 import logging
 
@@ -28,6 +29,7 @@ def nl2sql_examples(request):
     if request.method == "GET":
         try:
             from aifw.nl2sql.models import NL2SQLExample
+
             qs = NL2SQLExample.objects.select_related("source").filter(is_active=True)
             results = [
                 {
@@ -54,11 +56,17 @@ def nl2sql_examples(request):
             return JsonResponse({"success": False, "error": str(exc)}, status=400)
         try:
             from aifw.nl2sql.models import NL2SQLExample, SchemaSource
+
             source_code = body.get("source_code", "odoo_mfg")
-            source = SchemaSource.objects.filter(code=source_code, is_active=True).first()
+            source = SchemaSource.objects.filter(
+                code=source_code, is_active=True
+            ).first()
             if not source:
                 return JsonResponse(
-                    {"success": False, "error": f"SchemaSource '{source_code}' nicht gefunden"},
+                    {
+                        "success": False,
+                        "error": f"SchemaSource '{source_code}' nicht gefunden",
+                    },
                     status=400,
                 )
             ex = NL2SQLExample.objects.create(
@@ -86,7 +94,10 @@ def nl2sql_feedback_list(request):
         return JsonResponse({"error": "Method not allowed"}, status=405)
     try:
         from aifw.nl2sql.models import NL2SQLFeedback
-        qs = NL2SQLFeedback.objects.select_related("source").order_by("-created_at")[:200]
+
+        qs = NL2SQLFeedback.objects.select_related("source").order_by("-created_at")[
+            :200
+        ]
         results = [
             {
                 "id": fb.id,
@@ -129,10 +140,16 @@ def nl2sql_feedback_promote(request, feedback_id: int):
 
     try:
         from aifw.nl2sql.models import NL2SQLExample, NL2SQLFeedback
-        fb = NL2SQLFeedback.objects.select_related("source").filter(id=feedback_id).first()
+
+        fb = (
+            NL2SQLFeedback.objects.select_related("source")
+            .filter(id=feedback_id)
+            .first()
+        )
         if not fb:
             return JsonResponse(
-                {"success": False, "error": f"Feedback {feedback_id} nicht gefunden"}, status=404
+                {"success": False, "error": f"Feedback {feedback_id} nicht gefunden"},
+                status=404,
             )
         if fb.promoted:
             return JsonResponse(
@@ -207,14 +224,22 @@ def nl2sql_query(request):
         body = json.loads(request.body)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         return JsonResponse(
-            {"success": False, "error": f"Ungültiger JSON-Body: {exc}", "error_type": "ParseError"},
+            {
+                "success": False,
+                "error": f"Ungültiger JSON-Body: {exc}",
+                "error_type": "ParseError",
+            },
             status=400,
         )
 
     query = (body.get("query") or "").strip()
     if not query:
         return JsonResponse(
-            {"success": False, "error": "Parameter 'query' fehlt oder leer.", "error_type": "ValidationError"},
+            {
+                "success": False,
+                "error": "Parameter 'query' fehlt oder leer.",
+                "error_type": "ValidationError",
+            },
             status=400,
         )
 
@@ -228,8 +253,12 @@ def nl2sql_query(request):
         engine = NL2SQLEngine(
             source_code=source_code,
             clarification_domains=[
-                "Maschinen", "Gießaufträge", "Qualitätsprüfungen",
-                "Einkauf/SCM", "Lager", "Produkte",
+                "Maschinen",
+                "Gießaufträge",
+                "Qualitätsprüfungen",
+                "Einkauf/SCM",
+                "Lager",
+                "Produkte",
             ],
         )
         result = engine.ask(
@@ -260,21 +289,25 @@ def nl2sql_query(request):
 
     if result.needs_clarification:
         opts = []
-        for o in (result.clarification_options or []):
+        for o in result.clarification_options or []:
             if isinstance(o, dict):
                 opts.append(o)
             else:
-                opts.append({
-                    "label": getattr(o, "label", str(o)),
-                    "description": getattr(o, "description", ""),
-                    "hint": getattr(o, "hint", ""),
-                })
-        return JsonResponse({
-            "success": False,
-            "needs_clarification": True,
-            "clarification_question": result.clarification_question or "",
-            "clarification_options": opts,
-        })
+                opts.append(
+                    {
+                        "label": getattr(o, "label", str(o)),
+                        "description": getattr(o, "description", ""),
+                        "hint": getattr(o, "hint", ""),
+                    }
+                )
+        return JsonResponse(
+            {
+                "success": False,
+                "needs_clarification": True,
+                "clarification_question": result.clarification_question or "",
+                "clarification_options": opts,
+            }
+        )
 
     if not result.success:
         return JsonResponse(
@@ -293,26 +326,28 @@ def nl2sql_query(request):
     fmt = result.formatted
     chart = fmt.chart
 
-    return JsonResponse({
-        "success": True,
-        "sql": result.sql,
-        "columns": fmt.columns,
-        "rows": fmt.rows,
-        "row_count": fmt.row_count,
-        "execution_time_ms": round(fmt.execution_time_ms, 1),
-        "truncated": fmt.truncated,
-        "chart_type": chart.chart_type,
-        "chart": {
-            "x_column": chart.x_column,
-            "y_columns": chart.y_columns,
-            "title": chart.title,
-            "reasoning": chart.reasoning,
-        },
-        "warnings": result.warnings,
-        "summary": fmt.summary,
-        "model_used": result.generation.model_used if result.generation else "",
-        "tokens": {
-            "input": result.generation.input_tokens if result.generation else 0,
-            "output": result.generation.output_tokens if result.generation else 0,
-        },
-    })
+    return JsonResponse(
+        {
+            "success": True,
+            "sql": result.sql,
+            "columns": fmt.columns,
+            "rows": fmt.rows,
+            "row_count": fmt.row_count,
+            "execution_time_ms": round(fmt.execution_time_ms, 1),
+            "truncated": fmt.truncated,
+            "chart_type": chart.chart_type,
+            "chart": {
+                "x_column": chart.x_column,
+                "y_columns": chart.y_columns,
+                "title": chart.title,
+                "reasoning": chart.reasoning,
+            },
+            "warnings": result.warnings,
+            "summary": fmt.summary,
+            "model_used": result.generation.model_used if result.generation else "",
+            "tokens": {
+                "input": result.generation.input_tokens if result.generation else 0,
+                "output": result.generation.output_tokens if result.generation else 0,
+            },
+        }
+    )

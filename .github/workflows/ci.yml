@@ -21,7 +21,12 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ruff
-      - run: ruff check addons/
+      - run: ruff check addons/ services/ tests/
+      # format NUR fuer services/ und tests/: dort sind es 12 Dateien, in addons/
+      # waeren es 51. Ein Massen-Reformat der Odoo-Module ist ein eigener Vorgang
+      # mit eigenem Risiko — er verdeckt kuenftige echte Diffs im `git blame` und
+      # gehoert nicht beilaeufig in ein Lint-Gate (odoo-hub#28).
+      - run: ruff format --check services/ tests/
 
   test:
     name: "Addon Tests"
