@@ -1,0 +1,66 @@
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  CODE SCANNING — CodeQL für Python und JavaScript                        ║
+# ║  Future-Readiness D06.5: Repo ist oeffentlich, Kritikalitaet hoch,       ║
+# ║  und Code Scanning meldete "no analysis found".                          ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+#
+# Warum ueberhaupt: fuer OEFFENTLICHE Repos ist CodeQL kostenlos. Dieses Repo ist
+# oeffentlich und traegt Django-Code, der Anfragen entgegennimmt. Ohne Analyse
+# steht im Sicherheits-Reiter nichts, und "keine Befunde" ist dann nicht von
+# "nie hingesehen" zu unterscheiden.
+#
+# Warum nicht nur ein SARIF-Upload: ein hochgeladenes Fremdergebnis (etwa Trivy)
+# fuellt zwar den Reiter, beantwortet aber eine andere Frage — Trivy findet
+# verwundbare ABHAENGIGKEITEN, CodeQL findet Fehler im EIGENEN Code. D06.5 fragt
+# nach dem zweiten.
+
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Montags frueh. Ein woechentlicher Lauf faengt Befunde, die erst durch neue
+    # CodeQL-Regeln entstehen, ohne dass sich der Code geaendert hat.
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+# Grundsatz: nur lesen. Die eine Schreibberechtigung steht am Job, nicht hier.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: "Analyse (${{ matrix.language }})"
+    runs-on: ubuntu-latest
+    permissions:
+      # Genau eine Erweiterung, und nur hier: ohne sie kann der Lauf sein
+      # Ergebnis nicht in den Sicherheits-Reiter schreiben.
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # Gemessen an den Sprachanteilen des Repos: Python 565 kB,
+        # JavaScript 143 kB. CSS und HTML kann CodeQL nicht analysieren.
+        language: ["python", "javascript-typescript"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # SHA-gepinnt: `github/codeql-action` ist eine Fremd-Action und faellt
+      # damit NICHT unter die `actions/*`-Ausnahme von ADR-262 Stufe 1.
+      # Aufgeloest per `git ls-remote refs/tags/v4^{}` am 2026-09-08.
+      - name: "CodeQL vorbereiten"
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: "Analyse"
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          category: "/language:${{ matrix.language }}"
