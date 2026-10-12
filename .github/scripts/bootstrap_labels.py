@@ -3,7 +3,7 @@
 import argparse, json, os, sys
 from urllib import error, request
 
-REPO = os.environ.get("GITHUB_REPOSITORY", "achimdehnert/odoo-hub")
+REPO = os.environ.get("GITHUB_REPOSITORY", "iilgmbh/odoo-hub")
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 LABELS = [('type:feature', '0075ca', 'New feature or enhancement'), ('type:bug', 'd73a4a', 'Something is broken'), ('type:refactor', '0075ca', 'Code improvement without behavior change'), ('type:test', '0075ca', 'Test coverage improvement'), ('type:docs', '0075ca', 'Documentation update'), ('type:adr', '0075ca', 'Architecture Decision Record'), ('type:chore', '0075ca', 'Maintenance / tooling'), ('complexity:trivial', 'e4e669', '< 1h, single line change'), ('complexity:simple', 'e4e669', '< 1 day, one component'), ('complexity:moderate', 'e4e669', '1–3 days, multiple components'), ('complexity:complex', 'e4e669', '3–5 days, cross-app changes'), ('complexity:architectural', 'e4e669', '> 5 days, system-wide impact'), ('risk:high', 'd93f0b', 'High risk — careful review needed'), ('risk:critical', 'b60205', 'Critical risk — security/data impact'), ('scope:tests', 'c5def5', 'Test files affected'), ('scope:ci', 'c5def5', 'CI/CD pipeline affected'), ('scope:config', 'c5def5', 'Configuration affected'), ('scope:infrastructure', 'c5def5', 'Infrastructure / docker affected'), ('app:addons', '0e8a16', 'Odoo addons')]

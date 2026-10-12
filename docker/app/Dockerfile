@@ -8,7 +8,7 @@ FROM ${ODOO_BASE}
 ARG GIT_SHA=unknown
 ARG BUILD_DATE=unknown
 
-LABEL org.opencontainers.image.source="https://github.com/achimdehnert/odoo-hub"
+LABEL org.opencontainers.image.source="https://github.com/iilgmbh/odoo-hub"
 LABEL org.opencontainers.image.revision="${GIT_SHA}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.title="odoo-hub"

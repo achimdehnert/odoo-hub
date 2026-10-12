@@ -66,8 +66,8 @@ jobs:
           file: docker/app/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/achimdehnert/odoo-hub:latest
-            ghcr.io/achimdehnert/odoo-hub:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
@@ -100,5 +100,5 @@ jobs:
           # nicht die Veroeffentlichung. Gleiches Muster wie beim odoo-Image.
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/achimdehnert/odoo-hub/aifw-service:latest
-            ghcr.io/achimdehnert/odoo-hub/aifw-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/aifw-service:latest
+            ghcr.io/${{ github.repository }}/aifw-service:${{ github.sha }}

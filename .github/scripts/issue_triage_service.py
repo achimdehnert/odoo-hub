@@ -10,7 +10,7 @@ import json as _json
 
 logger = logging.getLogger(__name__)
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
-GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "achimdehnert/odoo-hub")
+GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "iilgmbh/odoo-hub")
 
 TYPE_LABELS: dict[str, str] = {
     "feature":"type:feature","bugfix":"type:bug","refactor":"type:refactor",
