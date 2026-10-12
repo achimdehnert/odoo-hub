@@ -5,11 +5,11 @@ metadata:
   description: Odoo ERP integration hub — custom modules and deployment for odoo.iil.pet
   tags: [odoo, erp, python, docker]
   annotations:
-    github.com/project-slug: achimdehnert/odoo-hub
+    github.com/project-slug: iilgmbh/odoo-hub
     deployment/server: "46.225.127.211"
     deployment/path: "/opt/odoo-hub"
     deployment/health-url: "https://odoo.iil.pet/web/login"
-    deployment/image: "ghcr.io/achimdehnert/odoo-hub:latest"
+    deployment/image: "ghcr.io/iilgmbh/odoo-hub:latest"
 spec:
   type: service
   lifecycle: production

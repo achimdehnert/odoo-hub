@@ -14,7 +14,7 @@ def main() -> int:
     args = parser.parse_args()
     service = IssueTriageService(
         github_token=os.environ.get("GITHUB_TOKEN",""),
-        github_repo=os.environ.get("GITHUB_REPOSITORY","achimdehnert/odoo-hub"),
+        github_repo=os.environ.get("GITHUB_REPOSITORY","iilgmbh/odoo-hub"),
         tier=args.tier, dry_run=args.dry_run,
     )
     print(f"Triage Issue #{args.issue_number}: {args.title[:60]}")
