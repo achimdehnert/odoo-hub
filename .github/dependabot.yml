@@ -8,6 +8,12 @@ updates:
       prefix: "ci"
     labels:
       - "ci"
+    # init und analyze muessen dieselbe Version tragen, sonst bricht
+    # analyze mit "Loaded a configuration file for version …" ab (#36/#37).
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
 
   - package-ecosystem: "docker"
     directory: "/"
