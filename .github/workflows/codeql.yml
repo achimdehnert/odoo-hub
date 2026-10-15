@@ -49,7 +49,7 @@ jobs:
         language: ["python", "javascript-typescript"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # SHA-gepinnt: `github/codeql-action` ist eine Fremd-Action und faellt
       # damit NICHT unter die `actions/*`-Ausnahme von ADR-262 Stufe 1.
